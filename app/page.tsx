@@ -8,7 +8,7 @@ import { useAuthUser } from "./hooks/useAuthUser";
 import { Loader } from "lucide-react";
 
 export default function Home() {
-  const { login, logout, ready, authenticated, user } = usePrivy();
+  const { login, logout, exportWallet, ready, authenticated, user } = usePrivy();
   const { user: authUser, loading: authLoading, error: authError } = useAuthUser();
   const [darkMode, setDarkMode] = useState(false);
 
@@ -26,11 +26,20 @@ export default function Home() {
     localStorage.setItem("theme", next ? "dark" : "light");
   }
 
+  const footer = (
+    <p className="text-gray-600 text-xs pt-6">
+      Questions or concerns? Contact{" "}
+      <a href="mailto:support@omen.trading" className="underline">
+        support@omen.trading
+      </a>
+    </p>
+  );
+
   if (!ready) return null;
 
-  if (authenticated && (authLoading || !authUser)) {
+  if (authenticated && authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen flex-col items-center justify-center">
         <Loader className="h-10 w-10 animate-spin duration-1000" />
       </div>
     );
@@ -38,18 +47,40 @@ export default function Home() {
 
   if (authenticated && authError) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-black/[.08] p-8 dark:border-white/[.145]">
-          <p className="text-sm text-red-500">Authentication error: {authError}</p>
-          <Button variant="secondary" onClick={logout}>Log Out</Button>
+      <div className="flex min-h-screen flex-col items-center px-4 pt-24">
+        <div className="flex w-full max-w-sm flex-col gap-6 rounded-2xl border border-black/[.08] p-8 dark:border-white/[.145]">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-semibold">Omen</h1>
+            <button
+              onClick={logout}
+              className="rounded-md p-1.5 text-zinc-500 hover:text-foreground dark:text-zinc-400 text-sm"
+            >
+              Log out
+            </button>
+          </div>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-sm font-semibold">No Account Found</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              You don&apos;t have an Omen account yet. Sign up through the mobile app to get started.
+            </p>
+            <a
+              href="https://omen.trading"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium underline"
+            >
+              Download the app at omen.trading
+            </a>
+          </div>
         </div>
+        {footer}
       </div>
     );
   }
 
   if (authenticated && authUser) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="flex min-h-screen flex-col items-center px-4 pt-24">
         <div className="flex w-full max-w-sm flex-col gap-6 rounded-2xl border border-black/[.08] p-8 dark:border-white/[.145]">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Omen</h1>
@@ -92,22 +123,60 @@ export default function Home() {
               </PopoverContent>
             </Popover>
           </div>
+          {user?.wallet ? (
+            <>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-sm font-semibold">Backup / Security</h2>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Export your wallet&apos;s private key for safekeeping. Your private key gives full control over your wallet and funds.
+                </p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Never share it with anyone, store it in a secure offline location, and be aware that anyone with access to it can move your assets permanently.
+                </p>
+              </div>
+              <Button onClick={exportWallet}>Export Wallet</Button>
+            </>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <h2 className="text-sm font-semibold">No Wallet</h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                You don&apos;t have a wallet created yet. Sign up through the mobile app to get started.
+              </p>
+              <a
+                href="https://omen.trading"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium underline"
+              >
+                Download the app at omen.trading
+              </a>
+            </div>
+          )}
         </div>
+        {footer}
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen flex-col items-center px-4 pt-24">
       <div className="flex w-full max-w-sm flex-col gap-6 rounded-2xl border border-black/[.08] p-8 dark:border-white/[.145]">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold">Omen</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Sign in to get started.
+            Sign in to manage your wallet and account.
           </p>
         </div>
         <Button onClick={login}>Log In</Button>
+        <p className="-mt-4 text-xs text-zinc-500 dark:text-zinc-400">
+          By signing up you agree to our{" "}
+          <a href="https://omen.trading/terms" target="_blank" rel="noopener noreferrer" className="underline">
+            Terms of Service
+          </a>
+          .
+        </p>
       </div>
+      {footer}
     </div>
   );
 }
