@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Button from "./components/button/Button";
@@ -107,6 +108,14 @@ export default function Home() {
                     <p className="text-xs text-muted-foreground">{user.id}</p>
                   )}
                 </div>
+                {authUser?.isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="w-full rounded-md px-3 py-2 text-left text-sm hover:bg-accent block"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <button
                   onClick={toggleDarkMode}
                   className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-accent"
