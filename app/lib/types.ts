@@ -37,6 +37,8 @@ export interface PolymarketMarket {
   closed: boolean;
   archived: boolean;
   clobTokenIds: string; // JSON string array
+  orderPriceMinTickSize: number;
+  negRisk: boolean;
 }
 
 export interface PolymarketEvent {

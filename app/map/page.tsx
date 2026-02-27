@@ -6,10 +6,11 @@ import type { MapMouseEvent, MapRef } from "react-map-gl/mapbox";
 import type * as GeoJSON from "geojson";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAllEvents } from "../hooks/useAllEvents";
-import { PolymarketEvent } from "../lib/types";
+import { PolymarketEvent, PolymarketMarket } from "../lib/types";
 import { buildGeoJSON, groupEventsByCountry, getIsoCode } from "./geo";
 import { getClusterLayers, getUnclusteredPointLayers, getCountryFillLayer, getCountryLineLayer, INTERACTIVE_LAYER_IDS } from "./layers";
 import EventSidebar from "./EventSidebar";
+import TradeModal from "./TradeModal";
 import HoverTooltip from "./HoverTooltip";
 import MapFooter from "./MapFooter";
 import countryBoundaries from "../lib/country-boundaries.json";
@@ -31,6 +32,7 @@ export default function MapPage() {
   });
   const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; country: string; eventCount: number; volume24hr: number } | null>(null);
   const [sidebar, setSidebar] = useState<SidebarData | null>(null);
+  const [trade, setTrade] = useState<{ market: PolymarketMarket; outcomeIndex: number } | null>(null);
 
   const { events: allEvents, loading } = useAllEvents({ tagIds: ["100265"] });
   const events = useMemo(() => allEvents.filter((e) => !e.closed), [allEvents]);
@@ -205,6 +207,15 @@ export default function MapPage() {
           country={sidebar.country}
           events={sidebar.events}
           onClose={() => setSidebar(null)}
+          onTrade={(market, outcomeIndex) => setTrade({ market, outcomeIndex })}
+        />
+      )}
+
+      {trade && (
+        <TradeModal
+          market={trade.market}
+          outcomeIndex={trade.outcomeIndex}
+          onClose={() => setTrade(null)}
         />
       )}
 

@@ -11,6 +11,7 @@ interface EventSidebarProps {
   country: string;
   events: PolymarketEvent[];
   onClose: () => void;
+  onTrade: (market: PolymarketMarket, outcomeIndex: number) => void;
 }
 
 function parseJSON<T>(str: string, fallback: T): T {
@@ -28,7 +29,7 @@ function sortMarketsByYesPrice(markets: PolymarketMarket[]): PolymarketMarket[] 
   return [...markets].sort((a, b) => getYesPrice(b) - getYesPrice(a));
 }
 
-function MarketRow({ market }: { market: PolymarketMarket }) {
+function MarketRow({ market, onTrade }: { market: PolymarketMarket; onTrade: (market: PolymarketMarket, outcomeIndex: number) => void }) {
   const outcomes: string[] = parseJSON(market.outcomes, []);
   const prices: string[] = parseJSON(market.outcomePrices, []);
 
@@ -43,6 +44,7 @@ function MarketRow({ market }: { market: PolymarketMarket }) {
           return (
             <button
               key={i}
+              onClick={() => onTrade(market, i)}
               className={`rounded px-2 py-1 text-xs font-medium ${
                 isYes
                   ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
@@ -58,7 +60,7 @@ function MarketRow({ market }: { market: PolymarketMarket }) {
   );
 }
 
-export default function EventSidebar({ country, events, onClose }: EventSidebarProps) {
+export default function EventSidebar({ country, events, onClose, onTrade }: EventSidebarProps) {
   const sorted = [...events].sort((a, b) => (b.volume24hr || 0) - (a.volume24hr || 0));
   return (
     <div className="absolute right-0 top-0 z-50 flex h-full w-96 flex-col border-l border-black/10 bg-white shadow-lg">
@@ -88,7 +90,7 @@ export default function EventSidebar({ country, events, onClose }: EventSidebarP
             {e.markets && e.markets.length > 0 && (
               <div className="mt-2 flex flex-col gap-0.5">
                 {sortMarketsByYesPrice(e.markets.filter(isMarketActionable)).map((m) => (
-                  <MarketRow key={m.id} market={m} />
+                  <MarketRow key={m.id} market={m} onTrade={onTrade} />
                 ))}
               </div>
             )}
