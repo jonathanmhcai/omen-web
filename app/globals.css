@@ -151,3 +151,23 @@
   --dv-active-sash-color: var(--ring);
   --dv-tab-font-size: 13px;
 }
+
+/* Grip indicator on the horizontal sash between map and right panel */
+.dockview-theme-custom .dv-horizontal > .dv-sash-container > .dv-sash:not(.disabled)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+  background-color: var(--muted-foreground);
+  opacity: 0.25;
+  transition: opacity 0.15s;
+}
+
+.dockview-theme-custom .dv-horizontal > .dv-sash-container > .dv-sash:not(.disabled):hover::after,
+.dockview-theme-custom .dv-horizontal > .dv-sash-container > .dv-sash:not(.disabled):active::after {
+  opacity: 0.5;
+}

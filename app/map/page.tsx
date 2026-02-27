@@ -192,6 +192,7 @@ export default function MapPage() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
+      e.preventDefault();
       const api = apiRef.current;
       if (!api) return;
 
