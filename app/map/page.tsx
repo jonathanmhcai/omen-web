@@ -233,8 +233,8 @@ export default function MapPage() {
         </div>
 
         <footer
-          className="relative z-50 flex items-center justify-between px-5 border-t border-border bg-background text-xs text-muted-foreground"
-          style={{ height: 28, flexShrink: 0 }}
+          className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-between px-5 border-t border-border bg-background text-xs text-muted-foreground"
+          style={{ height: 28 }}
         >
           <span>Powered by Polymarket</span>
           {!loading && (

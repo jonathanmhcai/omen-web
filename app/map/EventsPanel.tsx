@@ -167,7 +167,7 @@ export default function EventsPanel({
   const visible = sorted.slice(0, visibleCount);
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col bg-background pb-7">
       <div className="flex-1 overflow-y-auto">
         {events.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground">
