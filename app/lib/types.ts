@@ -3,6 +3,10 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   privy_user_id?: string;
+  username?: string;
+  display_name?: string;
+  bio?: string;
+  avatar_url?: string;
   has_polymarket_credentials: boolean;
   has_redeemed_invite_code: boolean;
   isAdmin: boolean;

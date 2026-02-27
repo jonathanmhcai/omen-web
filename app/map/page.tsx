@@ -11,6 +11,7 @@ import { buildGeoJSON, groupEventsByCountry, getIsoCode } from "./geo";
 import { getClusterLayers, getUnclusteredPointLayers, getCountryFillLayer, getCountryLineLayer, INTERACTIVE_LAYER_IDS } from "./layers";
 import EventSidebar from "./EventSidebar";
 import HoverTooltip from "./HoverTooltip";
+import MapFooter from "./MapFooter";
 import countryBoundaries from "../lib/country-boundaries.json";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -206,6 +207,8 @@ export default function MapPage() {
           onClose={() => setSidebar(null)}
         />
       )}
+
+      <MapFooter />
     </div>
   );
 }
