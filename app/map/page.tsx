@@ -34,9 +34,9 @@ export default function MapPage() {
           properties: { id: e.id, title: e.title, country: match.slug },
         };
       })
-      .filter(Boolean);
+      .filter((f): f is NonNullable<typeof f> => f !== null);
 
-    return { type: "FeatureCollection" as const, features };
+    return { type: "FeatureCollection" as const, features } as GeoJSON;
   }, [events]);
 
   const onMouseEnter = useCallback((e: MapMouseEvent) => {
