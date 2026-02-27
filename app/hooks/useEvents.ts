@@ -13,15 +13,17 @@ interface UseEventsOptions {
   ascending?: boolean;
   volumeMin?: number;
   excludeTagIds?: string[];
+  tagIds?: string[];
 }
 
-export function useEvents({ limit = 10, active = true, archived = true, featured = false, endDateMin, order, ascending, volumeMin, excludeTagIds }: UseEventsOptions = {}) {
+export function useEvents({ limit = 10, active = true, archived = true, featured = false, endDateMin, order, ascending, volumeMin, excludeTagIds, tagIds }: UseEventsOptions = {}) {
   const [events, setEvents] = useState<PolymarketEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const excludeTagKey = excludeTagIds?.join(",") ?? "";
+  const tagKey = tagIds?.join(",") ?? "";
 
   useEffect(() => {
     setLoading(true);
@@ -50,6 +52,9 @@ export function useEvents({ limit = 10, active = true, archived = true, featured
     if (excludeTagIds && excludeTagIds.length > 0) {
       excludeTagIds.forEach(tag => params.append("exclude_tag_id", tag));
     }
+    if (tagIds && tagIds.length > 0) {
+      tagIds.forEach(tag => params.append("tag_id", tag));
+    }
 
     fetch(`/api/events?${params}`)
       .then((res) => {
@@ -63,7 +68,7 @@ export function useEvents({ limit = 10, active = true, archived = true, featured
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit, active, archived, featured, endDateMin, order, ascending, volumeMin, excludeTagKey, page]);
+  }, [limit, active, archived, featured, endDateMin, order, ascending, volumeMin, excludeTagKey, tagKey, page]);
 
   const nextPage = useCallback(() => setPage((p) => p + 1), []);
   const prevPage = useCallback(() => setPage((p) => Math.max(0, p - 1)), []);
