@@ -152,4 +152,31 @@ export function getCountryLineLayer(iso2: string | null): LineLayer {
   };
 }
 
+export function getStateFillLayer(stateAbbr: string | null): FillLayer {
+  return {
+    id: "state-fill",
+    type: "fill",
+    paint: {
+      "fill-color": "#1d4ed8",
+      "fill-opacity": stateAbbr
+        ? ["case", ["==", ["get", "STUSPS"], stateAbbr], 0.08, 0] as any
+        : 0,
+    },
+  };
+}
+
+export function getStateLineLayer(stateAbbr: string | null): LineLayer {
+  return {
+    id: "state-line",
+    type: "line",
+    paint: {
+      "line-color": "#1d4ed8",
+      "line-width": 2,
+      "line-opacity": stateAbbr
+        ? ["case", ["==", ["get", "STUSPS"], stateAbbr], 0.5, 0] as any
+        : 0,
+    },
+  };
+}
+
 export const INTERACTIVE_LAYER_IDS = ["clusters", "unclustered-point"];

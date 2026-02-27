@@ -8,10 +8,15 @@ function isMarketActionable(market: PolymarketMarket): boolean {
 }
 
 interface EventSidebarProps {
-  country: string;
+  location: string;
   events: PolymarketEvent[];
   onClose: () => void;
   onTrade: (market: PolymarketMarket, outcomeIndex: number) => void;
+}
+
+function formatLocationName(slug: string): string {
+  const name = slug.startsWith("us-") ? slug.slice(3) : slug;
+  return name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function parseJSON<T>(str: string, fallback: T): T {
@@ -60,12 +65,12 @@ function MarketRow({ market, onTrade }: { market: PolymarketMarket; onTrade: (ma
   );
 }
 
-export default function EventSidebar({ country, events, onClose, onTrade }: EventSidebarProps) {
+export default function EventSidebar({ location, events, onClose, onTrade }: EventSidebarProps) {
   const sorted = [...events].sort((a, b) => (b.volume24hr || 0) - (a.volume24hr || 0));
   return (
     <div className="absolute right-0 top-0 z-50 flex h-full w-96 flex-col border-l border-black/10 bg-white shadow-lg">
       <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
-        <h2 className="text-sm font-semibold capitalize text-zinc-900">{country}</h2>
+        <h2 className="text-sm font-semibold text-zinc-900">{formatLocationName(location)}</h2>
         <button
           onClick={onClose}
           className="rounded p-1 text-zinc-400 hover:text-zinc-700"

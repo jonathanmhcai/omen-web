@@ -7,19 +7,22 @@ import type * as GeoJSON from "geojson";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAllEvents } from "../hooks/useAllEvents";
 import { PolymarketEvent, PolymarketMarket } from "../lib/types";
-import { buildGeoJSON, groupEventsByCountry, getIsoCode } from "./geo";
-import { getClusterLayers, getUnclusteredPointLayers, getCountryFillLayer, getCountryLineLayer, INTERACTIVE_LAYER_IDS } from "./layers";
+import { buildGeoJSON, groupEventsByLocation, getIsoCode, getStateAbbr } from "./geo";
+import { getClusterLayers, getUnclusteredPointLayers, getCountryFillLayer, getCountryLineLayer, getStateFillLayer, getStateLineLayer, INTERACTIVE_LAYER_IDS } from "./layers";
 import EventSidebar from "./EventSidebar";
 import TradeModal from "./TradeModal";
 import HoverTooltip from "./HoverTooltip";
 import MapFooter from "./MapFooter";
 import countryBoundaries from "../lib/country-boundaries.json";
+import stateBoundaries from "../lib/us-state-boundaries.json";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 if (!MAPBOX_TOKEN) throw new Error("NEXT_PUBLIC_MAPBOX_TOKEN is not set");
 
+const EXCLUDED_TAG_IDS = new Set(["972"]); // tweet markets
+
 interface SidebarData {
-  country: string;
+  location: string;
   events: PolymarketEvent[];
 }
 
@@ -30,25 +33,26 @@ export default function MapPage() {
     latitude: 20,
     zoom: 1.5,
   });
-  const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; country: string; eventCount: number; volume24hr: number } | null>(null);
+  const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; location: string; eventCount: number; volume24hr: number } | null>(null);
   const [sidebar, setSidebar] = useState<SidebarData | null>(null);
   const [trade, setTrade] = useState<{ market: PolymarketMarket; outcomeIndex: number } | null>(null);
 
-  const { events: allEvents, loading } = useAllEvents({ tagIds: ["100265"] });
-  const events = useMemo(() => allEvents.filter((e) => !e.closed), [allEvents]);
-  const eventsByCountry = useMemo(() => groupEventsByCountry(events), [events]);
-  const volume24hrByCountry = useMemo(() => {
+  const { events: allEvents, loading } = useAllEvents({ tagIds: ["100265", "2"] });
+  const events = useMemo(() => allEvents.filter((e) => !e.closed && !e.tags.some((t) => EXCLUDED_TAG_IDS.has(t.id))), [allEvents]);
+  const eventsByLocation = useMemo(() => groupEventsByLocation(events), [events]);
+  const volume24hrByLocation = useMemo(() => {
     const m = new Map<string, number>();
-    for (const [country, evts] of eventsByCountry) {
-      m.set(country, evts.reduce((sum, e) => sum + (e.volume24hr || 0), 0));
+    for (const [location, evts] of eventsByLocation) {
+      m.set(location, evts.reduce((sum, e) => sum + (e.volume24hr || 0), 0));
     }
     console.table(Object.fromEntries([...m.entries()].sort((a, b) => b[1] - a[1])));
     return m;
-  }, [eventsByCountry]);
+  }, [eventsByLocation]);
   const geojson = useMemo(() => buildGeoJSON(events), [events]);
 
-  const selectedCountry = sidebar?.country ?? null;
-  const selectedIso = selectedCountry ? getIsoCode(selectedCountry) : null;
+  const selectedLocation = sidebar?.location ?? null;
+  const selectedIso = selectedLocation ? getIsoCode(selectedLocation) : null;
+  const selectedStateAbbr = selectedLocation ? getStateAbbr(selectedLocation) : null;
   const [pulse, setPulse] = useState(0);
   useEffect(() => {
     let frame: number;
@@ -60,9 +64,11 @@ export default function MapPage() {
     return () => cancelAnimationFrame(frame);
   }, []);
   const clusterLayers = useMemo(() => getClusterLayers(pulse), [pulse]);
-  const unclusteredPointLayers = useMemo(() => getUnclusteredPointLayers(selectedCountry, pulse), [selectedCountry, pulse]);
+  const unclusteredPointLayers = useMemo(() => getUnclusteredPointLayers(selectedLocation, pulse), [selectedLocation, pulse]);
   const countryFillLayer = useMemo(() => getCountryFillLayer(selectedIso), [selectedIso]);
   const countryLineLayer = useMemo(() => getCountryLineLayer(selectedIso), [selectedIso]);
+  const stateFillLayer = useMemo(() => getStateFillLayer(selectedStateAbbr), [selectedStateAbbr]);
+  const stateLineLayer = useMemo(() => getStateLineLayer(selectedStateAbbr), [selectedStateAbbr]);
 
   const onClick = useCallback(
     (e: MapMouseEvent) => {
@@ -85,9 +91,9 @@ export default function MapPage() {
           if (zoom > 14) {
             source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
               if (err || !leaves) return;
-              const country = leaves[0]?.properties?.country;
-              if (country && eventsByCountry.has(country)) {
-                setSidebar({ country, events: eventsByCountry.get(country)! });
+              const location = leaves[0]?.properties?.country;
+              if (location && eventsByLocation.has(location)) {
+                setSidebar({ location, events: eventsByLocation.get(location)! });
               }
             });
             return;
@@ -99,11 +105,11 @@ export default function MapPage() {
         return;
       }
 
-      if (props?.country && eventsByCountry.has(props.country)) {
-        setSidebar({ country: props.country, events: eventsByCountry.get(props.country)! });
+      if (props?.country && eventsByLocation.has(props.country)) {
+        setSidebar({ location: props.country, events: eventsByLocation.get(props.country)! });
       }
     },
-    [eventsByCountry],
+    [eventsByLocation],
   );
 
   const onHover = useCallback((e: MapMouseEvent) => {
@@ -116,25 +122,25 @@ export default function MapPage() {
 
     // Individual point
     if (!props?.cluster) {
-      const country = props?.country;
-      if (country && eventsByCountry.has(country)) {
-        setHoverInfo({ x: e.point.x, y: e.point.y, country, eventCount: eventsByCountry.get(country)!.length, volume24hr: volume24hrByCountry.get(country) || 0 });
+      const location = props?.country;
+      if (location && eventsByLocation.has(location)) {
+        setHoverInfo({ x: e.point.x, y: e.point.y, location, eventCount: eventsByLocation.get(location)!.length, volume24hr: volume24hrByLocation.get(location) || 0 });
       }
       return;
     }
 
-    // Cluster — get a leaf to find the country
+    // Cluster — get a leaf to find the location
     const map = mapRef.current?.getMap();
     if (!map) return;
     const source = map.getSource("events") as mapboxgl.GeoJSONSource;
     source.getClusterLeaves(props.cluster_id as number, 1, 0, (err, leaves) => {
       if (err || !leaves?.length) return;
-      const country = leaves[0]?.properties?.country;
-      if (country && eventsByCountry.has(country)) {
-        setHoverInfo({ x: e.point.x, y: e.point.y, country, eventCount: props.point_count as number, volume24hr: volume24hrByCountry.get(country) || 0 });
+      const location = leaves[0]?.properties?.country;
+      if (location && eventsByLocation.has(location)) {
+        setHoverInfo({ x: e.point.x, y: e.point.y, location, eventCount: props.point_count as number, volume24hr: volume24hrByLocation.get(location) || 0 });
       }
     });
-  }, [eventsByCountry, volume24hrByCountry]);
+  }, [eventsByLocation, volume24hrByLocation]);
 
   const onMouseLeave = useCallback(() => setHoverInfo(null), []);
 
@@ -175,6 +181,15 @@ export default function MapPage() {
         </Source>
 
         <Source
+          id="state-boundaries"
+          type="geojson"
+          data={stateBoundaries as any}
+        >
+          <Layer {...stateFillLayer} />
+          <Layer {...stateLineLayer} />
+        </Source>
+
+        <Source
           id="events"
           type="geojson"
           data={geojson}
@@ -193,7 +208,7 @@ export default function MapPage() {
       </MapGL>
 
       {hoverInfo && (
-        <HoverTooltip x={hoverInfo.x} y={hoverInfo.y} country={hoverInfo.country} eventCount={hoverInfo.eventCount} volume24hr={hoverInfo.volume24hr} />
+        <HoverTooltip x={hoverInfo.x} y={hoverInfo.y} location={hoverInfo.location} eventCount={hoverInfo.eventCount} volume24hr={hoverInfo.volume24hr} />
       )}
 
       {loading && (
@@ -204,7 +219,7 @@ export default function MapPage() {
 
       {sidebar && (
         <EventSidebar
-          country={sidebar.country}
+          location={sidebar.location}
           events={sidebar.events}
           onClose={() => setSidebar(null)}
           onTrade={(market, outcomeIndex) => setTrade({ market, outcomeIndex })}
