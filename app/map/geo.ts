@@ -103,7 +103,8 @@ export function buildGeoJSON(events: PolymarketEvent[]): GeoJSON {
 }
 
 export function getIsoCode(slug: string): string | null {
-  if (slug.startsWith("us-")) return null; // don't highlight entire US for state-level events
+  if (slug === "us-washington-dc") return "US"; // DC highlights entire US
+  if (slug.startsWith("us-")) return null; // other states highlight individually
   return countryCoords[slug]?.iso2 ?? null;
 }
 
@@ -111,6 +112,25 @@ export function getStateAbbr(slug: string): string | null {
   if (!slug.startsWith("us-")) return null;
   const stateName = slug.slice(3).replace(/-/g, " ");
   return stateCoords[stateName]?.abbr ?? null;
+}
+
+// Reverse lookups: ISO → slug, state abbr → slug
+const isoToSlug = new Map<string, string>();
+for (const [slug, data] of Object.entries(countryCoords)) {
+  isoToSlug.set(data.iso2, slug);
+}
+
+const abbrToSlug = new Map<string, string>();
+for (const [name, data] of Object.entries(stateCoords)) {
+  abbrToSlug.set(data.abbr, `us-${name.replace(/ /g, "-")}`);
+}
+
+export function getSlugByIso(iso2: string): string | null {
+  return isoToSlug.get(iso2) ?? null;
+}
+
+export function getSlugByStateAbbr(abbr: string): string | null {
+  return abbrToSlug.get(abbr) ?? null;
 }
 
 export function groupEventsByLocation(events: PolymarketEvent[]) {

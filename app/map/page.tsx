@@ -7,7 +7,7 @@ import type * as GeoJSON from "geojson";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAllEvents } from "../hooks/useAllEvents";
 import { PolymarketEvent, PolymarketMarket } from "../lib/types";
-import { buildGeoJSON, groupEventsByLocation, getIsoCode, getStateAbbr } from "./geo";
+import { buildGeoJSON, groupEventsByLocation, getIsoCode, getStateAbbr, getSlugByIso, getSlugByStateAbbr } from "./geo";
 import { getClusterLayers, getUnclusteredPointLayers, getCountryFillLayer, getCountryLineLayer, getStateFillLayer, getStateLineLayer, INTERACTIVE_LAYER_IDS } from "./layers";
 import EventSidebar from "./EventSidebar";
 import TradeModal from "./TradeModal";
@@ -33,7 +33,7 @@ export default function MapPage() {
     latitude: 20,
     zoom: 1.5,
   });
-  const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; location: string; eventCount: number; volume24hr: number } | null>(null);
+  const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; locations: string[]; eventCount: number; volume24hr: number } | null>(null);
   const [sidebar, setSidebar] = useState<SidebarData | null>(null);
   const [trade, setTrade] = useState<{ market: PolymarketMarket; outcomeIndex: number } | null>(null);
 
@@ -85,28 +85,56 @@ export default function MapPage() {
         const source = map.getSource("events") as mapboxgl.GeoJSONSource;
         const clusterId = props.cluster_id as number;
 
-        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err || zoom == null) return;
+        // Check if cluster contains DC events — if so, open DC sidebar directly
+        source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
+          if (err || !leaves) return;
+          const dcLeaf = leaves.find((l) => l.properties?.country === "us-washington-dc");
+          if (dcLeaf && eventsByLocation.has("us-washington-dc")) {
+            setSidebar({ location: "us-washington-dc", events: eventsByLocation.get("us-washington-dc")! });
+            return;
+          }
 
-          if (zoom > 14) {
-            source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
-              if (err || !leaves) return;
+          source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+            if (err || zoom == null) return;
+
+            if (zoom > 14) {
               const location = leaves[0]?.properties?.country;
               if (location && eventsByLocation.has(location)) {
                 setSidebar({ location, events: eventsByLocation.get(location)! });
               }
-            });
-            return;
-          }
+              return;
+            }
 
-          const geometry = feature.geometry as GeoJSON.Point;
-          map.easeTo({ center: geometry.coordinates as [number, number], zoom });
+            const geometry = feature.geometry as GeoJSON.Point;
+            map.easeTo({ center: geometry.coordinates as [number, number], zoom });
+          });
         });
         return;
       }
 
+      // Unclustered event point
       if (props?.country && eventsByLocation.has(props.country)) {
         setSidebar({ location: props.country, events: eventsByLocation.get(props.country)! });
+        return;
+      }
+
+      // Country boundary click
+      const layerId = (feature as any).layer?.id;
+      if (layerId === "country-fill" && props?.ISO_A2) {
+        const slug = getSlugByIso(props.ISO_A2 as string);
+        if (slug) {
+          setSidebar({ location: slug, events: eventsByLocation.get(slug) ?? [] });
+          return;
+        }
+      }
+
+      // State boundary click
+      if (layerId === "state-fill" && props?.STUSPS) {
+        const slug = getSlugByStateAbbr(props.STUSPS as string);
+        if (slug) {
+          setSidebar({ location: slug, events: eventsByLocation.get(slug) ?? [] });
+          return;
+        }
       }
     },
     [eventsByLocation],
@@ -124,21 +152,21 @@ export default function MapPage() {
     if (!props?.cluster) {
       const location = props?.country;
       if (location && eventsByLocation.has(location)) {
-        setHoverInfo({ x: e.point.x, y: e.point.y, location, eventCount: eventsByLocation.get(location)!.length, volume24hr: volume24hrByLocation.get(location) || 0 });
+        setHoverInfo({ x: e.point.x, y: e.point.y, locations: [location], eventCount: eventsByLocation.get(location)!.length, volume24hr: volume24hrByLocation.get(location) || 0 });
       }
       return;
     }
 
-    // Cluster — get a leaf to find the location
+    // Cluster — get all leaves to find unique locations
     const map = mapRef.current?.getMap();
     if (!map) return;
     const source = map.getSource("events") as mapboxgl.GeoJSONSource;
-    source.getClusterLeaves(props.cluster_id as number, 1, 0, (err, leaves) => {
+    source.getClusterLeaves(props.cluster_id as number, Infinity, 0, (err, leaves) => {
       if (err || !leaves?.length) return;
-      const location = leaves[0]?.properties?.country;
-      if (location && eventsByLocation.has(location)) {
-        setHoverInfo({ x: e.point.x, y: e.point.y, location, eventCount: props.point_count as number, volume24hr: volume24hrByLocation.get(location) || 0 });
-      }
+      const locations = [...new Set(leaves.map((l) => l.properties?.country as string).filter(Boolean))];
+      if (!locations.length) return;
+      const totalVolume = locations.reduce((sum, loc) => sum + (volume24hrByLocation.get(loc) || 0), 0);
+      setHoverInfo({ x: e.point.x, y: e.point.y, locations, eventCount: props.point_count as number, volume24hr: totalVolume });
     });
   }, [eventsByLocation, volume24hrByLocation]);
 
@@ -210,7 +238,7 @@ export default function MapPage() {
       </MapGL>
 
       {hoverInfo && (
-        <HoverTooltip x={hoverInfo.x} y={hoverInfo.y} location={hoverInfo.location} eventCount={hoverInfo.eventCount} volume24hr={hoverInfo.volume24hr} />
+        <HoverTooltip x={hoverInfo.x} y={hoverInfo.y} locations={hoverInfo.locations} eventCount={hoverInfo.eventCount} volume24hr={hoverInfo.volume24hr} />
       )}
 
       {loading && (

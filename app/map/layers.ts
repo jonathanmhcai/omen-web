@@ -132,8 +132,8 @@ export function getCountryFillLayer(iso2: string | null): FillLayer {
     paint: {
       "fill-color": "#1d4ed8",
       "fill-opacity": iso2
-        ? ["case", ["==", ["get", "ISO_A2"], iso2], 0.08, 0] as any
-        : 0,
+        ? ["case", ["==", ["get", "ISO_A2"], iso2], 0.08, 0.01] as any
+        : 0.01,
     },
   };
 }
@@ -159,8 +159,8 @@ export function getStateFillLayer(stateAbbr: string | null): FillLayer {
     paint: {
       "fill-color": "#1d4ed8",
       "fill-opacity": stateAbbr
-        ? ["case", ["==", ["get", "STUSPS"], stateAbbr], 0.08, 0] as any
-        : 0,
+        ? ["case", ["==", ["get", "STUSPS"], stateAbbr], 0.08, 0.01] as any
+        : 0.01,
     },
   };
 }
@@ -179,4 +179,4 @@ export function getStateLineLayer(stateAbbr: string | null): LineLayer {
   };
 }
 
-export const INTERACTIVE_LAYER_IDS = ["clusters", "unclustered-point"];
+export const INTERACTIVE_LAYER_IDS = ["clusters", "unclustered-point", "country-fill", "state-fill"];
