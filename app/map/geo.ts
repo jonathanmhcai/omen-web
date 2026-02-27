@@ -18,7 +18,7 @@ export function buildGeoJSON(events: PolymarketEvent[]): GeoJSON {
       return {
         type: "Feature" as const,
         geometry: { type: "Point" as const, coordinates: [match.lng, match.lat] },
-        properties: { id: e.id, title: e.title, country: match.slug },
+        properties: { id: e.id, title: e.title, country: match.slug, volume24hr: e.volume24hr || 0 },
       };
     })
     .filter((f): f is NonNullable<typeof f> => f !== null);

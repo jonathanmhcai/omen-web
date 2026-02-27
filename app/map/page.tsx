@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapGL, { Source, Layer } from "react-map-gl/mapbox";
 import type { MapMouseEvent, MapRef } from "react-map-gl/mapbox";
 import type * as GeoJSON from "geojson";
@@ -8,7 +8,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useAllEvents } from "../hooks/useAllEvents";
 import { PolymarketEvent } from "../lib/types";
 import { buildGeoJSON, groupEventsByCountry, getIsoCode } from "./geo";
-import { getClusterLayer, getClusterCountLayer, getUnclusteredPointLayer, getCountryFillLayer, getCountryLineLayer, INTERACTIVE_LAYER_IDS } from "./layers";
+import { getClusterLayers, getUnclusteredPointLayers, getCountryFillLayer, getCountryLineLayer, INTERACTIVE_LAYER_IDS } from "./layers";
 import EventSidebar from "./EventSidebar";
 import HoverTooltip from "./HoverTooltip";
 import countryBoundaries from "../lib/country-boundaries.json";
@@ -28,19 +28,35 @@ export default function MapPage() {
     latitude: 20,
     zoom: 1.5,
   });
-  const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; country: string; eventCount: number } | null>(null);
+  const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; country: string; eventCount: number; volume24hr: number } | null>(null);
   const [sidebar, setSidebar] = useState<SidebarData | null>(null);
 
   const { events: allEvents, loading } = useAllEvents({ tagIds: ["100265"] });
   const events = useMemo(() => allEvents.filter((e) => !e.closed), [allEvents]);
   const eventsByCountry = useMemo(() => groupEventsByCountry(events), [events]);
+  const volume24hrByCountry = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const [country, evts] of eventsByCountry) {
+      m.set(country, evts.reduce((sum, e) => sum + (e.volume24hr || 0), 0));
+    }
+    return m;
+  }, [eventsByCountry]);
   const geojson = useMemo(() => buildGeoJSON(events), [events]);
 
   const selectedCountry = sidebar?.country ?? null;
   const selectedIso = selectedCountry ? getIsoCode(selectedCountry) : null;
-  const clusterLayer = useMemo(() => getClusterLayer(), []);
-  const clusterCountLayer = useMemo(() => getClusterCountLayer(), []);
-  const unclusteredPointLayer = useMemo(() => getUnclusteredPointLayer(selectedCountry), [selectedCountry]);
+  const [pulse, setPulse] = useState(0);
+  useEffect(() => {
+    let frame: number;
+    const animate = () => {
+      setPulse(Date.now() % 2000 / 2000);
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  const clusterLayers = useMemo(() => getClusterLayers(pulse), [pulse]);
+  const unclusteredPointLayers = useMemo(() => getUnclusteredPointLayers(selectedCountry, pulse), [selectedCountry, pulse]);
   const countryFillLayer = useMemo(() => getCountryFillLayer(selectedIso), [selectedIso]);
   const countryLineLayer = useMemo(() => getCountryLineLayer(selectedIso), [selectedIso]);
 
@@ -98,7 +114,7 @@ export default function MapPage() {
     if (!props?.cluster) {
       const country = props?.country;
       if (country && eventsByCountry.has(country)) {
-        setHoverInfo({ x: e.point.x, y: e.point.y, country, eventCount: eventsByCountry.get(country)!.length });
+        setHoverInfo({ x: e.point.x, y: e.point.y, country, eventCount: eventsByCountry.get(country)!.length, volume24hr: volume24hrByCountry.get(country) || 0 });
       }
       return;
     }
@@ -111,10 +127,10 @@ export default function MapPage() {
       if (err || !leaves?.length) return;
       const country = leaves[0]?.properties?.country;
       if (country && eventsByCountry.has(country)) {
-        setHoverInfo({ x: e.point.x, y: e.point.y, country, eventCount: props.point_count as number });
+        setHoverInfo({ x: e.point.x, y: e.point.y, country, eventCount: props.point_count as number, volume24hr: volume24hrByCountry.get(country) || 0 });
       }
     });
-  }, [eventsByCountry]);
+  }, [eventsByCountry, volume24hrByCountry]);
 
   const onMouseLeave = useCallback(() => setHoverInfo(null), []);
 
@@ -161,15 +177,19 @@ export default function MapPage() {
           cluster={true}
           clusterMaxZoom={14}
           clusterRadius={50}
+          clusterProperties={{ totalVolume24hr: ["+", ["get", "volume24hr"]] }}
         >
-          <Layer {...clusterLayer} />
-          <Layer {...clusterCountLayer} />
-          <Layer {...unclusteredPointLayer} />
+          {clusterLayers.map((layer) => (
+            <Layer key={layer.id} {...layer} />
+          ))}
+          {unclusteredPointLayers.map((layer) => (
+            <Layer key={layer.id} {...layer} />
+          ))}
         </Source>
       </MapGL>
 
       {hoverInfo && (
-        <HoverTooltip x={hoverInfo.x} y={hoverInfo.y} country={hoverInfo.country} eventCount={hoverInfo.eventCount} />
+        <HoverTooltip x={hoverInfo.x} y={hoverInfo.y} country={hoverInfo.country} eventCount={hoverInfo.eventCount} volume24hr={hoverInfo.volume24hr} />
       )}
 
       {loading && (

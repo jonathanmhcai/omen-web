@@ -22,18 +22,50 @@ function selectedStroke(country: string | null, selected: number, fallback: numb
   return ["case", ["==", ["get", "country"], country], selected, fallback] as any;
 }
 
-export function getClusterLayer(): CircleLayer {
-  return {
-    id: "clusters",
-    type: "circle",
-    filter: ["has", "point_count"],
-    paint: {
-      "circle-color": "#ef4444",
-      "circle-radius": ["step", ["get", "point_count"], 16, 10, 22, 50, 30],
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "#ffffff",
+const CLUSTER_RADIUS = ["interpolate", ["linear"], ["get", "totalVolume24hr"], 0, 14, 50000, 22, 500000, 34] as any;
+
+export function getClusterLayers(pulse: number): CircleLayer[] {
+  // pulse 0–1 over 2s; linear outward only
+  const t = pulse;
+  const pingScale = 1.0 + t * 0.5;
+  const pingOpacity = 0.15 * (1 - t);
+
+  return [
+    // Expanding ping ring
+    {
+      id: "clusters-ping",
+      type: "circle",
+      filter: ["has", "point_count"],
+      paint: {
+        "circle-color": "#ef4444",
+        "circle-radius": ["*", CLUSTER_RADIUS, pingScale],
+        "circle-opacity": pingOpacity,
+      },
     },
-  };
+    // Soft outer glow
+    {
+      id: "clusters-glow",
+      type: "circle",
+      filter: ["has", "point_count"],
+      paint: {
+        "circle-color": "#ef4444",
+        "circle-radius": CLUSTER_RADIUS,
+        "circle-blur": 0.4,
+        "circle-opacity": 0.4,
+      },
+    },
+    // Core circle
+    {
+      id: "clusters",
+      type: "circle",
+      filter: ["has", "point_count"],
+      paint: {
+        "circle-color": "#dc2626",
+        "circle-radius": ["*", CLUSTER_RADIUS, 0.6],
+        "circle-opacity": 0.9,
+      },
+    },
+  ];
 }
 
 export function getClusterCountLayer(): SymbolLayer {
@@ -51,18 +83,46 @@ export function getClusterCountLayer(): SymbolLayer {
   };
 }
 
-export function getUnclusteredPointLayer(selectedCountry: string | null): CircleLayer {
-  return {
-    id: "unclustered-point",
-    type: "circle",
-    filter: ["!", ["has", "point_count"]],
-    paint: {
-      "circle-color": selectedColor(selectedCountry, "#1d4ed8", "#ef4444") as any,
-      "circle-radius": 7,
-      "circle-stroke-width": selectedStroke(selectedCountry, 3, 2) as any,
-      "circle-stroke-color": "#ffffff",
+export function getUnclusteredPointLayers(selectedCountry: string | null, pulse: number): CircleLayer[] {
+  const t = Math.sin(pulse * Math.PI);
+  const pingScale = 1.0 + t * 0.5;
+  const pingOpacity = 0.3 * (1 - t);
+  const color = selectedCountry ? selectedColor(selectedCountry, "#1d4ed8", "#ef4444") : "#ef4444";
+  const coreColor = selectedCountry ? selectedColor(selectedCountry, "#1e40af", "#dc2626") : "#dc2626";
+
+  return [
+    {
+      id: "unclustered-ping",
+      type: "circle",
+      filter: ["!", ["has", "point_count"]],
+      paint: {
+        "circle-color": color as any,
+        "circle-radius": 7 * pingScale,
+        "circle-opacity": pingOpacity,
+      },
     },
-  };
+    {
+      id: "unclustered-glow",
+      type: "circle",
+      filter: ["!", ["has", "point_count"]],
+      paint: {
+        "circle-color": color as any,
+        "circle-radius": 7,
+        "circle-blur": 0.4,
+        "circle-opacity": 0.4,
+      },
+    },
+    {
+      id: "unclustered-point",
+      type: "circle",
+      filter: ["!", ["has", "point_count"]],
+      paint: {
+        "circle-color": coreColor as any,
+        "circle-radius": 4,
+        "circle-opacity": 0.9,
+      },
+    },
+  ];
 }
 
 export function getCountryFillLayer(iso2: string | null): FillLayer {
