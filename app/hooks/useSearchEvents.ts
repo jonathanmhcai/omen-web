@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PolymarketEvent } from "../lib/types";
+import { POLYMARKET_API_BASE } from "../lib/constants";
 
 export function useSearchEvents(query: string) {
   const [events, setEvents] = useState<PolymarketEvent[]>([]);
@@ -26,7 +27,7 @@ export function useSearchEvents(query: string) {
       limit_per_type: "20",
     });
 
-    fetch(`/api/search?${params}`, {
+    fetch(`${POLYMARKET_API_BASE}/public-search?${params}`, {
       signal: controller.signal,
     })
       .then((res) => {

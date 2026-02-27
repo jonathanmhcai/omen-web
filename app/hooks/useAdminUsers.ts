@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AdminUser } from "../lib/types";
-import { SESSION_TOKEN_KEY } from "../lib/constants";
+import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
 interface UseAdminUsersOptions {
@@ -45,7 +45,7 @@ export function useAdminUsers({
       params.set("ascending", String(ascending ?? false));
     }
 
-    fetch(`/api/admin/users?${params}`, {
+    fetch(`${API_BASE}/admin/users?${params}`, {
       headers: { Authorization: `Bearer ${sessionToken}` },
     })
       .then((res) => {

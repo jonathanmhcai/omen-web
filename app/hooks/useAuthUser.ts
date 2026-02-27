@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAccessToken, usePrivy } from "@privy-io/react-auth";
 import { User } from "../lib/types";
-import { SESSION_TOKEN_KEY } from "../lib/constants";
+import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
 async function authenticateWithPrivy(setSessionToken: (token: string) => void): Promise<string> {
@@ -12,7 +12,7 @@ async function authenticateWithPrivy(setSessionToken: (token: string) => void): 
     throw new Error("No access token from Privy");
   }
 
-  const res = await fetch("/api/auth/privy", {
+  const res = await fetch(`${API_BASE}/auth/privy`, {
     method: "POST",
     headers: { Authorization: `Bearer ${privyToken}` },
   });
@@ -29,7 +29,7 @@ async function authenticateWithPrivy(setSessionToken: (token: string) => void): 
 }
 
 async function fetchMe(sessionToken: string, clearSessionToken: () => void): Promise<User> {
-  const res = await fetch("/api/me", {
+  const res = await fetch(`${API_BASE}/me`, {
     headers: { Authorization: `Bearer ${sessionToken}` },
   });
 
