@@ -42,19 +42,18 @@ function sortMarketsByYesPrice(
 
 function MarketRow({
   market,
-  onTrade,
+  onMarket,
 }: {
   market: PolymarketMarket;
-  onTrade: (market: PolymarketMarket, outcomeIndex: number) => void;
+  onMarket: (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => void;
 }) {
   const outcomes: string[] = parseJSON(market.outcomes, []);
   const prices: string[] = parseJSON(market.outcomePrices, []);
+  const title = market.groupItemTitle || market.question;
 
   return (
     <div className="flex items-center justify-between gap-3 py-1.5">
-      <p className="text-xs text-foreground flex-1 min-w-0">
-        {market.groupItemTitle || market.question}
-      </p>
+      <p className="text-xs text-foreground flex-1 min-w-0">{title}</p>
       <div className="flex shrink-0 gap-1.5">
         {outcomes.map((outcome, i) => {
           const price = parseFloat(prices[i] || "0");
@@ -63,7 +62,7 @@ function MarketRow({
           return (
             <button
               key={i}
-              onClick={() => onTrade(market, i)}
+              onClick={() => onMarket(market.conditionId, { outcomeIndex: i, title })}
               className={`rounded px-2 py-1 text-xs font-medium ${
                 isYes
                   ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900"
@@ -83,10 +82,10 @@ const INITIAL_MARKET_COUNT = 4;
 
 function MarketList({
   markets,
-  onTrade,
+  onMarket,
 }: {
   markets: PolymarketMarket[];
-  onTrade: (market: PolymarketMarket, outcomeIndex: number) => void;
+  onMarket: (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const sorted = sortMarketsByYesPrice(markets.filter(isMarketActionable));
@@ -96,7 +95,7 @@ function MarketList({
   return (
     <div className="mt-2 flex flex-col gap-0.5">
       {visible.map((m) => (
-        <MarketRow key={m.id} market={m} onTrade={onTrade} />
+        <MarketRow key={m.id} market={m} onMarket={onMarket} />
       ))}
       {hiddenCount > 0 && !expanded && (
         <button
@@ -194,7 +193,7 @@ export default function EventsPanel({
               </span>
             </div>
             {e.markets && e.markets.length > 0 && (
-              <MarketList markets={e.markets} onTrade={ctx.onTrade} />
+              <MarketList markets={e.markets} onMarket={ctx.onMarket} />
             )}
           </div>
         ))}

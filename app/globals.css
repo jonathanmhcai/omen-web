@@ -152,9 +152,22 @@
   --dv-tab-font-size: 13px;
 }
 
-/* Hide scrollbars on dockview chrome — only panel content should scroll */
-.dockview-theme-custom *:not(.dv-groupview *) {
+/* Suppress focus outline on dockview internals */
+.dockview-theme-custom:focus,
+.dockview-theme-custom *:focus {
+  outline: none;
+}
+
+/* Hide scrollbars on all dockview internals */
+.dockview-theme-custom,
+.dockview-theme-custom * {
   scrollbar-width: none;
+}
+
+/* Re-enable scrollbars only inside panel content */
+.dockview-theme-custom .dv-groupview [class*="overflow"] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) transparent;
 }
 
 /* Widen the sash to cover the full grip strip area */

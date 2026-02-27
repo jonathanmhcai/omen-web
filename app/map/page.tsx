@@ -8,12 +8,12 @@ import {
   type DockviewTheme,
 } from "dockview";
 import { useAllEvents } from "../hooks/useAllEvents";
-import { PolymarketEvent, PolymarketMarket } from "../lib/types";
+import { PolymarketEvent } from "../lib/types";
 import { buildGeoJSON, groupEventsByLocation } from "./geo";
 import { MapPageContext, type MapPageContextValue } from "./MapPageContext";
 import MapPanel from "./MapPanel";
 import EventsPanel from "./EventsPanel";
-import TradePanel from "./TradePanel";
+import MarketPanel from "./MarketPanel";
 import PositionsPanel from "./PositionsPanel";
 import HeaderAccount from "./HeaderAccount";
 
@@ -25,7 +25,7 @@ const THEME: DockviewTheme = {
 const COMPONENTS = {
   map: MapPanel,
   events: EventsPanel,
-  trade: TradePanel,
+  market: MarketPanel,
   positions: PositionsPanel,
 };
 
@@ -131,30 +131,30 @@ export default function MapPage() {
     setSelectedLocation(null);
   }, []);
 
-  const onTrade = useCallback(
-    (market: PolymarketMarket, outcomeIndex: number) => {
+  const onMarket = useCallback(
+    (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => {
       const api = apiRef.current;
       if (!api) return;
 
-      // Remove existing trade panel if any
-      const existing = api.getPanel("trade");
+      // Remove existing market panel if any
+      const existing = api.getPanel("market");
       if (existing) api.removePanel(existing);
 
       api.addPanel({
-        id: "trade",
-        component: "trade",
-        title: "Place Trade",
-        params: { market, outcomeIndex },
-        floating: { width: 380, height: 320 },
+        id: "market",
+        component: "market",
+        title: opts?.title || "Market",
+        params: { conditionId, outcomeIndex: opts?.outcomeIndex },
+        floating: { width: 400, height: 640 },
       });
     },
     []
   );
 
-  const onTradeClose = useCallback(() => {
+  const onMarketClose = useCallback(() => {
     const api = apiRef.current;
     if (!api) return;
-    const panel = api.getPanel("trade");
+    const panel = api.getPanel("market");
     if (panel) api.removePanel(panel);
   }, []);
 
@@ -164,7 +164,7 @@ export default function MapPage() {
 
     const existing = api.getPanel("positions");
     if (existing) {
-      api.removePanel(existing);
+      existing.api.setActive();
       return;
     }
 
@@ -193,19 +193,26 @@ export default function MapPage() {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
       e.preventDefault();
+      e.stopImmediatePropagation();
       const api = apiRef.current;
       if (!api) return;
 
-      // Find the active panel in each group; remove the active non-map panel
+      // Close floating market panel first, then active non-map panel
+      const marketPanel = api.getPanel("market");
+      if (marketPanel) {
+        api.removePanel(marketPanel);
+        return;
+      }
       for (const group of api.groups) {
         if (group.activePanel && group.activePanel.id !== "map") {
           api.removePanel(group.activePanel);
+          setSelectedLocation(null);
           return;
         }
       }
     }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, []);
 
   // --- Dockview ready ---
@@ -258,8 +265,8 @@ export default function MapPage() {
       loading,
       onLocationSelect,
       onLocationDeselect,
-      onTrade,
-      onTradeClose,
+      onMarket,
+      onMarketClose,
       onPositionsToggle,
     }),
     [
@@ -271,8 +278,8 @@ export default function MapPage() {
       loading,
       onLocationSelect,
       onLocationDeselect,
-      onTrade,
-      onTradeClose,
+      onMarket,
+      onMarketClose,
       onPositionsToggle,
     ]
   );

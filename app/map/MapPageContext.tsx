@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 import type * as GeoJSON from "geojson";
-import type { PolymarketEvent, PolymarketMarket } from "../lib/types";
+import type { PolymarketEvent } from "../lib/types";
 
 export interface MapPageContextValue {
   geojson: GeoJSON.GeoJSON;
@@ -13,8 +13,8 @@ export interface MapPageContextValue {
   loading: boolean;
   onLocationSelect: (location: string, events: PolymarketEvent[]) => void;
   onLocationDeselect: () => void;
-  onTrade: (market: PolymarketMarket, outcomeIndex: number) => void;
-  onTradeClose: () => void;
+  onMarket: (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => void;
+  onMarketClose: () => void;
   onPositionsToggle: () => void;
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
@@ -16,51 +16,46 @@ interface CreateOrderParams {
   orderType: "FOK";
 }
 
-export function useCreateOrder() {
+export function useCreateOrder(conditionId: string | undefined) {
   const [sessionToken] = useCookieString(SESSION_TOKEN_KEY);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<unknown>(null);
+  const queryClient = useQueryClient();
 
-  const createOrder = useCallback(
-    async (params: CreateOrderParams) => {
+  const { mutateAsync, isPending, error, data } = useMutation({
+    mutationFn: async (params: CreateOrderParams) => {
       if (!sessionToken) {
-        setError("Not authenticated");
-        return;
+        throw new Error("Not authenticated");
       }
 
-      setLoading(true);
-      setError(null);
-      setData(null);
+      const res = await fetch(`${API_BASE}/polymarket/orders/v2`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(params),
+      });
 
-      try {
-        const res = await fetch(`${API_BASE}/polymarket/orders/v2`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${sessionToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(params),
-        });
+      const responseData = await res.json().catch(() => ({}));
 
-        const responseData = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(responseData.error || responseData.message || "Order failed");
+      }
 
-        if (!res.ok) {
-          throw new Error(responseData.error || responseData.message || "Order failed");
-        }
-
-        setData(responseData);
-        return responseData;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
+      return responseData;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["positions"] });
+      queryClient.invalidateQueries({ queryKey: ["usdcBalance"] });
+      if (conditionId) {
+        queryClient.invalidateQueries({ queryKey: ["market", conditionId] });
       }
     },
-    [sessionToken],
-  );
+  });
 
-  return { createOrder, loading, error, data };
+  return {
+    createOrder: mutateAsync,
+    loading: isPending,
+    error: error?.message ?? null,
+    data: data ?? null,
+  };
 }

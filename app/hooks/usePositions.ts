@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
@@ -40,39 +40,29 @@ export interface PositionsResponse {
 
 export function usePositions() {
   const [sessionToken] = useCookieString(SESSION_TOKEN_KEY);
-  const [data, setData] = useState<PositionsResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchPositions = useCallback(async () => {
-    if (!sessionToken) return;
-
-    setLoading(true);
-    try {
+  const { data, isLoading, error, refetch } = useQuery<PositionsResponse>({
+    queryKey: ["positions"],
+    queryFn: async () => {
       const res = await fetch(`${API_BASE}/polymarket/positions`, {
         headers: { Authorization: `Bearer ${sessionToken}` },
       });
       if (!res.ok) {
         if (res.status === 404) {
-          // No polymarket account — not an error, just no positions
-          setData({ positions: [], totalValue: 0 });
-          return;
+          return { positions: [], totalValue: 0 };
         }
         throw new Error("Failed to fetch positions");
       }
-      const json = await res.json();
-      setData(json);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionToken]);
+      return res.json();
+    },
+    enabled: !!sessionToken,
+    refetchInterval: 10_000,
+  });
 
-  useEffect(() => {
-    fetchPositions();
-  }, [fetchPositions]);
-
-  return { data, loading, error, refetch: fetchPositions };
+  return {
+    data: data ?? null,
+    loading: isLoading,
+    error: error?.message ?? null,
+    refetch,
+  };
 }

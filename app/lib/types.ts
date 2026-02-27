@@ -29,6 +29,7 @@ export interface PolymarketSeries {
 
 export interface PolymarketMarket {
   id: string;
+  conditionId: string;
   question: string;
   groupItemTitle?: string;
   outcomes: string; // JSON string array e.g. '["Yes", "No"]'
@@ -40,6 +41,9 @@ export interface PolymarketMarket {
   clobTokenIds: string; // JSON string array
   orderPriceMinTickSize: number;
   negRisk: boolean;
+  endDate?: string;
+  image?: string;
+  description?: string;
 }
 
 export interface PolymarketEvent {

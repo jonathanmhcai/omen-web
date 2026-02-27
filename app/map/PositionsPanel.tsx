@@ -1,6 +1,7 @@
 "use client";
 
 import type { IDockviewPanelProps } from "dockview";
+import { useMapPageContext } from "./MapPageContext";
 import { usePositions, PolymarketPosition } from "../hooks/usePositions";
 
 function formatDollars(n: number): string {
@@ -23,6 +24,7 @@ function formatDate(dateString: string): string {
 }
 
 function PositionRow({ position }: { position: PolymarketPosition }) {
+  const ctx = useMapPageContext();
   const pnlColor =
     position.cashPnl > 0
       ? "text-emerald-600"
@@ -31,7 +33,15 @@ function PositionRow({ position }: { position: PolymarketPosition }) {
         : "text-muted-foreground";
 
   return (
-    <div className="flex items-start gap-3 px-3 py-2.5">
+    <div
+      className="flex items-start gap-3 px-3 py-2.5 cursor-pointer hover:bg-muted/50"
+      onClick={() =>
+        ctx.onMarket(position.conditionId, {
+          outcomeIndex: position.outcomeIndex,
+          title: position.title,
+        })
+      }
+    >
       {position.icon && (
         <img
           src={position.icon}
