@@ -68,7 +68,7 @@ function MarketRow({ market, onTrade }: { market: PolymarketMarket; onTrade: (ma
 export default function EventSidebar({ location, events, onClose, onTrade }: EventSidebarProps) {
   const sorted = [...events].sort((a, b) => (b.volume24hr || 0) - (a.volume24hr || 0));
   return (
-    <div className="absolute right-0 top-0 z-50 flex h-full w-96 flex-col border-l border-black/10 bg-white shadow-lg">
+    <div className="absolute right-0 top-0 bottom-7 z-50 flex w-96 flex-col border-l border-black/10 bg-white shadow-lg">
       <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
         <h2 className="text-sm font-semibold text-zinc-900">{formatLocationName(location)}</h2>
         <button
@@ -87,7 +87,12 @@ export default function EventSidebar({ location, events, onClose, onTrade }: Eve
             key={e.id}
             className="border-b border-black/5 px-4 py-3"
           >
-            <p className="text-sm font-medium text-zinc-900">{e.title}</p>
+            <div className="flex items-start gap-3">
+              {e.image && (
+                <img src={e.image} alt="" className="mt-0.5 h-8 w-8 shrink-0 rounded object-cover" />
+              )}
+              <p className="text-sm font-medium text-zinc-900">{e.title}</p>
+            </div>
             <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
               <span>${Math.round(e.volume || 0).toLocaleString()} vol</span>
               <span>${Math.round(e.volume24hr || 0).toLocaleString()} 24h</span>

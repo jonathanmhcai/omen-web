@@ -237,6 +237,10 @@ export default function MapPage() {
       )}
 
       </div>
+
+      <footer className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-center border-t border-black/10 bg-white text-xs text-zinc-400" style={{ height: 28 }}>
+        Powered by Polymarket
+      </footer>
     </div>
   );
 }
