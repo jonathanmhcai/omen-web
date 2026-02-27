@@ -152,22 +152,40 @@
   --dv-tab-font-size: 13px;
 }
 
-/* Grip indicator on the horizontal sash between map and right panel */
-.dockview-theme-custom .dv-horizontal > .dv-sash-container > .dv-sash:not(.disabled)::after {
+/* Hide scrollbars on dockview chrome — only panel content should scroll */
+.dockview-theme-custom *:not(.dv-groupview *) {
+  scrollbar-width: none;
+}
+
+/* Widen the sash to cover the full grip strip area */
+.dockview-theme-custom .dv-horizontal > .dv-sash-container > .dv-sash {
+  width: 10px !important;
+}
+
+/* Grip strip on the left edge of the right-side panel (takes up panel space, not the map) */
+.dockview-theme-custom .dv-horizontal > .dv-view-container > .dv-view:not(:first-child) {
+  padding-left: 10px;
+}
+
+.dockview-theme-custom .dv-horizontal > .dv-view-container > .dv-view:not(:first-child)::before {
+  width: 10px !important;
+  background-color: var(--secondary);
+  border-right: 1px solid var(--border);
+  z-index: 1;
+}
+
+.dockview-theme-custom .dv-horizontal > .dv-view-container > .dv-view:not(:first-child)::after {
   content: "";
   position: absolute;
   top: 50%;
-  left: 50%;
+  left: 5px;
   transform: translate(-50%, -50%);
   width: 4px;
-  height: 24px;
-  border-radius: 2px;
-  background-color: var(--muted-foreground);
-  opacity: 0.25;
-  transition: opacity 0.15s;
-}
-
-.dockview-theme-custom .dv-horizontal > .dv-sash-container > .dv-sash:not(.disabled):hover::after,
-.dockview-theme-custom .dv-horizontal > .dv-sash-container > .dv-sash:not(.disabled):active::after {
-  opacity: 0.5;
+  height: 18px;
+  background-image: radial-gradient(circle, var(--muted-foreground) 1px, transparent 1px);
+  background-size: 4px 6px;
+  background-position: center;
+  opacity: 0.35;
+  z-index: 2;
+  pointer-events: none;
 }

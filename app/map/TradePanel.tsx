@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { IDockviewPanelProps } from "dockview";
+import { toast } from "sonner";
 import { useMapPageContext } from "./MapPageContext";
 import { PolymarketMarket } from "../lib/types";
 import { useCreateOrder } from "../hooks/useCreateOrder";
@@ -35,7 +36,6 @@ export default function TradePanel({
   const tokenID = tokenIds[outcomeIndex];
 
   const [amount, setAmount] = useState("");
-  const [success, setSuccess] = useState(false);
   const { createOrder, loading, error } = useCreateOrder();
 
   const parsedAmount = parseFloat(amount);
@@ -56,8 +56,8 @@ export default function TradePanel({
         },
         orderType: "FOK",
       });
-      setSuccess(true);
-      setTimeout(() => ctx.onTradeClose(), 1500);
+      toast.success(`Bought $${parsedAmount.toFixed(2)} of ${outcome}`);
+      ctx.onTradeClose();
     } catch {
       // error state handled by hook
     }
@@ -74,44 +74,36 @@ export default function TradePanel({
         <span className="text-xs text-muted-foreground">{pct}¢</span>
       </div>
 
-      {success ? (
-        <div className="rounded bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-          Order placed successfully!
-        </div>
-      ) : (
-        <>
-          <label className="block text-xs font-medium text-foreground mb-1">
-            Amount (USD)
-          </label>
-          <input
-            type="number"
-            min="1"
-            step="0.01"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="1.00"
-            className="w-full rounded border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none mb-1"
-            disabled={loading}
-          />
-          {amount && !isValid && (
-            <p className="text-xs text-red-500 mb-2">Minimum amount is $1</p>
-          )}
-
-          {error && (
-            <div className="rounded bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950 dark:text-red-300 mb-3">
-              {error}
-            </div>
-          )}
-
-          <button
-            onClick={handleSubmit}
-            disabled={!isValid || loading}
-            className="mt-3 w-full rounded bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Placing order..." : `Buy ${outcome}`}
-          </button>
-        </>
+      <label className="block text-xs font-medium text-foreground mb-1">
+        Amount (USD)
+      </label>
+      <input
+        type="number"
+        min="1"
+        step="0.01"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        placeholder="1.00"
+        className="w-full rounded border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none mb-1"
+        disabled={loading}
+      />
+      {amount && !isValid && (
+        <p className="text-xs text-red-500 mb-2">Minimum amount is $1</p>
       )}
+
+      {error && (
+        <div className="rounded bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950 dark:text-red-300 mb-3">
+          {error}
+        </div>
+      )}
+
+      <button
+        onClick={handleSubmit}
+        disabled={!isValid || loading}
+        className="mt-3 w-full rounded bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {loading ? "Placing order..." : `Buy ${outcome}`}
+      </button>
     </div>
   );
 }
