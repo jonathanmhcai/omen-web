@@ -145,13 +145,14 @@ export default function MapPage() {
   const onMouseLeave = useCallback(() => setHoverInfo(null), []);
 
   return (
-    <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
-      <div className="absolute top-0 left-0 z-50 p-4">
-        <span className="font-semibold text-[#0f172a]" style={{ fontSize: "24px" }}>
+    <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
+      <header className="flex items-center px-5 border-b border-black/10 bg-white" style={{ height: 64, flexShrink: 0 }}>
+        <span className="font-semibold text-[#0f172a]" style={{ fontSize: 20 }}>
           Omen
         </span>
-      </div>
+      </header>
 
+      <div style={{ flex: 1, position: "relative" }}>
       <MapGL
         ref={mapRef}
         {...viewState}
@@ -235,6 +236,7 @@ export default function MapPage() {
       )}
 
       <MapFooter />
+      </div>
     </div>
   );
 }
