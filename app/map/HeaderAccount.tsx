@@ -56,7 +56,7 @@ export default function HeaderAccount() {
           className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
         >
           <BarChart3 className="h-3.5 w-3.5 text-secondary-foreground" />
-          <span className="text-secondary-foreground">{posCount} positions</span>
+          <span className="text-secondary-foreground">{posCount} {posCount === 1 ? "position" : "positions"}</span>
           <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
         </button>
       )}
