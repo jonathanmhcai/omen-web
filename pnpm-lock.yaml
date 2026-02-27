@@ -23,6 +23,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      dockview:
+        specifier: ^5.0.0
+        version: 5.0.0(react@19.2.3)
       lucide-react:
         specifier: ^0.563.0
         version: 0.563.0(react@19.2.3)
@@ -3029,6 +3032,14 @@ packages:
 
   dijkstrajs@1.0.3:
     resolution: {integrity: sha512-qiSlmBq9+BCdCA/L46dw8Uy93mloxsPSbwnm5yrKn2vMPiy8KyAskTF6zuV/j5BMsmOGZDPs7KjU+mjb670kfA==}
+
+  dockview-core@5.0.0:
+    resolution: {integrity: sha512-bUgH/e/PTVZ/5Y97QvF30eAs67HPzTQUbcVMojwsWX/RKys5bQCblGMvxPu+KVx+jes2JIhepFvjMepCyz1uNQ==}
+
+  dockview@5.0.0:
+    resolution: {integrity: sha512-GPUMnhaZ7pH28Ai6HPEu4cecp9xNSp4tMtDn/In7sYCDhTztBbbLEK3BqbAwiJBEUXadnZ7j01BaZkz9ndJJ7A==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   doctrine@2.1.0:
     resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
@@ -9968,6 +9979,13 @@ snapshots:
   detect-node-es@1.1.0: {}
 
   dijkstrajs@1.0.3: {}
+
+  dockview-core@5.0.0: {}
+
+  dockview@5.0.0(react@19.2.3):
+    dependencies:
+      dockview-core: 5.0.0
+      react: 19.2.3
 
   doctrine@2.1.0:
     dependencies:

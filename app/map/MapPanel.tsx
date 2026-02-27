@@ -1,0 +1,322 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import MapGL, { Source, Layer } from "react-map-gl/mapbox";
+import type { MapMouseEvent, MapRef } from "react-map-gl/mapbox";
+import type * as GeoJSON from "geojson";
+import "mapbox-gl/dist/mapbox-gl.css";
+import type { IDockviewPanelProps } from "dockview";
+import { useMapPageContext } from "./MapPageContext";
+import {
+  getIsoCode,
+  getStateAbbr,
+  getSlugByIso,
+  getSlugByStateAbbr,
+} from "./geo";
+import {
+  getClusterLayers,
+  getUnclusteredPointLayers,
+  getCountryFillLayer,
+  getCountryLineLayer,
+  getStateFillLayer,
+  getStateLineLayer,
+  INTERACTIVE_LAYER_IDS,
+} from "./layers";
+import HoverTooltip from "./HoverTooltip";
+import countryBoundaries from "../lib/country-boundaries.json";
+import stateBoundaries from "../lib/us-state-boundaries.json";
+
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+if (!MAPBOX_TOKEN) throw new Error("NEXT_PUBLIC_MAPBOX_TOKEN is not set");
+
+export default function MapPanel({ api }: IDockviewPanelProps) {
+  const mapRef = useRef<MapRef>(null);
+  const ctx = useMapPageContext();
+  const {
+    geojson,
+    eventsByLocation,
+    volume24hrByLocation,
+    selectedLocation,
+    darkMode,
+    loading,
+    onLocationSelect,
+    onLocationDeselect,
+  } = ctx;
+
+  const [viewState, setViewState] = useState({
+    longitude: 0,
+    latitude: 20,
+    zoom: 1.5,
+  });
+  const [hoverInfo, setHoverInfo] = useState<{
+    x: number;
+    y: number;
+    locations: string[];
+    eventCount: number;
+    volume24hr: number;
+  } | null>(null);
+
+  // Resize map when dockview resizes the panel
+  useEffect(() => {
+    const disposable = api.onDidDimensionsChange(() => {
+      mapRef.current?.resize();
+    });
+    return () => disposable.dispose();
+  }, [api]);
+
+  // Pulse animation
+  const [pulse, setPulse] = useState(0);
+  useEffect(() => {
+    let frame: number;
+    const animate = () => {
+      setPulse((Date.now() % 2000) / 2000);
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const selectedIso = selectedLocation ? getIsoCode(selectedLocation) : null;
+  const selectedStateAbbr = selectedLocation
+    ? getStateAbbr(selectedLocation)
+    : null;
+
+  const clusterLayers = useMemo(() => getClusterLayers(pulse), [pulse]);
+  const unclusteredPointLayers = useMemo(
+    () => getUnclusteredPointLayers(selectedLocation, pulse),
+    [selectedLocation, pulse]
+  );
+  const countryFillLayer = useMemo(
+    () => getCountryFillLayer(selectedIso),
+    [selectedIso]
+  );
+  const countryLineLayer = useMemo(
+    () => getCountryLineLayer(selectedIso),
+    [selectedIso]
+  );
+  const stateFillLayer = useMemo(
+    () => getStateFillLayer(selectedStateAbbr),
+    [selectedStateAbbr]
+  );
+  const stateLineLayer = useMemo(
+    () => getStateLineLayer(selectedStateAbbr),
+    [selectedStateAbbr]
+  );
+
+  const onClick = useCallback(
+    (e: MapMouseEvent) => {
+      const feature = e.features?.[0];
+      if (!feature) {
+        onLocationDeselect();
+        return;
+      }
+
+      const props = feature.properties;
+      const map = mapRef.current?.getMap();
+
+      if (props?.cluster && map) {
+        const source = map.getSource("events") as mapboxgl.GeoJSONSource;
+        const clusterId = props.cluster_id as number;
+
+        source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
+          if (err || !leaves) return;
+          const dcLeaf = leaves.find(
+            (l) => l.properties?.country === "us-washington-dc"
+          );
+          if (dcLeaf && eventsByLocation.has("us-washington-dc")) {
+            onLocationSelect(
+              "us-washington-dc",
+              eventsByLocation.get("us-washington-dc")!
+            );
+            return;
+          }
+
+          source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+            if (err || zoom == null) return;
+
+            if (zoom > 14) {
+              const location = leaves[0]?.properties?.country;
+              if (location && eventsByLocation.has(location)) {
+                onLocationSelect(location, eventsByLocation.get(location)!);
+              }
+              return;
+            }
+
+            const geometry = feature.geometry as GeoJSON.Point;
+            map.easeTo({
+              center: geometry.coordinates as [number, number],
+              zoom,
+            });
+          });
+        });
+        return;
+      }
+
+      if (props?.country && eventsByLocation.has(props.country)) {
+        onLocationSelect(props.country, eventsByLocation.get(props.country)!);
+        return;
+      }
+
+      const layerId = (feature as any).layer?.id;
+      if (layerId === "country-fill" && props?.ISO_A2) {
+        const slug = getSlugByIso(props.ISO_A2 as string);
+        if (slug) {
+          onLocationSelect(slug, eventsByLocation.get(slug) ?? []);
+          return;
+        }
+      }
+
+      if (layerId === "state-fill" && props?.STUSPS) {
+        const slug = getSlugByStateAbbr(props.STUSPS as string);
+        if (slug) {
+          onLocationSelect(slug, eventsByLocation.get(slug) ?? []);
+          return;
+        }
+      }
+    },
+    [eventsByLocation, onLocationSelect, onLocationDeselect]
+  );
+
+  const onHover = useCallback(
+    (e: MapMouseEvent) => {
+      const feature = e.features?.[0];
+      if (!feature) {
+        setHoverInfo(null);
+        return;
+      }
+      const props = feature.properties;
+
+      if (!props?.cluster) {
+        const location = props?.country;
+        if (location && eventsByLocation.has(location)) {
+          setHoverInfo({
+            x: e.point.x,
+            y: e.point.y,
+            locations: [location],
+            eventCount: eventsByLocation.get(location)!.length,
+            volume24hr: volume24hrByLocation.get(location) || 0,
+          });
+        }
+        return;
+      }
+
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+      const source = map.getSource("events") as mapboxgl.GeoJSONSource;
+      source.getClusterLeaves(
+        props.cluster_id as number,
+        Infinity,
+        0,
+        (err, leaves) => {
+          if (err || !leaves?.length) return;
+          const locations = [
+            ...new Set(
+              leaves
+                .map((l) => l.properties?.country as string)
+                .filter(Boolean)
+            ),
+          ];
+          if (!locations.length) return;
+          const totalVolume = locations.reduce(
+            (sum, loc) => sum + (volume24hrByLocation.get(loc) || 0),
+            0
+          );
+          setHoverInfo({
+            x: e.point.x,
+            y: e.point.y,
+            locations,
+            eventCount: props.point_count as number,
+            volume24hr: totalVolume,
+          });
+        }
+      );
+    },
+    [eventsByLocation, volume24hrByLocation]
+  );
+
+  const onMouseLeave = useCallback(() => setHoverInfo(null), []);
+
+  const mapStyle = darkMode
+    ? "mapbox://styles/mapbox/dark-v11"
+    : "mapbox://styles/mapbox/light-v11";
+
+  return (
+    <div style={{ width: "100%", height: "100%", position: "relative" }}>
+      <MapGL
+        ref={mapRef}
+        {...viewState}
+        onMove={(evt) => {
+          const vs = evt.viewState;
+          setViewState({
+            ...vs,
+            latitude: Math.max(-70, Math.min(70, vs.latitude)),
+          });
+        }}
+        projection="mercator"
+        minZoom={2}
+        renderWorldCopies={true}
+        mapStyle={mapStyle}
+        mapboxAccessToken={MAPBOX_TOKEN}
+        interactiveLayerIds={INTERACTIVE_LAYER_IDS}
+        onClick={onClick}
+        onMouseEnter={onHover}
+        onMouseMove={onHover}
+        onMouseLeave={onMouseLeave}
+        cursor={hoverInfo ? "pointer" : "grab"}
+      >
+        <Source
+          id="country-boundaries"
+          type="geojson"
+          data={countryBoundaries as any}
+        >
+          <Layer {...countryFillLayer} />
+          <Layer {...countryLineLayer} />
+        </Source>
+
+        <Source
+          id="state-boundaries"
+          type="geojson"
+          data={stateBoundaries as any}
+        >
+          <Layer {...stateFillLayer} />
+          <Layer {...stateLineLayer} />
+        </Source>
+
+        <Source
+          id="events"
+          type="geojson"
+          data={geojson}
+          cluster={true}
+          clusterMaxZoom={14}
+          clusterRadius={50}
+          clusterProperties={{
+            totalVolume24hr: ["+", ["get", "volume24hr"]],
+          }}
+        >
+          {clusterLayers.map((layer) => (
+            <Layer key={layer.id} {...layer} />
+          ))}
+          {unclusteredPointLayers.map((layer) => (
+            <Layer key={layer.id} {...layer} />
+          ))}
+        </Source>
+      </MapGL>
+
+      {hoverInfo && (
+        <HoverTooltip
+          x={hoverInfo.x}
+          y={hoverInfo.y}
+          locations={hoverInfo.locations}
+          eventCount={hoverInfo.eventCount}
+          volume24hr={hoverInfo.volume24hr}
+        />
+      )}
+
+      {loading && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/50">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-foreground" />
+        </div>
+      )}
+    </div>
+  );
+}

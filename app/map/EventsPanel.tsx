@@ -1,5 +1,9 @@
+"use client";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Meh } from "lucide-react";
+import type { IDockviewPanelProps } from "dockview";
+import { useMapPageContext } from "./MapPageContext";
 import { PolymarketEvent, PolymarketMarket } from "../lib/types";
 
 function isMarketActionable(market: PolymarketMarket): boolean {
@@ -9,13 +13,6 @@ function isMarketActionable(market: PolymarketMarket): boolean {
   return true;
 }
 
-interface EventSidebarProps {
-  location: string;
-  events: PolymarketEvent[];
-  onClose: () => void;
-  onTrade: (market: PolymarketMarket, outcomeIndex: number) => void;
-}
-
 function formatLocationName(slug: string): string {
   if (slug === "us-washington-dc") return "United States";
   const name = slug.startsWith("us-") ? slug.slice(3) : slug;
@@ -23,7 +20,11 @@ function formatLocationName(slug: string): string {
 }
 
 function parseJSON<T>(str: string, fallback: T): T {
-  try { return JSON.parse(str); } catch { return fallback; }
+  try {
+    return JSON.parse(str);
+  } catch {
+    return fallback;
+  }
 }
 
 function getYesPrice(market: PolymarketMarket): number {
@@ -33,17 +34,27 @@ function getYesPrice(market: PolymarketMarket): number {
   return yesIndex !== -1 ? parseFloat(prices[yesIndex] || "0") : 0;
 }
 
-function sortMarketsByYesPrice(markets: PolymarketMarket[]): PolymarketMarket[] {
+function sortMarketsByYesPrice(
+  markets: PolymarketMarket[]
+): PolymarketMarket[] {
   return [...markets].sort((a, b) => getYesPrice(b) - getYesPrice(a));
 }
 
-function MarketRow({ market, onTrade }: { market: PolymarketMarket; onTrade: (market: PolymarketMarket, outcomeIndex: number) => void }) {
+function MarketRow({
+  market,
+  onTrade,
+}: {
+  market: PolymarketMarket;
+  onTrade: (market: PolymarketMarket, outcomeIndex: number) => void;
+}) {
   const outcomes: string[] = parseJSON(market.outcomes, []);
   const prices: string[] = parseJSON(market.outcomePrices, []);
 
   return (
     <div className="flex items-center justify-between gap-3 py-1.5">
-      <p className="text-xs text-foreground flex-1 min-w-0">{market.groupItemTitle || market.question}</p>
+      <p className="text-xs text-foreground flex-1 min-w-0">
+        {market.groupItemTitle || market.question}
+      </p>
       <div className="flex shrink-0 gap-1.5">
         {outcomes.map((outcome, i) => {
           const price = parseFloat(prices[i] || "0");
@@ -70,7 +81,13 @@ function MarketRow({ market, onTrade }: { market: PolymarketMarket; onTrade: (ma
 
 const INITIAL_MARKET_COUNT = 4;
 
-function MarketList({ markets, onTrade }: { markets: PolymarketMarket[]; onTrade: (market: PolymarketMarket, outcomeIndex: number) => void }) {
+function MarketList({
+  markets,
+  onTrade,
+}: {
+  markets: PolymarketMarket[];
+  onTrade: (market: PolymarketMarket, outcomeIndex: number) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const sorted = sortMarketsByYesPrice(markets.filter(isMarketActionable));
   const visible = expanded ? sorted : sorted.slice(0, INITIAL_MARKET_COUNT);
@@ -103,13 +120,32 @@ function MarketList({ markets, onTrade }: { markets: PolymarketMarket[]; onTrade
 
 const EVENTS_PAGE_SIZE = 10;
 
-export default function EventSidebar({ location, events, onClose, onTrade }: EventSidebarProps) {
-  const sorted = [...events].sort((a, b) => (b.volume24hr || 0) - (a.volume24hr || 0));
+interface EventsPanelParams {
+  location: string;
+}
+
+export default function EventsPanel({
+  api,
+  params,
+}: IDockviewPanelProps<EventsPanelParams>) {
+  const ctx = useMapPageContext();
+  const location = params.location;
+  const events = ctx.eventsByLocation.get(location) ?? [];
+  const sorted = [...events].sort(
+    (a, b) => (b.volume24hr || 0) - (a.volume24hr || 0)
+  );
   const [visibleCount, setVisibleCount] = useState(EVENTS_PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  // Set panel title to location name
+  useEffect(() => {
+    api.setTitle(formatLocationName(location));
+  }, [api, location]);
+
   // Reset when location changes
-  useEffect(() => { setVisibleCount(EVENTS_PAGE_SIZE); }, [location]);
+  useEffect(() => {
+    setVisibleCount(EVENTS_PAGE_SIZE);
+  }, [location]);
 
   const loadMore = useCallback(() => {
     setVisibleCount((v) => Math.min(v + EVENTS_PAGE_SIZE, sorted.length));
@@ -119,8 +155,10 @@ export default function EventSidebar({ location, events, onClose, onTrade }: Eve
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) loadMore(); },
-      { rootMargin: "200px" },
+      ([entry]) => {
+        if (entry.isIntersecting) loadMore();
+      },
+      { rootMargin: "200px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -129,19 +167,7 @@ export default function EventSidebar({ location, events, onClose, onTrade }: Eve
   const visible = sorted.slice(0, visibleCount);
 
   return (
-    <div className="absolute right-0 top-0 bottom-7 z-50 flex w-96 flex-col border-l border-border bg-background shadow-lg">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h2 className="text-sm font-semibold text-foreground">{formatLocationName(location)}</h2>
-        <button
-          onClick={onClose}
-          className="rounded p-1 text-muted-foreground hover:text-foreground"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
+    <div className="flex h-full flex-col bg-background">
       <div className="flex-1 overflow-y-auto">
         {events.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground">
@@ -150,27 +176,33 @@ export default function EventSidebar({ location, events, onClose, onTrade }: Eve
           </div>
         )}
         {visible.map((e) => (
-          <div
-            key={e.id}
-            className="border-b border-border px-4 py-3"
-          >
+          <div key={e.id} className="border-b border-border px-4 py-3">
             <div className="flex items-start gap-3">
               {e.image && (
-                <img src={e.image} alt="" className="mt-0.5 h-8 w-8 shrink-0 rounded object-cover" />
+                <img
+                  src={e.image}
+                  alt=""
+                  className="mt-0.5 h-8 w-8 shrink-0 rounded object-cover"
+                />
               )}
               <p className="text-sm font-medium text-foreground">{e.title}</p>
             </div>
             <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
               <span>${Math.round(e.volume || 0).toLocaleString()} vol</span>
-              <span>${Math.round(e.volume24hr || 0).toLocaleString()} 24h</span>
+              <span>
+                ${Math.round(e.volume24hr || 0).toLocaleString()} 24h
+              </span>
             </div>
             {e.markets && e.markets.length > 0 && (
-              <MarketList markets={e.markets} onTrade={onTrade} />
+              <MarketList markets={e.markets} onTrade={ctx.onTrade} />
             )}
           </div>
         ))}
         {visibleCount < sorted.length && (
-          <div ref={sentinelRef} className="px-4 py-3 text-center text-xs text-muted-foreground">
+          <div
+            ref={sentinelRef}
+            className="px-4 py-3 text-center text-xs text-muted-foreground"
+          >
             Loading more...
           </div>
         )}
