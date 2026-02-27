@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { SESSION_TOKEN_KEY } from "../lib/constants";
+import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
 export interface PolymarketPosition {
@@ -49,7 +49,7 @@ export function usePositions() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/polymarket/positions", {
+      const res = await fetch(`${API_BASE}/polymarket/positions`, {
         headers: { Authorization: `Bearer ${sessionToken}` },
       });
       if (!res.ok) {

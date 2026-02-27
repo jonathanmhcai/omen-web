@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { SESSION_TOKEN_KEY } from "../lib/constants";
+import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
 export function useUsdcBalance() {
@@ -14,7 +14,7 @@ export function useUsdcBalance() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/me/portfolio-value", {
+      const res = await fetch(`${API_BASE}/me/portfolio-value`, {
         headers: { Authorization: `Bearer ${sessionToken}` },
       });
       if (!res.ok) return;

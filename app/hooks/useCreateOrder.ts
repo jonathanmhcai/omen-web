@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { SESSION_TOKEN_KEY } from "../lib/constants";
+import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
 interface CreateOrderParams {
@@ -34,7 +34,7 @@ export function useCreateOrder() {
       setData(null);
 
       try {
-        const res = await fetch("/api/polymarket/orders/v2", {
+        const res = await fetch(`${API_BASE}/polymarket/orders/v2`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${sessionToken}`,
