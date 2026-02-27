@@ -7,6 +7,7 @@ import { useAuthUser } from "../hooks/useAuthUser";
 import { useUsdcBalance } from "../hooks/useUsdcBalance";
 import { usePositions } from "../hooks/usePositions";
 import { useMapPageContext } from "./MapPageContext";
+import { Wallet, BarChart3 } from "lucide-react";
 
 export default function HeaderAccount() {
   const { logout, user: privyUser } = usePrivy();
@@ -42,7 +43,8 @@ export default function HeaderAccount() {
     <div className="flex items-center gap-3">
       {/* Balance */}
       {balance !== null && (
-        <div className="rounded-full bg-secondary px-3 py-1.5 border border-border text-sm font-medium text-emerald-600">
+        <div className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm font-medium text-foreground">
+          <Wallet className="h-3.5 w-3.5" />
           ${balance.toFixed(2)}
         </div>
       )}
@@ -53,6 +55,7 @@ export default function HeaderAccount() {
           onClick={() => { ctx.onPositionsToggle(); setShowSettings(false); }}
           className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
         >
+          <BarChart3 className="h-3.5 w-3.5 text-secondary-foreground" />
           <span className="text-secondary-foreground">{posCount} positions</span>
           <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
         </button>

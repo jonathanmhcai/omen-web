@@ -16,6 +16,7 @@ import EventsPanel from "./EventsPanel";
 import MarketPanel from "./MarketPanel";
 import PositionsPanel from "./PositionsPanel";
 import HeaderAccount from "./HeaderAccount";
+import { MapPin, Calendar } from "lucide-react";
 
 const THEME: DockviewTheme = {
   name: "omen",
@@ -315,13 +316,25 @@ export default function MapPage() {
           className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-between px-5 border-t border-border bg-background text-xs text-muted-foreground"
           style={{ height: 28 }}
         >
-          <span>Powered by Polymarket</span>
-          {!loading && (
-            <span>
-              {eventsByLocation.size} locations &middot; {mappedEventCount}{" "}
-              events
-            </span>
-          )}
+          <span>
+            Powered by Polymarket
+            {!loading && (
+              <>
+                {" · "}
+                <MapPin className="inline h-3 w-3" /> {eventsByLocation.size} locations
+                {" · "}
+                <Calendar className="inline h-3 w-3" /> {mappedEventCount} events
+              </>
+            )}
+          </span>
+          <span className="flex items-center gap-2">
+            <a href="https://x.com/OmenTrading" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href="mailto:support@omen.trading" className="hover:text-foreground">Support</a>
+            <a href="https://omen.trading/terms" className="hover:text-foreground">Terms</a>
+            <a href="https://omen.trading/privacy" className="hover:text-foreground">Privacy</a>
+          </span>
         </footer>
       </div>
     </MapPageContext.Provider>

@@ -29,7 +29,14 @@ export default function Home() {
 
   const footer = (
     <p className="text-gray-600 text-xs pt-6">
-      Questions or concerns? Contact{" "}
+      <a href="https://omen.trading/terms" className="underline">
+        Terms of Service
+      </a>
+      {" · "}
+      <a href="https://omen.trading/privacy" className="underline">
+        Privacy Policy
+      </a>
+      {" · "}
       <a href="mailto:support@omen.trading" className="underline">
         support@omen.trading
       </a>
