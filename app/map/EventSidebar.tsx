@@ -1,9 +1,61 @@
-import { PolymarketEvent } from "../lib/types";
+import { PolymarketEvent, PolymarketMarket } from "../lib/types";
+
+function isMarketActionable(market: PolymarketMarket): boolean {
+  if (market.closed) return false;
+  if (!market.active) return false;
+  if (market.archived) return false;
+  return true;
+}
 
 interface EventSidebarProps {
   country: string;
   events: PolymarketEvent[];
   onClose: () => void;
+}
+
+function parseJSON<T>(str: string, fallback: T): T {
+  try { return JSON.parse(str); } catch { return fallback; }
+}
+
+function getYesPrice(market: PolymarketMarket): number {
+  const outcomes: string[] = parseJSON(market.outcomes, []);
+  const prices: string[] = parseJSON(market.outcomePrices, []);
+  const yesIndex = outcomes.findIndex((o) => o.toLowerCase() === "yes");
+  return yesIndex !== -1 ? parseFloat(prices[yesIndex] || "0") : 0;
+}
+
+function sortMarketsByYesPrice(markets: PolymarketMarket[]): PolymarketMarket[] {
+  return [...markets].sort((a, b) => getYesPrice(b) - getYesPrice(a));
+}
+
+function MarketRow({ market }: { market: PolymarketMarket }) {
+  const outcomes: string[] = parseJSON(market.outcomes, []);
+  const prices: string[] = parseJSON(market.outcomePrices, []);
+
+  return (
+    <div className="flex items-center justify-between gap-3 py-1.5">
+      <p className="text-xs text-zinc-700 flex-1 min-w-0">{market.question}</p>
+      <div className="flex shrink-0 gap-1.5">
+        {outcomes.map((outcome, i) => {
+          const price = parseFloat(prices[i] || "0");
+          const pct = Math.round(price * 100);
+          const isYes = outcome.toLowerCase() === "yes";
+          return (
+            <button
+              key={i}
+              className={`rounded px-2 py-1 text-xs font-medium ${
+                isYes
+                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  : "bg-red-50 text-red-700 hover:bg-red-100"
+              }`}
+            >
+              {outcome} {pct}¢
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export default function EventSidebar({ country, events, onClose }: EventSidebarProps) {
@@ -26,13 +78,20 @@ export default function EventSidebar({ country, events, onClose }: EventSidebarP
         {sorted.map((e) => (
           <div
             key={e.id}
-            className="border-b border-black/5 px-4 py-3 hover:bg-zinc-50"
+            className="border-b border-black/5 px-4 py-3"
           >
             <p className="text-sm font-medium text-zinc-900">{e.title}</p>
             <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
               <span>${Math.round(e.volume || 0).toLocaleString()} vol</span>
               <span>${Math.round(e.volume24hr || 0).toLocaleString()} 24h</span>
             </div>
+            {e.markets && e.markets.length > 0 && (
+              <div className="mt-2 flex flex-col gap-0.5">
+                {sortMarketsByYesPrice(e.markets.filter(isMarketActionable)).map((m) => (
+                  <MarketRow key={m.id} market={m} />
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>

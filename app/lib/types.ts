@@ -27,6 +27,18 @@ export interface PolymarketSeries {
   ticker?: string;
 }
 
+export interface PolymarketMarket {
+  id: string;
+  question: string;
+  outcomes: string; // JSON string array e.g. '["Yes", "No"]'
+  outcomePrices: string; // JSON string array e.g. '["0.6", "0.4"]'
+  volume: string;
+  active: boolean;
+  closed: boolean;
+  archived: boolean;
+  clobTokenIds: string; // JSON string array
+}
+
 export interface PolymarketEvent {
   id: number;
   title: string;
@@ -43,6 +55,7 @@ export interface PolymarketEvent {
   closed: boolean;
   featured: boolean;
   tags: { id: string; label: string; slug: string }[];
+  markets?: PolymarketMarket[];
   series?: PolymarketSeries[];
   seriesSlug?: string;
 }
