@@ -31,7 +31,7 @@ export default function MapPage() {
   const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; country: string; eventCount: number } | null>(null);
   const [sidebar, setSidebar] = useState<SidebarData | null>(null);
 
-  const { events: allEvents } = useAllEvents({ tagIds: ["100265"] });
+  const { events: allEvents, loading } = useAllEvents({ tagIds: ["100265"] });
   const events = useMemo(() => allEvents.filter((e) => !e.closed), [allEvents]);
   const eventsByCountry = useMemo(() => groupEventsByCountry(events), [events]);
   const geojson = useMemo(() => buildGeoJSON(events), [events]);
@@ -170,6 +170,12 @@ export default function MapPage() {
 
       {hoverInfo && (
         <HoverTooltip x={hoverInfo.x} y={hoverInfo.y} country={hoverInfo.country} eventCount={hoverInfo.eventCount} />
+      )}
+
+      {loading && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-white/50">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-zinc-700" />
+        </div>
       )}
 
       {sidebar && (
