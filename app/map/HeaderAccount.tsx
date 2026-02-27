@@ -6,14 +6,14 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useUsdcBalance } from "../hooks/useUsdcBalance";
 import { usePositions } from "../hooks/usePositions";
-import PositionsCard from "./PositionsCard";
+import { useMapPageContext } from "./MapPageContext";
 
 export default function HeaderAccount() {
   const { logout, user: privyUser } = usePrivy();
   const { user } = useAuthUser();
   const { balance } = useUsdcBalance();
   const positions = usePositions();
-  const [showPositions, setShowPositions] = useState(false);
+  const ctx = useMapPageContext();
   const [showSettings, setShowSettings] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -49,40 +49,19 @@ export default function HeaderAccount() {
 
       {/* Positions */}
       {positions.data && posCount > 0 && (
-        <div className="relative">
-          <button
-            onClick={() => { setShowPositions((v) => !v); setShowSettings(false); }}
-            className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
-          >
-            <span className="text-secondary-foreground">{posCount} positions</span>
-            <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={`text-muted-foreground transition-transform ${showPositions ? "rotate-180" : ""}`}
-            >
-              <polyline points="18 15 12 9 6 15" />
-            </svg>
-          </button>
-
-          {showPositions && (
-            <div className="absolute right-0 top-full mt-2 z-50">
-              <PositionsCard data={positions.data} loading={positions.loading} error={positions.error} onClose={() => setShowPositions(false)} />
-            </div>
-          )}
-        </div>
+        <button
+          onClick={() => { ctx.onPositionsToggle(); setShowSettings(false); }}
+          className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
+        >
+          <span className="text-secondary-foreground">{posCount} positions</span>
+          <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
+        </button>
       )}
 
       {/* Account */}
       <div className="relative">
         <button
-          onClick={() => { setShowSettings((v) => !v); setShowPositions(false); }}
+          onClick={() => setShowSettings((v) => !v)}
           className="flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
         >
           {user.avatar_url ? (

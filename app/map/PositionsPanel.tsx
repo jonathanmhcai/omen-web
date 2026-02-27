@@ -1,6 +1,7 @@
 "use client";
 
-import { PolymarketPosition, PositionsResponse } from "../hooks/usePositions";
+import type { IDockviewPanelProps } from "dockview";
+import { usePositions, PolymarketPosition } from "../hooks/usePositions";
 
 function formatDollars(n: number): string {
   return "$" + n.toFixed(2);
@@ -74,40 +75,13 @@ function PositionRow({ position }: { position: PolymarketPosition }) {
   );
 }
 
-interface PositionsCardProps {
-  data: PositionsResponse | null;
-  loading: boolean;
-  error: string | null;
-  onClose: () => void;
-}
-
-export default function PositionsCard({ data, loading, error, onClose }: PositionsCardProps) {
+export default function PositionsPanel({}: IDockviewPanelProps) {
+  const { data, loading, error } = usePositions();
   const positions = data?.positions ?? [];
-  const totalValue = data?.totalValue ?? 0;
 
   return (
-    <div className="w-80 rounded-lg bg-popover/90 backdrop-blur-sm shadow-lg border border-border overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
-        <div className="flex items-center gap-2">
-          <h3 className="text-xs font-semibold text-foreground">Positions</h3>
-          {!loading && positions.length > 0 && (
-            <span className="text-xs font-medium text-emerald-600">
-              {formatDollars(totalValue)}
-            </span>
-          )}
-        </div>
-        <button
-          onClick={onClose}
-          className="rounded p-0.5 text-muted-foreground hover:text-foreground"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
-
-      <div className="max-h-72 overflow-y-auto">
+    <div className="flex h-full flex-col bg-background pb-7">
+      <div className="flex-1 overflow-y-auto">
         {loading && (
           <div className="flex items-center justify-center py-8">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted border-t-foreground" />

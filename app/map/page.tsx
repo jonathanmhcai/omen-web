@@ -14,6 +14,7 @@ import { MapPageContext, type MapPageContextValue } from "./MapPageContext";
 import MapPanel from "./MapPanel";
 import EventsPanel from "./EventsPanel";
 import TradePanel from "./TradePanel";
+import PositionsPanel from "./PositionsPanel";
 import HeaderAccount from "./HeaderAccount";
 
 const THEME: DockviewTheme = {
@@ -25,6 +26,7 @@ const COMPONENTS = {
   map: MapPanel,
   events: EventsPanel,
   trade: TradePanel,
+  positions: PositionsPanel,
 };
 
 export default function MapPage() {
@@ -95,15 +97,27 @@ export default function MapPage() {
         // Update params on existing panel
         existing.api.updateParameters({ location });
       } else {
-        // Add new events panel docked to the right of map
-        api.addPanel({
-          id: "events",
-          component: "events",
-          title: "Events",
-          params: { location },
-          position: { referencePanel: "map", direction: "right" },
-          initialWidth: 384,
-        });
+        const positionsPanel = api.getPanel("positions");
+        if (positionsPanel) {
+          // Tab alongside the existing positions panel
+          api.addPanel({
+            id: "events",
+            component: "events",
+            title: "Events",
+            params: { location },
+            position: { referencePanel: "positions" },
+          });
+        } else {
+          // Add new events panel docked to the right of map
+          api.addPanel({
+            id: "events",
+            component: "events",
+            title: "Events",
+            params: { location },
+            position: { referencePanel: "map", direction: "right" },
+            initialWidth: 384,
+          });
+        }
       }
     },
     [selectedLocation]
@@ -144,6 +158,55 @@ export default function MapPage() {
     if (panel) api.removePanel(panel);
   }, []);
 
+  const onPositionsToggle = useCallback(() => {
+    const api = apiRef.current;
+    if (!api) return;
+
+    const existing = api.getPanel("positions");
+    if (existing) {
+      api.removePanel(existing);
+      return;
+    }
+
+    const eventsPanel = api.getPanel("events");
+    if (eventsPanel) {
+      api.addPanel({
+        id: "positions",
+        component: "positions",
+        title: "Positions",
+        position: { referencePanel: "events" },
+      });
+    } else {
+      api.addPanel({
+        id: "positions",
+        component: "positions",
+        title: "Positions",
+        position: { referencePanel: "map", direction: "right" },
+        initialWidth: 384,
+      });
+    }
+  }, []);
+
+  // --- Escape key closes active non-map panel ---
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      const api = apiRef.current;
+      if (!api) return;
+
+      // Find the active panel in each group; remove the active non-map panel
+      for (const group of api.groups) {
+        if (group.activePanel && group.activePanel.id !== "map") {
+          api.removePanel(group.activePanel);
+          return;
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // --- Dockview ready ---
 
   const onReady = useCallback((event: DockviewReadyEvent) => {
@@ -167,6 +230,13 @@ export default function MapPage() {
       }
     }
 
+    // Allow tab reordering but block content/edge drop targets that split panes
+    api.onWillShowOverlay((event) => {
+      if (event.kind === "content" || event.kind === "edge") {
+        event.preventDefault();
+      }
+    });
+
     // Sync state when panels are removed (e.g. user closes via tab X)
     api.onDidRemovePanel((panel) => {
       if (panel.id === "events") {
@@ -189,6 +259,7 @@ export default function MapPage() {
       onLocationDeselect,
       onTrade,
       onTradeClose,
+      onPositionsToggle,
     }),
     [
       geojson,
@@ -201,6 +272,7 @@ export default function MapPage() {
       onLocationDeselect,
       onTrade,
       onTradeClose,
+      onPositionsToggle,
     ]
   );
 
@@ -227,7 +299,6 @@ export default function MapPage() {
             className="dockview-theme-custom"
             components={COMPONENTS}
             onReady={onReady}
-            disableDnd
             theme={THEME}
           />
         </div>

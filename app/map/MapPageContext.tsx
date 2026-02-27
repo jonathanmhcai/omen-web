@@ -15,6 +15,7 @@ export interface MapPageContextValue {
   onLocationDeselect: () => void;
   onTrade: (market: PolymarketMarket, outcomeIndex: number) => void;
   onTradeClose: () => void;
+  onPositionsToggle: () => void;
 }
 
 export const MapPageContext = createContext<MapPageContextValue | null>(null);
