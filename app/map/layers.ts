@@ -62,7 +62,7 @@ export function getClusterLayers(pulse: number): CircleLayer[] {
       paint: {
         "circle-color": "#dc2626",
         "circle-radius": ["*", CLUSTER_RADIUS, 0.6],
-        "circle-opacity": 0.9,
+        "circle-opacity": 0.75,
       },
     },
   ];
@@ -119,7 +119,7 @@ export function getUnclusteredPointLayers(selectedCountry: string | null, pulse:
       paint: {
         "circle-color": coreColor as any,
         "circle-radius": 4,
-        "circle-opacity": 0.9,
+        "circle-opacity": 0.75,
       },
     },
   ];
