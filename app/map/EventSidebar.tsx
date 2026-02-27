@@ -43,7 +43,7 @@ function MarketRow({ market, onTrade }: { market: PolymarketMarket; onTrade: (ma
 
   return (
     <div className="flex items-center justify-between gap-3 py-1.5">
-      <p className="text-xs text-zinc-700 flex-1 min-w-0">{market.groupItemTitle || market.question}</p>
+      <p className="text-xs text-foreground flex-1 min-w-0">{market.groupItemTitle || market.question}</p>
       <div className="flex shrink-0 gap-1.5">
         {outcomes.map((outcome, i) => {
           const price = parseFloat(prices[i] || "0");
@@ -55,8 +55,8 @@ function MarketRow({ market, onTrade }: { market: PolymarketMarket; onTrade: (ma
               onClick={() => onTrade(market, i)}
               className={`rounded px-2 py-1 text-xs font-medium ${
                 isYes
-                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                  : "bg-red-50 text-red-700 hover:bg-red-100"
+                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900"
+                  : "bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900"
               }`}
             >
               {outcome} {pct}¢
@@ -84,7 +84,7 @@ function MarketList({ markets, onTrade }: { markets: PolymarketMarket[]; onTrade
       {hiddenCount > 0 && !expanded && (
         <button
           onClick={() => setExpanded(true)}
-          className="mt-1 text-xs text-zinc-400 hover:text-zinc-600 text-left"
+          className="mt-1 text-xs text-muted-foreground hover:text-foreground text-left"
         >
           Show {hiddenCount} more
         </button>
@@ -92,7 +92,7 @@ function MarketList({ markets, onTrade }: { markets: PolymarketMarket[]; onTrade
       {expanded && hiddenCount > 0 && (
         <button
           onClick={() => setExpanded(false)}
-          className="mt-1 text-xs text-zinc-400 hover:text-zinc-600 text-left"
+          className="mt-1 text-xs text-muted-foreground hover:text-foreground text-left"
         >
           Show less
         </button>
@@ -129,12 +129,12 @@ export default function EventSidebar({ location, events, onClose, onTrade }: Eve
   const visible = sorted.slice(0, visibleCount);
 
   return (
-    <div className="absolute right-0 top-0 bottom-7 z-50 flex w-96 flex-col border-l border-black/10 bg-white shadow-lg">
-      <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
-        <h2 className="text-sm font-semibold text-zinc-900">{formatLocationName(location)}</h2>
+    <div className="absolute right-0 top-0 bottom-7 z-50 flex w-96 flex-col border-l border-border bg-background shadow-lg">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <h2 className="text-sm font-semibold text-foreground">{formatLocationName(location)}</h2>
         <button
           onClick={onClose}
-          className="rounded p-1 text-zinc-400 hover:text-zinc-700"
+          className="rounded p-1 text-muted-foreground hover:text-foreground"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -144,7 +144,7 @@ export default function EventSidebar({ location, events, onClose, onTrade }: Eve
       </div>
       <div className="flex-1 overflow-y-auto">
         {events.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-2 py-16 text-zinc-400">
+          <div className="flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground">
             <Meh size={32} strokeWidth={1.5} />
             <p className="text-sm">Nothing happening</p>
           </div>
@@ -152,15 +152,15 @@ export default function EventSidebar({ location, events, onClose, onTrade }: Eve
         {visible.map((e) => (
           <div
             key={e.id}
-            className="border-b border-black/5 px-4 py-3"
+            className="border-b border-border px-4 py-3"
           >
             <div className="flex items-start gap-3">
               {e.image && (
                 <img src={e.image} alt="" className="mt-0.5 h-8 w-8 shrink-0 rounded object-cover" />
               )}
-              <p className="text-sm font-medium text-zinc-900">{e.title}</p>
+              <p className="text-sm font-medium text-foreground">{e.title}</p>
             </div>
-            <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
+            <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
               <span>${Math.round(e.volume || 0).toLocaleString()} vol</span>
               <span>${Math.round(e.volume24hr || 0).toLocaleString()} 24h</span>
             </div>
@@ -170,13 +170,13 @@ export default function EventSidebar({ location, events, onClose, onTrade }: Eve
           </div>
         ))}
         {visibleCount < sorted.length && (
-          <div ref={sentinelRef} className="px-4 py-3 text-center text-xs text-zinc-400">
+          <div ref={sentinelRef} className="px-4 py-3 text-center text-xs text-muted-foreground">
             Loading more...
           </div>
         )}
       </div>
       {events.length > 0 && (
-        <div className="border-t border-black/10 px-4 py-2 text-xs text-zinc-400">
+        <div className="border-t border-border px-4 py-2 text-xs text-muted-foreground">
           {events.length} events
         </div>
       )}

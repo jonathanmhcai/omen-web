@@ -56,12 +56,12 @@ export default function TradeModal({ market, outcomeIndex, onClose }: TradeModal
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
-        className="w-full max-w-sm rounded-lg bg-white p-5 shadow-xl"
+        className="w-full max-w-sm rounded-lg bg-card p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-zinc-900">Place Trade</h3>
-          <button onClick={onClose} className="rounded p-1 text-zinc-400 hover:text-zinc-700">
+          <h3 className="text-sm font-semibold text-card-foreground">Place Trade</h3>
+          <button onClick={onClose} className="rounded p-1 text-muted-foreground hover:text-foreground">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
@@ -69,22 +69,22 @@ export default function TradeModal({ market, outcomeIndex, onClose }: TradeModal
           </button>
         </div>
 
-        <p className="text-xs text-zinc-600 mb-3">{market.question}</p>
+        <p className="text-xs text-muted-foreground mb-3">{market.question}</p>
 
         <div className="flex items-center gap-2 mb-4">
-          <span className="rounded bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
+          <span className="rounded bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
             {outcome}
           </span>
-          <span className="text-xs text-zinc-500">{pct}¢</span>
+          <span className="text-xs text-muted-foreground">{pct}¢</span>
         </div>
 
         {success ? (
-          <div className="rounded bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <div className="rounded bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
             Order placed successfully!
           </div>
         ) : (
           <>
-            <label className="block text-xs font-medium text-zinc-700 mb-1">Amount (USD)</label>
+            <label className="block text-xs font-medium text-foreground mb-1">Amount (USD)</label>
             <input
               type="number"
               min="1"
@@ -92,7 +92,7 @@ export default function TradeModal({ market, outcomeIndex, onClose }: TradeModal
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="1.00"
-              className="w-full rounded border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none mb-1"
+              className="w-full rounded border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none mb-1"
               disabled={loading}
             />
             {amount && !isValid && (
@@ -100,7 +100,7 @@ export default function TradeModal({ market, outcomeIndex, onClose }: TradeModal
             )}
 
             {error && (
-              <div className="rounded bg-red-50 px-3 py-2 text-xs text-red-700 mb-3">
+              <div className="rounded bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950 dark:text-red-300 mb-3">
                 {error}
               </div>
             )}

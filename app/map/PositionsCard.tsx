@@ -27,7 +27,7 @@ function PositionRow({ position }: { position: PolymarketPosition }) {
       ? "text-emerald-600"
       : position.cashPnl < 0
         ? "text-red-600"
-        : "text-zinc-500";
+        : "text-muted-foreground";
 
   return (
     <div className="flex items-start gap-3 px-3 py-2.5">
@@ -39,31 +39,31 @@ function PositionRow({ position }: { position: PolymarketPosition }) {
         />
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium text-zinc-900">
+        <p className="truncate text-xs font-medium text-foreground">
           {position.title}
         </p>
         <div className="mt-1 flex items-center gap-2">
           <span
             className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
               position.outcome.toLowerCase() === "yes"
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-red-50 text-red-700"
+                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                : "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300"
             }`}
           >
             {position.outcome}
           </span>
-          <span className="text-[11px] text-zinc-500">
+          <span className="text-[11px] text-muted-foreground">
             {formatDollars(position.initialValue)} cost
           </span>
           {position.endDate && (
-            <span className="text-[11px] text-zinc-400">
+            <span className="text-[11px] text-muted-foreground">
               {formatDate(position.endDate)}
             </span>
           )}
         </div>
       </div>
       <div className="shrink-0 text-right">
-        <p className="text-xs font-medium text-zinc-900">
+        <p className="text-xs font-medium text-foreground">
           {formatDollars(position.currentValue)}
         </p>
         <p className={`text-[11px] font-medium ${pnlColor}`}>
@@ -86,10 +86,10 @@ export default function PositionsCard({ data, loading, error, onClose }: Positio
   const totalValue = data?.totalValue ?? 0;
 
   return (
-    <div className="w-80 rounded-lg bg-white/90 backdrop-blur-sm shadow-lg border border-black/5 overflow-hidden">
-      <div className="flex items-center justify-between border-b border-black/5 px-3 py-2.5">
+    <div className="w-80 rounded-lg bg-popover/90 backdrop-blur-sm shadow-lg border border-border overflow-hidden">
+      <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <h3 className="text-xs font-semibold text-zinc-900">Positions</h3>
+          <h3 className="text-xs font-semibold text-foreground">Positions</h3>
           {!loading && positions.length > 0 && (
             <span className="text-xs font-medium text-emerald-600">
               {formatDollars(totalValue)}
@@ -98,7 +98,7 @@ export default function PositionsCard({ data, loading, error, onClose }: Positio
         </div>
         <button
           onClick={onClose}
-          className="rounded p-0.5 text-zinc-400 hover:text-zinc-700"
+          className="rounded p-0.5 text-muted-foreground hover:text-foreground"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -110,7 +110,7 @@ export default function PositionsCard({ data, loading, error, onClose }: Positio
       <div className="max-h-72 overflow-y-auto">
         {loading && (
           <div className="flex items-center justify-center py-8">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700" />
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted border-t-foreground" />
           </div>
         )}
 
@@ -119,7 +119,7 @@ export default function PositionsCard({ data, loading, error, onClose }: Positio
         )}
 
         {!loading && !error && positions.length === 0 && (
-          <p className="px-3 py-6 text-center text-xs text-zinc-400">
+          <p className="px-3 py-6 text-center text-xs text-muted-foreground">
             No open positions
           </p>
         )}

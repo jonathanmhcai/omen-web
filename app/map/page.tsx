@@ -36,6 +36,15 @@ export default function MapPage() {
   const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; locations: string[]; eventCount: number; volume24hr: number } | null>(null);
   const [sidebar, setSidebar] = useState<SidebarData | null>(null);
   const [trade, setTrade] = useState<{ market: PolymarketMarket; outcomeIndex: number } | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const check = () => setDarkMode(document.documentElement.classList.contains("dark"));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   const { events: allEvents, loading } = useAllEvents({ tagIds: ["100265", "2"] });
   const events = useMemo(() => allEvents.filter((e) => !e.closed && !e.tags.some((t) => EXCLUDED_TAG_IDS.has(t.id))), [allEvents]);
@@ -70,6 +79,10 @@ export default function MapPage() {
   const stateFillLayer = useMemo(() => getStateFillLayer(selectedStateAbbr), [selectedStateAbbr]);
   const stateLineLayer = useMemo(() => getStateLineLayer(selectedStateAbbr), [selectedStateAbbr]);
 
+  const toggleSidebar = useCallback((location: string, events: PolymarketEvent[]) => {
+    setSidebar((prev) => prev?.location === location ? null : { location, events });
+  }, []);
+
   const onClick = useCallback(
     (e: MapMouseEvent) => {
       const feature = e.features?.[0];
@@ -90,7 +103,7 @@ export default function MapPage() {
           if (err || !leaves) return;
           const dcLeaf = leaves.find((l) => l.properties?.country === "us-washington-dc");
           if (dcLeaf && eventsByLocation.has("us-washington-dc")) {
-            setSidebar({ location: "us-washington-dc", events: eventsByLocation.get("us-washington-dc")! });
+            toggleSidebar("us-washington-dc", eventsByLocation.get("us-washington-dc")!);
             return;
           }
 
@@ -100,7 +113,7 @@ export default function MapPage() {
             if (zoom > 14) {
               const location = leaves[0]?.properties?.country;
               if (location && eventsByLocation.has(location)) {
-                setSidebar({ location, events: eventsByLocation.get(location)! });
+                toggleSidebar(location, eventsByLocation.get(location)!);
               }
               return;
             }
@@ -114,7 +127,7 @@ export default function MapPage() {
 
       // Unclustered event point
       if (props?.country && eventsByLocation.has(props.country)) {
-        setSidebar({ location: props.country, events: eventsByLocation.get(props.country)! });
+        toggleSidebar(props.country, eventsByLocation.get(props.country)!);
         return;
       }
 
@@ -123,7 +136,7 @@ export default function MapPage() {
       if (layerId === "country-fill" && props?.ISO_A2) {
         const slug = getSlugByIso(props.ISO_A2 as string);
         if (slug) {
-          setSidebar({ location: slug, events: eventsByLocation.get(slug) ?? [] });
+          toggleSidebar(slug, eventsByLocation.get(slug) ?? []);
           return;
         }
       }
@@ -132,12 +145,12 @@ export default function MapPage() {
       if (layerId === "state-fill" && props?.STUSPS) {
         const slug = getSlugByStateAbbr(props.STUSPS as string);
         if (slug) {
-          setSidebar({ location: slug, events: eventsByLocation.get(slug) ?? [] });
+          toggleSidebar(slug, eventsByLocation.get(slug) ?? []);
           return;
         }
       }
     },
-    [eventsByLocation],
+    [eventsByLocation, toggleSidebar],
   );
 
   const onHover = useCallback((e: MapMouseEvent) => {
@@ -172,10 +185,14 @@ export default function MapPage() {
 
   const onMouseLeave = useCallback(() => setHoverInfo(null), []);
 
+  const mapStyle = darkMode
+    ? "mapbox://styles/mapbox/dark-v11"
+    : "mapbox://styles/mapbox/light-v11";
+
   return (
     <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
-      <header className="relative z-[60] flex items-center justify-between px-5 border-b border-black/10 bg-white" style={{ height: 64, flexShrink: 0 }}>
-        <span className="font-semibold text-[#0f172a]" style={{ fontSize: 20 }}>
+      <header className="relative z-[60] flex items-center justify-between px-5 border-b border-border bg-background" style={{ height: 64, flexShrink: 0 }}>
+        <span className="font-semibold text-foreground" style={{ fontSize: 20 }}>
           Omen
         </span>
         <HeaderAccount />
@@ -192,7 +209,7 @@ export default function MapPage() {
         projection="mercator"
         minZoom={2}
         renderWorldCopies={true}
-        mapStyle="mapbox://styles/mapbox/light-v11"
+        mapStyle={mapStyle}
         mapboxAccessToken={MAPBOX_TOKEN}
         interactiveLayerIds={INTERACTIVE_LAYER_IDS}
         onClick={onClick}
@@ -242,8 +259,8 @@ export default function MapPage() {
       )}
 
       {loading && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-white/50">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-zinc-700" />
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/50">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-foreground" />
         </div>
       )}
 
@@ -266,7 +283,7 @@ export default function MapPage() {
 
       </div>
 
-      <footer className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-center border-t border-black/10 bg-white text-xs text-zinc-400" style={{ height: 28 }}>
+      <footer className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-center border-t border-border bg-background text-xs text-muted-foreground" style={{ height: 28 }}>
         Powered by Polymarket
       </footer>
     </div>

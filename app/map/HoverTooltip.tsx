@@ -27,11 +27,11 @@ export default function HoverTooltip({ x, y, locations, eventCount, volume24hr }
 
   return (
     <div
-      className="pointer-events-none absolute z-50 rounded-lg bg-white px-3 py-2 shadow-lg border border-black/10"
+      className="pointer-events-none absolute z-50 rounded-lg bg-popover px-3 py-2 shadow-lg border border-border"
       style={{ left: x + 12, top: y - 12 }}
     >
-      <p className="text-sm font-semibold text-zinc-900">{label}</p>
-      <p className="text-xs text-zinc-500">{eventCount} events &middot; ${Math.round(volume24hr).toLocaleString()} 24h</p>
+      <p className="text-sm font-semibold text-popover-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground">{eventCount} events &middot; ${Math.round(volume24hr).toLocaleString()} 24h</p>
     </div>
   );
 }
