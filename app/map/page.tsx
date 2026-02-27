@@ -194,9 +194,7 @@ export default function MapPage() {
   return (
     <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
       <header className="relative z-[60] flex items-center justify-between px-5 border-b border-border bg-background" style={{ height: 64, flexShrink: 0 }}>
-        <span className="font-semibold text-foreground" style={{ fontSize: 20 }}>
-          Omen
-        </span>
+        <h1 className="text-2xl font-semibold text-foreground">Omen</h1>
         <HeaderAccount />
       </header>
 

@@ -54,7 +54,7 @@ export default function HeaderAccount() {
             onClick={() => { setShowPositions((v) => !v); setShowSettings(false); }}
             className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
           >
-            <span className="text-secondary-foreground">{posCount} pos</span>
+            <span className="text-secondary-foreground">{posCount} positions</span>
             <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
             <svg
               width="12"
