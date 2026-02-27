@@ -1,53 +1,119 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import MapGL, { Source, Layer } from "react-map-gl/mapbox";
-import type { MapMouseEvent } from "react-map-gl/mapbox";
-import type { GeoJSON } from "geojson";
+import type { MapMouseEvent, MapRef } from "react-map-gl/mapbox";
+import type * as GeoJSON from "geojson";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAllEvents } from "../hooks/useAllEvents";
-import countryCoordinates from "../lib/country-coordinates.json";
+import { PolymarketEvent } from "../lib/types";
+import { buildGeoJSON, groupEventsByCountry, getIsoCode } from "./geo";
+import { getClusterLayer, getClusterCountLayer, getUnclusteredPointLayer, getCountryFillLayer, getCountryLineLayer, INTERACTIVE_LAYER_IDS } from "./layers";
+import EventSidebar from "./EventSidebar";
+import HoverTooltip from "./HoverTooltip";
+import countryBoundaries from "../lib/country-boundaries.json";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+if (!MAPBOX_TOKEN) throw new Error("NEXT_PUBLIC_MAPBOX_TOKEN is not set");
 
-const coords = countryCoordinates as Record<string, { lat: number; lng: number }>;
+interface SidebarData {
+  country: string;
+  events: PolymarketEvent[];
+}
 
 export default function MapPage() {
+  const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState({
     longitude: 0,
     latitude: 20,
     zoom: 1.5,
   });
-  const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; title: string } | null>(null);
+  const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; country: string; eventCount: number } | null>(null);
+  const [sidebar, setSidebar] = useState<SidebarData | null>(null);
 
-  const { events, loading } = useAllEvents({ tagIds: ["100265"] });
+  const { events } = useAllEvents({ tagIds: ["100265"] });
+  const eventsByCountry = useMemo(() => groupEventsByCountry(events), [events]);
+  const geojson = useMemo(() => buildGeoJSON(events), [events]);
 
-  const geojson: GeoJSON = useMemo(() => {
-    const features = events
-      .map((e) => {
-        const match = e.tags.find((t) => coords[t.slug]);
-        if (!match) return null;
-        const { lat, lng } = coords[match.slug];
-        return {
-          type: "Feature" as const,
-          geometry: { type: "Point" as const, coordinates: [lng, lat] },
-          properties: { id: e.id, title: e.title, country: match.slug },
-        };
-      })
-      .filter((f): f is NonNullable<typeof f> => f !== null);
+  const selectedCountry = sidebar?.country ?? null;
+  const selectedIso = selectedCountry ? getIsoCode(selectedCountry) : null;
+  const clusterLayer = useMemo(() => getClusterLayer(), []);
+  const clusterCountLayer = useMemo(() => getClusterCountLayer(), []);
+  const unclusteredPointLayer = useMemo(() => getUnclusteredPointLayer(selectedCountry), [selectedCountry]);
+  const countryFillLayer = useMemo(() => getCountryFillLayer(selectedIso), [selectedIso]);
+  const countryLineLayer = useMemo(() => getCountryLineLayer(selectedIso), [selectedIso]);
 
-    return { type: "FeatureCollection" as const, features } as GeoJSON;
-  }, [events]);
+  const onClick = useCallback(
+    (e: MapMouseEvent) => {
+      const feature = e.features?.[0];
+      if (!feature) {
+        setSidebar(null);
+        return;
+      }
 
-  const onMouseEnter = useCallback((e: MapMouseEvent) => {
+      const props = feature.properties;
+      const map = mapRef.current?.getMap();
+
+      if (props?.cluster && map) {
+        const source = map.getSource("events") as mapboxgl.GeoJSONSource;
+        const clusterId = props.cluster_id as number;
+
+        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err || zoom == null) return;
+
+          if (zoom > 14) {
+            source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
+              if (err || !leaves) return;
+              const country = leaves[0]?.properties?.country;
+              if (country && eventsByCountry.has(country)) {
+                setSidebar({ country, events: eventsByCountry.get(country)! });
+              }
+            });
+            return;
+          }
+
+          const geometry = feature.geometry as GeoJSON.Point;
+          map.easeTo({ center: geometry.coordinates as [number, number], zoom });
+        });
+        return;
+      }
+
+      if (props?.country && eventsByCountry.has(props.country)) {
+        setSidebar({ country: props.country, events: eventsByCountry.get(props.country)! });
+      }
+    },
+    [eventsByCountry],
+  );
+
+  const onHover = useCallback((e: MapMouseEvent) => {
     const feature = e.features?.[0];
-    if (!feature) return;
+    if (!feature) {
+      setHoverInfo(null);
+      return;
+    }
     const props = feature.properties;
-    const title = props?.cluster
-      ? `${props.point_count} events`
-      : props?.title ?? "";
-    setHoverInfo({ x: e.point.x, y: e.point.y, title });
-  }, []);
+
+    // Individual point
+    if (!props?.cluster) {
+      const country = props?.country;
+      if (country && eventsByCountry.has(country)) {
+        setHoverInfo({ x: e.point.x, y: e.point.y, country, eventCount: eventsByCountry.get(country)!.length });
+      }
+      return;
+    }
+
+    // Cluster — get a leaf to find the country
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const source = map.getSource("events") as mapboxgl.GeoJSONSource;
+    source.getClusterLeaves(props.cluster_id as number, 1, 0, (err, leaves) => {
+      if (err || !leaves?.length) return;
+      const country = leaves[0]?.properties?.country;
+      if (country && eventsByCountry.has(country)) {
+        setHoverInfo({ x: e.point.x, y: e.point.y, country, eventCount: props.point_count as number });
+      }
+    });
+  }, [eventsByCountry]);
 
   const onMouseLeave = useCallback(() => setHoverInfo(null), []);
 
@@ -58,7 +124,9 @@ export default function MapPage() {
           Omen
         </span>
       </div>
+
       <MapGL
+        ref={mapRef}
         {...viewState}
         onMove={(evt) => {
           const vs = evt.viewState;
@@ -69,12 +137,22 @@ export default function MapPage() {
         renderWorldCopies={true}
         mapStyle="mapbox://styles/mapbox/light-v11"
         mapboxAccessToken={MAPBOX_TOKEN}
-        interactiveLayerIds={["clusters", "unclustered-point"]}
-        onMouseEnter={onMouseEnter}
-        onMouseMove={onMouseEnter}
+        interactiveLayerIds={INTERACTIVE_LAYER_IDS}
+        onClick={onClick}
+        onMouseEnter={onHover}
+        onMouseMove={onHover}
         onMouseLeave={onMouseLeave}
         cursor={hoverInfo ? "pointer" : "grab"}
       >
+        <Source
+          id="country-boundaries"
+          type="geojson"
+          data={countryBoundaries as any}
+        >
+          <Layer {...countryFillLayer} />
+          <Layer {...countryLineLayer} />
+        </Source>
+
         <Source
           id="events"
           type="geojson"
@@ -83,55 +161,22 @@ export default function MapPage() {
           clusterMaxZoom={14}
           clusterRadius={50}
         >
-          {/* Clustered circles */}
-          <Layer
-            id="clusters"
-            type="circle"
-            filter={["has", "point_count"]}
-            paint={{
-              "circle-color": "#ef4444",
-              "circle-radius": ["step", ["get", "point_count"], 16, 10, 22, 50, 30],
-              "circle-stroke-width": 2,
-              "circle-stroke-color": "#ffffff",
-            }}
-          />
-
-          {/* Cluster count labels */}
-          <Layer
-            id="cluster-count"
-            type="symbol"
-            filter={["has", "point_count"]}
-            layout={{
-              "text-field": ["get", "point_count_abbreviated"],
-              "text-size": 12,
-            }}
-            paint={{
-              "text-color": "#ffffff",
-            }}
-          />
-
-          {/* Individual points */}
-          <Layer
-            id="unclustered-point"
-            type="circle"
-            filter={["!", ["has", "point_count"]]}
-            paint={{
-              "circle-color": "#ef4444",
-              "circle-radius": 7,
-              "circle-stroke-width": 2,
-              "circle-stroke-color": "#ffffff",
-            }}
-          />
+          <Layer {...clusterLayer} />
+          <Layer {...clusterCountLayer} />
+          <Layer {...unclusteredPointLayer} />
         </Source>
       </MapGL>
 
       {hoverInfo && (
-        <div
-          className="pointer-events-none absolute z-50 rounded bg-black/80 px-3 py-1.5 text-sm text-white shadow-lg"
-          style={{ left: hoverInfo.x + 12, top: hoverInfo.y - 12 }}
-        >
-          {hoverInfo.title}
-        </div>
+        <HoverTooltip x={hoverInfo.x} y={hoverInfo.y} country={hoverInfo.country} eventCount={hoverInfo.eventCount} />
+      )}
+
+      {sidebar && (
+        <EventSidebar
+          country={sidebar.country}
+          events={sidebar.events}
+          onClose={() => setSidebar(null)}
+        />
       )}
     </div>
   );
