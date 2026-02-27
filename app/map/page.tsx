@@ -39,6 +39,7 @@ export default function MapPage() {
     for (const [country, evts] of eventsByCountry) {
       m.set(country, evts.reduce((sum, e) => sum + (e.volume24hr || 0), 0));
     }
+    console.table(Object.fromEntries([...m.entries()].sort((a, b) => b[1] - a[1])));
     return m;
   }, [eventsByCountry]);
   const geojson = useMemo(() => buildGeoJSON(events), [events]);

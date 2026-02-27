@@ -22,7 +22,7 @@ function selectedStroke(country: string | null, selected: number, fallback: numb
   return ["case", ["==", ["get", "country"], country], selected, fallback] as any;
 }
 
-const CLUSTER_RADIUS = ["interpolate", ["linear"], ["get", "totalVolume24hr"], 0, 14, 50000, 22, 500000, 34] as any;
+const CLUSTER_RADIUS = ["interpolate", ["linear"], ["get", "totalVolume24hr"], 0, 6, 100000, 14, 1000000, 22, 5000000, 36, 30000000, 56] as any;
 
 export function getClusterLayers(pulse: number): CircleLayer[] {
   // pulse 0–1 over 2s; linear outward only
