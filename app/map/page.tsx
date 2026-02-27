@@ -19,8 +19,6 @@ import stateBoundaries from "../lib/us-state-boundaries.json";
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 if (!MAPBOX_TOKEN) throw new Error("NEXT_PUBLIC_MAPBOX_TOKEN is not set");
 
-const EXCLUDED_TAG_IDS = new Set(["972"]); // tweet markets
-
 interface SidebarData {
   location: string;
   events: PolymarketEvent[];
@@ -46,8 +44,7 @@ export default function MapPage() {
     return () => observer.disconnect();
   }, []);
 
-  const { events: allEvents, loading } = useAllEvents({ tagIds: ["100265", "2"] });
-  const events = useMemo(() => allEvents.filter((e) => !e.closed && !e.tags.some((t) => EXCLUDED_TAG_IDS.has(t.id))), [allEvents]);
+  const { events, loading } = useAllEvents({ tagIds: ["100265", "2"], excludeTagIds: ["972"], closed: false });
   const eventsByLocation = useMemo(() => groupEventsByLocation(events), [events]);
   const volume24hrByLocation = useMemo(() => {
     const m = new Map<string, number>();
@@ -56,6 +53,11 @@ export default function MapPage() {
     }
     console.table(Object.fromEntries([...m.entries()].sort((a, b) => b[1] - a[1])));
     return m;
+  }, [eventsByLocation]);
+  const mappedEventCount = useMemo(() => {
+    let count = 0;
+    for (const evts of eventsByLocation.values()) count += evts.length;
+    return count;
   }, [eventsByLocation]);
   const geojson = useMemo(() => buildGeoJSON(events), [events]);
 
@@ -283,8 +285,11 @@ export default function MapPage() {
 
       </div>
 
-      <footer className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-center border-t border-border bg-background text-xs text-muted-foreground" style={{ height: 28 }}>
-        Powered by Polymarket
+      <footer className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-between px-5 border-t border-border bg-background text-xs text-muted-foreground" style={{ height: 28 }}>
+        <span>Powered by Polymarket</span>
+        {!loading && (
+          <span>{eventsByLocation.size} locations &middot; {mappedEventCount} events</span>
+        )}
       </footer>
     </div>
   );

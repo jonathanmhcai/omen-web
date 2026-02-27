@@ -7,15 +7,18 @@ const PAGE_SIZE = 500;
 
 interface UseAllEventsOptions {
   tagIds?: string[];
+  excludeTagIds?: string[];
   active?: boolean;
+  closed?: boolean;
   archived?: boolean;
 }
 
-export function useAllEvents({ tagIds, active = true, archived = true }: UseAllEventsOptions = {}) {
+export function useAllEvents({ tagIds, excludeTagIds, active = true, closed, archived = true }: UseAllEventsOptions = {}) {
   const [events, setEvents] = useState<PolymarketEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const tagKey = tagIds?.join(",") ?? "";
+  const excludeTagKey = excludeTagIds?.join(",") ?? "";
 
   useEffect(() => {
     let cancelled = false;
@@ -33,8 +36,14 @@ export function useAllEvents({ tagIds, active = true, archived = true }: UseAllE
           active: String(active),
           archived: String(archived),
         });
+        if (closed !== undefined) {
+          params.set("closed", String(closed));
+        }
         if (tagIds && tagIds.length > 0) {
           tagIds.forEach((tag) => params.append("tag_id", tag));
+        }
+        if (excludeTagIds && excludeTagIds.length > 0) {
+          excludeTagIds.forEach((tag) => params.append("exclude_tag_id", tag));
         }
 
         const res = await fetch(`/api/events?${params}`);
@@ -62,7 +71,7 @@ export function useAllEvents({ tagIds, active = true, archived = true }: UseAllE
     });
 
     return () => { cancelled = true; };
-  }, [tagKey, active, archived]);
+  }, [tagKey, excludeTagKey, active, closed, archived]);
 
   return { events, loading, error };
 }
