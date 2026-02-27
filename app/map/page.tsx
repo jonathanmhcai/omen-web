@@ -31,7 +31,8 @@ export default function MapPage() {
   const [hoverInfo, setHoverInfo] = useState<{ x: number; y: number; country: string; eventCount: number } | null>(null);
   const [sidebar, setSidebar] = useState<SidebarData | null>(null);
 
-  const { events } = useAllEvents({ tagIds: ["100265"] });
+  const { events: allEvents } = useAllEvents({ tagIds: ["100265"] });
+  const events = useMemo(() => allEvents.filter((e) => !e.closed), [allEvents]);
   const eventsByCountry = useMemo(() => groupEventsByCountry(events), [events]);
   const geojson = useMemo(() => buildGeoJSON(events), [events]);
 

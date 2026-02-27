@@ -7,6 +7,7 @@ interface EventSidebarProps {
 }
 
 export default function EventSidebar({ country, events, onClose }: EventSidebarProps) {
+  const sorted = [...events].sort((a, b) => (b.volume24hr || 0) - (a.volume24hr || 0));
   return (
     <div className="absolute right-0 top-0 z-50 flex h-full w-96 flex-col border-l border-black/10 bg-white shadow-lg">
       <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
@@ -22,15 +23,15 @@ export default function EventSidebar({ country, events, onClose }: EventSidebarP
         </button>
       </div>
       <div className="flex-1 overflow-y-auto">
-        {events.map((e) => (
+        {sorted.map((e) => (
           <div
             key={e.id}
             className="border-b border-black/5 px-4 py-3 hover:bg-zinc-50"
           >
             <p className="text-sm font-medium text-zinc-900">{e.title}</p>
             <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
-              <span>${Math.round(e.volume).toLocaleString()} vol</span>
-              <span>{e.closed ? "Closed" : "Active"}</span>
+              <span>${Math.round(e.volume || 0).toLocaleString()} vol</span>
+              <span>${Math.round(e.volume24hr || 0).toLocaleString()} 24h</span>
             </div>
           </div>
         ))}

@@ -33,7 +33,7 @@ export function useEvents({ limit = 10, active = true, archived = true, featured
       limit: String(limit),
       offset: String(page * limit),
       active: String(active),
-      archived: String(!archived),
+      archived: String(archived),
     });
     if (featured) {
       params.set("featured", "true");

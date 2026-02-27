@@ -31,7 +31,7 @@ export function useAllEvents({ tagIds, active = true, archived = true }: UseAllE
           limit: String(PAGE_SIZE),
           offset: String(offset),
           active: String(active),
-          archived: String(!archived),
+          archived: String(archived),
         });
         if (tagIds && tagIds.length > 0) {
           tagIds.forEach((tag) => params.append("tag_id", tag));
