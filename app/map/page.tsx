@@ -12,7 +12,7 @@ import { getClusterLayers, getUnclusteredPointLayers, getCountryFillLayer, getCo
 import EventSidebar from "./EventSidebar";
 import TradeModal from "./TradeModal";
 import HoverTooltip from "./HoverTooltip";
-import MapFooter from "./MapFooter";
+import HeaderAccount from "./HeaderAccount";
 import countryBoundaries from "../lib/country-boundaries.json";
 import stateBoundaries from "../lib/us-state-boundaries.json";
 
@@ -146,10 +146,11 @@ export default function MapPage() {
 
   return (
     <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
-      <header className="flex items-center px-5 border-b border-black/10 bg-white" style={{ height: 64, flexShrink: 0 }}>
+      <header className="relative z-[60] flex items-center justify-between px-5 border-b border-black/10 bg-white" style={{ height: 64, flexShrink: 0 }}>
         <span className="font-semibold text-[#0f172a]" style={{ fontSize: 20 }}>
           Omen
         </span>
+        <HeaderAccount />
       </header>
 
       <div style={{ flex: 1, position: "relative" }}>
@@ -235,7 +236,6 @@ export default function MapPage() {
         />
       )}
 
-      <MapFooter />
       </div>
     </div>
   );
