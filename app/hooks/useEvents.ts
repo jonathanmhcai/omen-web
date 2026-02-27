@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { PolymarketEvent } from "../lib/types";
-import { POLYMARKET_API_BASE } from "../lib/constants";
 
 interface UseEventsOptions {
   limit?: number;
@@ -57,7 +56,7 @@ export function useEvents({ limit = 10, active = true, archived = true, featured
       tagIds.forEach(tag => params.append("tag_id", tag));
     }
 
-    fetch(`${POLYMARKET_API_BASE}/events?${params}`)
+    fetch(`/api/events?${params}`)
       .then((res) => {
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         return res.json();

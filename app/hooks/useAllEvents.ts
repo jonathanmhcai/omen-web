@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { PolymarketEvent } from "../lib/types";
-import { POLYMARKET_API_BASE } from "../lib/constants";
 
 const PAGE_SIZE = 500;
 
@@ -38,7 +37,7 @@ export function useAllEvents({ tagIds, active = true, archived = true }: UseAllE
           tagIds.forEach((tag) => params.append("tag_id", tag));
         }
 
-        const res = await fetch(`${POLYMARKET_API_BASE}/events?${params}`);
+        const res = await fetch(`/api/events?${params}`);
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         const data: PolymarketEvent[] = await res.json();
 
