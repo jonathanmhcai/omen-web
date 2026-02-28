@@ -63,8 +63,8 @@ function OutcomeRow({
         orderType: "FOK",
       });
       toast.success(`Bought $${parsedBuy.toFixed(2)} of ${outcome}`);
-    } catch {
-      // error state handled by hook
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Order failed");
     }
   };
 
@@ -83,8 +83,8 @@ function OutcomeRow({
         orderType: "FOK",
       });
       toast.success(`Sold ${parsedSell.toFixed(2)} shares of ${outcome}`);
-    } catch {
-      // error state handled by hook
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Order failed");
     }
   };
 
