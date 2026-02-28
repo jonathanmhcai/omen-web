@@ -95,9 +95,9 @@ export function buildGeoJSON(events: PolymarketEvent[]): GeoJSON {
     })
     .filter((f): f is NonNullable<typeof f> => f !== null);
 
-  console.log(
-    `[map] Match stats: ${countryMatches} country, ${stateMatches} state, ${dcFallbacks} DC fallback, ${unmatched} unmatched (${events.length} total)`,
-  );
+  // console.log(
+  //   `[map] Match stats: ${countryMatches} country, ${stateMatches} state, ${dcFallbacks} DC fallback, ${unmatched} unmatched (${events.length} total)`,
+  // );
 
   return { type: "FeatureCollection" as const, features } as GeoJSON;
 }

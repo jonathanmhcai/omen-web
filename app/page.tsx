@@ -1,198 +1,406 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePrivy } from "@privy-io/react-auth";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import Button from "./components/button/Button";
-import { useAuthUser } from "./hooks/useAuthUser";
-import { Loader } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  DockviewReact,
+  type DockviewApi,
+  type DockviewReadyEvent,
+  type DockviewTheme,
+} from "dockview";
+import { useAllEvents } from "./hooks/useAllEvents";
+import { PolymarketEvent } from "./lib/types";
+import { buildGeoJSON, groupEventsByLocation } from "./map/geo";
+import { MapPageContext, type MapPageContextValue } from "./map/MapPageContext";
+import type { TradePing } from "./map/layers";
+import MapPanel from "./map/MapPanel";
+import EventsPanel from "./map/EventsPanel";
+import MarketPanel from "./map/MarketPanel";
+import PositionsPanel from "./map/PositionsPanel";
+import LiveTradesPanel from "./map/LiveTradesPanel";
+import HeaderAccount from "./map/HeaderAccount";
+import { MapPin, Calendar } from "lucide-react";
 
-export default function Home() {
-  const { login, logout, exportWallet, ready, authenticated, user } = usePrivy();
-  const { user: authUser, loading: authLoading, error: authError } = useAuthUser();
+const THEME: DockviewTheme = {
+  name: "omen",
+  className: "dockview-theme-custom",
+};
+
+const COMPONENTS = {
+  map: MapPanel,
+  events: EventsPanel,
+  market: MarketPanel,
+  positions: PositionsPanel,
+  liveTrades: LiveTradesPanel,
+};
+
+export default function MapPage() {
+  const apiRef = useRef<DockviewApi | null>(null);
+  const tradePingsRef = useRef<TradePing[]>([]);
+  const addTradePing = useCallback((lat: number, lng: number, usdValue: number) => {
+    tradePingsRef.current.push({ lat, lng, usdValue, timestamp: Date.now() });
+  }, []);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [projection, setProjection] = useState<"mercator" | "globe">(() => {
+    if (typeof window === "undefined") return "globe";
+    const stored = localStorage.getItem("projection");
+    return stored === "mercator" ? "mercator" : "globe";
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDarkMode(prefersDark);
-    document.documentElement.classList.toggle("dark", prefersDark);
+    const check = () =>
+      setDarkMode(document.documentElement.classList.contains("dark"));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
   }, []);
 
-  function toggleDarkMode() {
-    const next = !darkMode;
-    setDarkMode(next);
+  const toggleDarkMode = useCallback(() => {
+    const next = !document.documentElement.classList.contains("dark");
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("theme", next ? "dark" : "light");
-  }
+  }, []);
 
-  const footer = (
-    <p className="text-gray-600 text-xs pt-6">
-      <a href="https://omen.trading/terms" className="underline">
-        Terms of Service
-      </a>
-      {" · "}
-      <a href="https://omen.trading/privacy" className="underline">
-        Privacy Policy
-      </a>
-      {" · "}
-      <a href="mailto:support@omen.trading" className="underline">
-        support@omen.trading
-      </a>
-    </p>
+  const toggleProjection = useCallback(() => {
+    setProjection((p) => {
+      const next = p === "mercator" ? "globe" : "mercator";
+      localStorage.setItem("projection", next);
+      return next;
+    });
+  }, []);
+
+  const { events, loading } = useAllEvents({
+    tagIds: ["100265", "2"],
+    excludeTagIds: ["972"],
+    closed: false,
+  });
+  const eventsByLocation = useMemo(
+    () => groupEventsByLocation(events),
+    [events]
+  );
+  const volume24hrByLocation = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const [location, evts] of eventsByLocation) {
+      m.set(
+        location,
+        evts.reduce((sum, e) => sum + (e.volume24hr || 0), 0)
+      );
+    }
+    // console.table(
+    //   Object.fromEntries([...m.entries()].sort((a, b) => b[1] - a[1]))
+    // );
+    return m;
+  }, [eventsByLocation]);
+  const mappedEventCount = useMemo(() => {
+    let count = 0;
+    for (const evts of eventsByLocation.values()) count += evts.length;
+    return count;
+  }, [eventsByLocation]);
+  const geojson = useMemo(() => buildGeoJSON(events), [events]);
+
+  // --- Panel management callbacks ---
+
+  const onLocationSelect = useCallback(
+    (location: string, _events: PolymarketEvent[]) => {
+      const api = apiRef.current;
+      if (!api) return;
+
+      // Toggle: clicking same location closes the panel
+      if (selectedLocation === location) {
+        const panel = api.getPanel("events");
+        if (panel) api.removePanel(panel);
+        setSelectedLocation(null);
+        return;
+      }
+
+      setSelectedLocation(location);
+
+      const existing = api.getPanel("events");
+      if (existing) {
+        // Update params on existing panel
+        existing.api.updateParameters({ location });
+      } else {
+        const sibling = api.getPanel("positions");
+        if (sibling) {
+          api.addPanel({
+            id: "events",
+            component: "events",
+            title: "Events",
+            params: { location },
+            position: { referencePanel: sibling.id },
+          });
+        } else {
+          api.addPanel({
+            id: "events",
+            component: "events",
+            title: "Events",
+            params: { location },
+            position: { referencePanel: "map", direction: "right" },
+            initialWidth: 384,
+          });
+        }
+      }
+    },
+    [selectedLocation]
   );
 
-  if (!ready) return null;
+  const onLocationDeselect = useCallback(() => {
+    const api = apiRef.current;
+    if (!api) return;
+    const panel = api.getPanel("events");
+    if (panel) api.removePanel(panel);
+    setSelectedLocation(null);
+  }, []);
 
-  if (authenticated && authLoading) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center">
-        <Loader className="h-10 w-10 animate-spin duration-1000" />
-      </div>
-    );
-  }
+  const onMarket = useCallback(
+    (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => {
+      const api = apiRef.current;
+      if (!api) return;
 
-  if (authenticated && authError) {
-    return (
-      <div className="flex min-h-screen flex-col items-center px-4 pt-24">
-        <div className="flex w-full max-w-sm flex-col gap-6 rounded-2xl border border-black/[.08] p-8 dark:border-white/[.145]">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold">Omen</h1>
-            <button
-              onClick={logout}
-              className="rounded-md p-1.5 text-zinc-500 hover:text-foreground dark:text-zinc-400 text-sm"
-            >
-              Log out
-            </button>
-          </div>
-          <div className="flex flex-col gap-2">
-            <h2 className="text-sm font-semibold">No Account Found</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              You don&apos;t have an Omen account yet. Sign up through the mobile app to get started.
-            </p>
-            <a
-              href="https://omen.trading"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-medium underline"
-            >
-              Download the app at omen.trading
-            </a>
-          </div>
-        </div>
-        {footer}
-      </div>
-    );
-  }
+      // Remove existing market panel if any
+      const existing = api.getPanel("market");
+      if (existing) api.removePanel(existing);
 
-  if (authenticated && authUser) {
-    return (
-      <div className="flex min-h-screen flex-col items-center px-4 pt-24">
-        <div className="flex w-full max-w-sm flex-col gap-6 rounded-2xl border border-black/[.08] p-8 dark:border-white/[.145]">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold">Omen</h1>
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="rounded-md p-1.5 text-zinc-500 hover:text-foreground dark:text-zinc-400">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="flex w-56 flex-col gap-1 p-2">
-                <div className="border-b border-border px-3 py-2 text-sm">
-                  {user?.email?.address && (
-                    <p className="font-medium">{user.email.address}</p>
-                  )}
-                  {user?.wallet?.address && (
-                    <p className="text-xs text-muted-foreground">
-                      {user.wallet.address.slice(0, 6)}...{user.wallet.address.slice(-4)}
-                    </p>
-                  )}
-                  {user?.id && !user?.email?.address && !user?.wallet?.address && (
-                    <p className="text-xs text-muted-foreground">{user.id}</p>
-                  )}
-                </div>
-                {authUser?.isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="w-full rounded-md px-3 py-2 text-left text-sm hover:bg-accent block"
-                  >
-                    Admin
-                  </Link>
-                )}
-                <button
-                  onClick={toggleDarkMode}
-                  className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-accent"
-                >
-                  Dark mode
-                  <span className="text-xs text-muted-foreground">{darkMode ? "On" : "Off"}</span>
-                </button>
-                <button
-                  onClick={logout}
-                  className="w-full rounded-md px-3 py-2 text-left text-sm hover:bg-accent"
-                >
-                  Log out
-                </button>
-              </PopoverContent>
-            </Popover>
-          </div>
-          {user?.wallet ? (
-            <>
-              <div className="flex flex-col gap-2">
-                <h2 className="text-sm font-semibold">Backup / Security</h2>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Export your wallet&apos;s private key for safekeeping. Your private key gives full control over your wallet and funds.
-                </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Never share it with anyone, store it in a secure offline location, and be aware that anyone with access to it can move your assets permanently.
-                </p>
-              </div>
-              <Button onClick={exportWallet}>Export Wallet</Button>
-            </>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <h2 className="text-sm font-semibold">No Wallet</h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                You don&apos;t have a wallet created yet. Sign up through the mobile app to get started.
-              </p>
-              <a
-                href="https://omen.trading"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-medium underline"
-              >
-                Download the app at omen.trading
-              </a>
-            </div>
-          )}
-        </div>
-        {footer}
-      </div>
-    );
-  }
+      api.addPanel({
+        id: "market",
+        component: "market",
+        title: opts?.title || "Market",
+        params: { conditionId, outcomeIndex: opts?.outcomeIndex },
+        floating: { width: 400, height: 640, x: 60, y: 60 },
+      });
+    },
+    []
+  );
+
+  const onMarketClose = useCallback(() => {
+    const api = apiRef.current;
+    if (!api) return;
+    const panel = api.getPanel("market");
+    if (panel) api.removePanel(panel);
+  }, []);
+
+  const onPositionsToggle = useCallback(() => {
+    const api = apiRef.current;
+    if (!api) return;
+
+    const existing = api.getPanel("positions");
+    if (existing) {
+      existing.api.setActive();
+      return;
+    }
+
+    const sibling = api.getPanel("events");
+    if (sibling) {
+      api.addPanel({
+        id: "positions",
+        component: "positions",
+        title: "Positions",
+        position: { referencePanel: sibling.id },
+      });
+    } else {
+      api.addPanel({
+        id: "positions",
+        component: "positions",
+        title: "Positions",
+        position: { referencePanel: "map", direction: "right" },
+        initialWidth: 384,
+      });
+    }
+  }, []);
+
+  const onLiveTradesToggle = useCallback(() => {
+    const api = apiRef.current;
+    if (!api) return;
+
+    const existing = api.getPanel("liveTrades");
+    if (existing) {
+      api.removePanel(existing);
+      return;
+    }
+
+    api.addPanel({
+      id: "liveTrades",
+      component: "liveTrades",
+      title: "Live Trades",
+      floating: { width: 384, height: 600, x: 16, y: 16 },
+    });
+  }, []);
+
+  // --- Escape key closes active non-map panel ---
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const api = apiRef.current;
+      if (!api) return;
+
+      // Close floating market panel first, then active non-map panel
+      const marketPanel = api.getPanel("market");
+      if (marketPanel) {
+        api.removePanel(marketPanel);
+        return;
+      }
+      for (const group of api.groups) {
+        if (group.activePanel && group.activePanel.id !== "map") {
+          api.removePanel(group.activePanel);
+          setSelectedLocation(null);
+          return;
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, []);
+
+  // --- Dockview ready ---
+
+  const onReady = useCallback((event: DockviewReadyEvent) => {
+    const api = event.api;
+    apiRef.current = api;
+
+    // Create the map panel (fills entire space initially)
+    api.addPanel({
+      id: "map",
+      component: "map",
+      title: "Map",
+    });
+
+    // Lock the map group so it can't be closed or receive drops
+    const mapPanel = api.getPanel("map");
+    if (mapPanel) {
+      const group = mapPanel.group;
+      if (group) {
+        group.locked = "no-drop-target";
+        group.header.hidden = true;
+      }
+    }
+
+    // Allow tab reordering but block content/edge drop targets that split panes
+    api.onWillShowOverlay((event) => {
+      if (event.kind === "content" || event.kind === "edge") {
+        event.preventDefault();
+      }
+    });
+
+    // Open live trades as a floating panel
+    api.addPanel({
+      id: "liveTrades",
+      component: "liveTrades",
+      title: "Live Trades",
+      floating: { width: 384, height: 600, x: 16, y: 16 },
+    });
+
+    // Sync state when panels are removed (e.g. user closes via tab X)
+    api.onDidRemovePanel((panel) => {
+      if (panel.id === "events") {
+        setSelectedLocation(null);
+      }
+    });
+  }, []);
+
+  // --- Context value ---
+
+  const contextValue = useMemo<MapPageContextValue>(
+    () => ({
+      geojson,
+      eventsByLocation,
+      volume24hrByLocation,
+      selectedLocation,
+      darkMode,
+      projection,
+      loading,
+      onLocationSelect,
+      onLocationDeselect,
+      onMarket,
+      onMarketClose,
+      onPositionsToggle,
+      onLiveTradesToggle,
+      addTradePing,
+      tradePingsRef,
+      toggleDarkMode,
+      toggleProjection,
+    }),
+    [
+      geojson,
+      eventsByLocation,
+      volume24hrByLocation,
+      selectedLocation,
+      darkMode,
+      projection,
+      loading,
+      onLocationSelect,
+      onLocationDeselect,
+      onMarket,
+      onMarketClose,
+      onPositionsToggle,
+      onLiveTradesToggle,
+      addTradePing,
+      toggleDarkMode,
+      toggleProjection,
+    ]
+  );
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-4 pt-24">
-      <div className="flex w-full max-w-sm flex-col gap-6 rounded-2xl border border-black/[.08] p-8 dark:border-white/[.145]">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold">Omen</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Sign in to manage your wallet and account.
-          </p>
+    <MapPageContext.Provider value={contextValue}>
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <header
+          className="relative z-[60] flex items-center justify-between px-5 border-b border-border bg-background"
+          style={{ height: 48, flexShrink: 0 }}
+        >
+          <h1 className="text-lg font-semibold text-foreground">Omen</h1>
+          <HeaderAccount />
+        </header>
+
+        <div style={{ flex: 1, position: "relative" }}>
+          <DockviewReact
+            className="dockview-theme-custom"
+            components={COMPONENTS}
+            onReady={onReady}
+            theme={THEME}
+          />
         </div>
-        <Button onClick={login}>Log In</Button>
-        <p className="-mt-4 text-xs text-zinc-500 dark:text-zinc-400">
-          By signing up you agree to our{" "}
-          <a href="https://omen.trading/terms" target="_blank" rel="noopener noreferrer" className="underline">
-            Terms of Service
-          </a>
-          .
-        </p>
+
+        <footer
+          className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-between px-5 border-t border-border bg-background text-xs text-muted-foreground/50"
+          style={{ height: 28 }}
+        >
+          <span className="flex items-center gap-3">
+            <span className="hidden sm:inline">Powered by Polymarket</span>
+            {!loading && (
+              <>
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> {eventsByLocation.size}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> {mappedEventCount}
+                </span>
+              </>
+            )}
+          </span>
+          <span className="flex items-center gap-2">
+            <a href="https://x.com/OmenTrading" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+            </a>
+            <a href="mailto:support@omen.trading" className="hover:text-foreground">Support</a>
+            <a href="https://omen.trading/terms" className="hover:text-foreground">Terms</a>
+            <a href="https://omen.trading/privacy" className="hover:text-foreground">Privacy</a>
+          </span>
+        </footer>
       </div>
-      {footer}
-    </div>
+    </MapPageContext.Provider>
   );
 }

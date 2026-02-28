@@ -15,6 +15,7 @@ export interface User {
   is_ctf_token_allowances_set: boolean;
   hasValidPushToken: boolean;
   isAccountUpgraded?: boolean;
+  needsSetup?: boolean;
   notification_settings?: {
     push_enabled: boolean;
   };

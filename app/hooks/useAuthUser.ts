@@ -39,7 +39,6 @@ async function fetchMe(sessionToken: string, clearSessionToken: () => void): Pro
   }
 
   if (res.status === 404) {
-    clearSessionToken();
     throw new Error("User account not found");
   }
 
@@ -54,7 +53,7 @@ async function fetchMe(sessionToken: string, clearSessionToken: () => void): Pro
 const REFETCH_INTERVAL = 10_000;
 
 export function useAuthUser() {
-  const { authenticated, logout } = usePrivy();
+  const { authenticated } = usePrivy();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,16 +87,15 @@ export function useAuthUser() {
         }
       }
 
-      if (message === "User account not found") {
-        logout();
-      }
-
-      setUser(null);
       setError(message);
+      // Only clear user on definitive "not found" — preserve existing user on transient errors
+      if (message === "User account not found") {
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
-  }, [logout, sessionToken, setSessionToken, clearSessionToken]);
+  }, [sessionToken, setSessionToken, clearSessionToken]);
 
   useEffect(() => {
     if (!authenticated) {
@@ -109,6 +107,7 @@ export function useAuthUser() {
       return;
     }
 
+    setLoading(true);
     fetchUser();
     intervalRef.current = setInterval(fetchUser, REFETCH_INTERVAL);
 
@@ -117,5 +116,5 @@ export function useAuthUser() {
     };
   }, [authenticated, fetchUser, clearSessionToken]);
 
-  return { user, loading, error };
+  return { user, loading, error, refetch: fetchUser };
 }
