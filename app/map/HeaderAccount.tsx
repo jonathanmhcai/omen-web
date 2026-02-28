@@ -98,16 +98,19 @@ export default function HeaderAccount() {
               {initials}
             </div>
           )}
-          {user.username && (
-            <span className="text-muted-foreground">@{user.username}</span>
-          )}
         </button>
 
         {showAccount && (
           <div className="absolute right-0 top-full mt-2 z-50 w-56 rounded-lg bg-popover/90 backdrop-blur-sm shadow-lg border border-border overflow-hidden">
             <div className="border-b border-border px-3 py-2.5 text-sm">
+              {displayName && (
+                <p className="font-medium text-foreground">{displayName}</p>
+              )}
+              {user.username && (
+                <p className="text-xs text-muted-foreground">@{user.username}</p>
+              )}
               {privyUser?.email?.address && (
-                <p className="font-medium text-foreground">{privyUser.email.address}</p>
+                <p className="text-xs text-muted-foreground">{privyUser.email.address}</p>
               )}
               {privyUser?.wallet?.address && (
                 <p className="text-xs text-muted-foreground">
