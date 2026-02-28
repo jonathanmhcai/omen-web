@@ -34,6 +34,11 @@ export default function MapPage() {
   const apiRef = useRef<DockviewApi | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [projection, setProjection] = useState<"mercator" | "globe">(() => {
+    if (typeof window === "undefined") return "globe";
+    const stored = localStorage.getItem("projection");
+    return stored === "mercator" ? "mercator" : "globe";
+  });
 
   useEffect(() => {
     const check = () =>
@@ -45,6 +50,20 @@ export default function MapPage() {
       attributeFilter: ["class"],
     });
     return () => observer.disconnect();
+  }, []);
+
+  const toggleDarkMode = useCallback(() => {
+    const next = !document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+  }, []);
+
+  const toggleProjection = useCallback(() => {
+    setProjection((p) => {
+      const next = p === "mercator" ? "globe" : "mercator";
+      localStorage.setItem("projection", next);
+      return next;
+    });
   }, []);
 
   const { events, loading } = useAllEvents({
@@ -263,12 +282,15 @@ export default function MapPage() {
       volume24hrByLocation,
       selectedLocation,
       darkMode,
+      projection,
       loading,
       onLocationSelect,
       onLocationDeselect,
       onMarket,
       onMarketClose,
       onPositionsToggle,
+      toggleDarkMode,
+      toggleProjection,
     }),
     [
       geojson,
@@ -276,12 +298,15 @@ export default function MapPage() {
       volume24hrByLocation,
       selectedLocation,
       darkMode,
+      projection,
       loading,
       onLocationSelect,
       onLocationDeselect,
       onMarket,
       onMarketClose,
       onPositionsToggle,
+      toggleDarkMode,
+      toggleProjection,
     ]
   );
 

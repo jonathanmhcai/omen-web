@@ -33,7 +33,7 @@ export default function RootLayout({
               (function() {
                 try {
                   const stored = localStorage.getItem('theme');
-                  const prefersDark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  const prefersDark = stored ? stored === 'dark' : true;
                   if (prefersDark) {
                     document.documentElement.classList.add('dark');
                   }

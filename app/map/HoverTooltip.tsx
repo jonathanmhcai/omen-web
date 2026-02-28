@@ -31,7 +31,11 @@ export default function HoverTooltip({ x, y, locations, eventCount, volume24hr }
       style={{ left: x + 12, top: y - 12 }}
     >
       <p className="text-sm font-semibold text-popover-foreground">{label}</p>
-      <p className="text-xs text-muted-foreground">{eventCount} events &middot; ${Math.round(volume24hr).toLocaleString()} 24h</p>
+      <p className="text-xs text-muted-foreground">
+        {eventCount > 0
+          ? `${eventCount} events \u00b7 $${Math.round(volume24hr).toLocaleString()} 24h`
+          : "No activity"}
+      </p>
     </div>
   );
 }

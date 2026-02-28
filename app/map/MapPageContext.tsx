@@ -10,12 +10,15 @@ export interface MapPageContextValue {
   volume24hrByLocation: Map<string, number>;
   selectedLocation: string | null;
   darkMode: boolean;
+  projection: "mercator" | "globe";
   loading: boolean;
   onLocationSelect: (location: string, events: PolymarketEvent[]) => void;
   onLocationDeselect: () => void;
   onMarket: (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => void;
   onMarketClose: () => void;
   onPositionsToggle: () => void;
+  toggleDarkMode: () => void;
+  toggleProjection: () => void;
 }
 
 export const MapPageContext = createContext<MapPageContextValue | null>(null);

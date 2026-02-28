@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useUsdcBalance } from "../hooks/useUsdcBalance";
 import { usePositions } from "../hooks/usePositions";
 import { useMapPageContext } from "./MapPageContext";
-import { Wallet, BarChart3 } from "lucide-react";
+import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map } from "lucide-react";
 
 export default function HeaderAccount() {
   const { logout, user: privyUser } = usePrivy();
@@ -15,21 +15,8 @@ export default function HeaderAccount() {
   const { balance } = useUsdcBalance();
   const positions = usePositions();
   const ctx = useMapPageContext();
+  const [showAccount, setShowAccount] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDarkMode(prefersDark);
-  }, []);
-
-  function toggleDarkMode() {
-    const next = !darkMode;
-    setDarkMode(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
 
   const displayName = user?.display_name || user?.username;
   const initials = displayName?.[0]?.toUpperCase() ?? "?";
@@ -52,7 +39,7 @@ export default function HeaderAccount() {
       {/* Positions */}
       {positions.data && posCount > 0 && (
         <button
-          onClick={() => { ctx.onPositionsToggle(); setShowSettings(false); }}
+          onClick={() => { ctx.onPositionsToggle(); setShowAccount(false); setShowSettings(false); }}
           className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
         >
           <BarChart3 className="h-3.5 w-3.5 text-secondary-foreground" />
@@ -61,10 +48,47 @@ export default function HeaderAccount() {
         </button>
       )}
 
+      {/* Settings */}
+      <div className="relative">
+        <button
+          onClick={() => { setShowSettings((v) => !v); setShowAccount(false); }}
+          className="flex items-center justify-center rounded-full bg-secondary p-2 border border-border transition-colors hover:bg-accent"
+        >
+          <Settings className="h-4 w-4 text-foreground" />
+        </button>
+
+        {showSettings && (
+          <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-lg bg-popover/90 backdrop-blur-sm shadow-lg border border-border overflow-hidden">
+            <div className="flex flex-col py-1">
+              <button
+                onClick={ctx.toggleDarkMode}
+                className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-accent"
+              >
+                <span className="flex items-center gap-2">
+                  {ctx.darkMode ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+                  Theme
+                </span>
+                <span className="text-xs text-muted-foreground">{ctx.darkMode ? "Dark" : "Light"}</span>
+              </button>
+              <button
+                onClick={ctx.toggleProjection}
+                className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-accent"
+              >
+                <span className="flex items-center gap-2">
+                  {ctx.projection === "globe" ? <Globe className="h-3.5 w-3.5" /> : <Map className="h-3.5 w-3.5" />}
+                  Projection
+                </span>
+                <span className="text-xs text-muted-foreground">{ctx.projection === "globe" ? "Globe" : "Flat"}</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Account */}
       <div className="relative">
         <button
-          onClick={() => setShowSettings((v) => !v)}
+          onClick={() => { setShowAccount((v) => !v); setShowSettings(false); }}
           className="flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
         >
           {user.avatar_url ? (
@@ -82,7 +106,7 @@ export default function HeaderAccount() {
           )}
         </button>
 
-        {showSettings && (
+        {showAccount && (
           <div className="absolute right-0 top-full mt-2 z-50 w-56 rounded-lg bg-popover/90 backdrop-blur-sm shadow-lg border border-border overflow-hidden">
             <div className="border-b border-border px-3 py-2.5 text-sm">
               {privyUser?.email?.address && (
@@ -101,21 +125,14 @@ export default function HeaderAccount() {
               {user.isAdmin && (
                 <Link
                   href="/admin"
-                  onClick={() => setShowSettings(false)}
+                  onClick={() => setShowAccount(false)}
                   className="px-3 py-2 text-sm text-foreground hover:bg-accent"
                 >
                   Admin
                 </Link>
               )}
               <button
-                onClick={toggleDarkMode}
-                className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-accent"
-              >
-                Dark mode
-                <span className="text-xs text-muted-foreground">{darkMode ? "On" : "Off"}</span>
-              </button>
-              <button
-                onClick={() => { setShowSettings(false); logout(); }}
+                onClick={() => { setShowAccount(false); logout(); }}
                 className="px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
               >
                 Log out

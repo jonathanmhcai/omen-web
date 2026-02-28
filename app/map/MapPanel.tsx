@@ -38,6 +38,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     volume24hrByLocation,
     selectedLocation,
     darkMode,
+    projection,
     loading,
     onLocationSelect,
     onLocationDeselect,
@@ -185,7 +186,37 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
         return;
       }
       const props = feature.properties;
+      const layerId = (feature as any).layer?.id;
 
+      // Country/state fill hover
+      if (layerId === "country-fill" && props?.ISO_A2) {
+        const slug = getSlugByIso(props.ISO_A2 as string);
+        if (slug) {
+          setHoverInfo({
+            x: e.point.x,
+            y: e.point.y,
+            locations: [slug],
+            eventCount: eventsByLocation.get(slug)?.length ?? 0,
+            volume24hr: volume24hrByLocation.get(slug) || 0,
+          });
+          return;
+        }
+      }
+      if (layerId === "state-fill" && props?.STUSPS) {
+        const slug = getSlugByStateAbbr(props.STUSPS as string);
+        if (slug) {
+          setHoverInfo({
+            x: e.point.x,
+            y: e.point.y,
+            locations: [slug],
+            eventCount: eventsByLocation.get(slug)?.length ?? 0,
+            volume24hr: volume24hrByLocation.get(slug) || 0,
+          });
+          return;
+        }
+      }
+
+      // Unclustered point hover
       if (!props?.cluster) {
         const location = props?.country;
         if (location && eventsByLocation.has(location)) {
@@ -200,6 +231,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
         return;
       }
 
+      // Cluster hover
       const map = mapRef.current?.getMap();
       if (!map) return;
       const source = map.getSource("events") as mapboxgl.GeoJSONSource;
@@ -240,6 +272,13 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     ? "mapbox://styles/mapbox/dark-v11"
     : "mapbox://styles/mapbox/light-v11";
 
+  // Set projection imperatively to avoid react-map-gl _calcMatrices recursion bug
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    map.setProjection(projection);
+  }, [projection]);
+
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <MapGL
@@ -252,7 +291,6 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
             latitude: Math.max(-70, Math.min(70, vs.latitude)),
           });
         }}
-        projection="mercator"
         minZoom={2}
         renderWorldCopies={true}
         mapStyle={mapStyle}
@@ -263,6 +301,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
         onMouseMove={onHover}
         onMouseLeave={onMouseLeave}
         cursor={hoverInfo ? "pointer" : "grab"}
+
       >
         <Source
           id="country-boundaries"
