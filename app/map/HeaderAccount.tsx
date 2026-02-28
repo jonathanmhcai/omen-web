@@ -27,10 +27,10 @@ export default function HeaderAccount() {
   if (!user) return null;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-1 text-muted-foreground">
       {/* Balance */}
       {balance !== null && (
-        <div className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm font-medium text-foreground">
+        <div className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground">
           <Wallet className="h-3.5 w-3.5" />
           ${balance.toFixed(2)}
         </div>
@@ -40,10 +40,10 @@ export default function HeaderAccount() {
       {positions.data && posCount > 0 && (
         <button
           onClick={() => { ctx.onPositionsToggle(); setShowAccount(false); setShowSettings(false); }}
-          className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
+          className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground transition-colors hover:text-foreground"
         >
-          <BarChart3 className="h-3.5 w-3.5 text-secondary-foreground" />
-          <span className="text-secondary-foreground">{posCount} {posCount === 1 ? "position" : "positions"}</span>
+          <BarChart3 className="h-3.5 w-3.5" />
+          <span className="font-medium text-foreground">{posCount}</span>
           <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
         </button>
       )}
@@ -52,7 +52,7 @@ export default function HeaderAccount() {
       <div className="relative">
         <button
           onClick={() => { setShowSettings((v) => !v); setShowAccount(false); }}
-          className="flex items-center justify-center rounded-full bg-secondary p-2 border border-border transition-colors hover:bg-accent"
+          className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
         >
           <Settings className="h-4 w-4 text-foreground" />
         </button>
@@ -89,19 +89,16 @@ export default function HeaderAccount() {
       <div className="relative">
         <button
           onClick={() => { setShowAccount((v) => !v); setShowSettings(false); }}
-          className="flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 border border-border text-sm transition-colors hover:bg-accent"
+          className="flex items-center gap-2 px-2 py-1 text-sm transition-colors hover:text-foreground"
         >
           {user.avatar_url ? (
-            <img src={user.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" />
+            <img src={user.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
           ) : (
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
               {initials}
             </div>
           )}
-          {displayName && (
-            <span className="font-medium text-foreground">{displayName}</span>
-          )}
-          {user.username && user.display_name && (
+          {user.username && (
             <span className="text-muted-foreground">@{user.username}</span>
           )}
         </button>

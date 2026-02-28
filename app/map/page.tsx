@@ -322,9 +322,9 @@ export default function MapPage() {
       >
         <header
           className="relative z-[60] flex items-center justify-between px-5 border-b border-border bg-background"
-          style={{ height: 64, flexShrink: 0 }}
+          style={{ height: 48, flexShrink: 0 }}
         >
-          <h1 className="text-2xl font-semibold text-foreground">Omen</h1>
+          <h1 className="text-lg font-semibold text-foreground">Omen</h1>
           <HeaderAccount />
         </header>
 
@@ -346,9 +346,9 @@ export default function MapPage() {
             {!loading && (
               <>
                 {" · "}
-                <MapPin className="inline h-3 w-3" /> {eventsByLocation.size} locations
+                <MapPin className="inline h-3 w-3" /> {eventsByLocation.size}
                 {" · "}
-                <Calendar className="inline h-3 w-3" /> {mappedEventCount} events
+                <Calendar className="inline h-3 w-3" /> {mappedEventCount}
               </>
             )}
           </span>
