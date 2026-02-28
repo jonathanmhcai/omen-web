@@ -25,8 +25,8 @@ function selectedStroke(country: string | null, selected: number, fallback: numb
 const CLUSTER_RADIUS = ["interpolate", ["linear"], ["get", "totalVolume24hr"], 0, 6, 100000, 14, 1000000, 22, 5000000, 36, 30000000, 56] as any;
 
 export function getClusterLayers(pulse: number): CircleLayer[] {
-  // pulse 0–1 over 2s; linear outward only
-  const t = pulse;
+  // pulse 0–1 over 2s; smooth sinusoidal cycle (no jump at wrap)
+  const t = 0.5 - 0.5 * Math.cos(pulse * 2 * Math.PI);
   const pingScale = 1.0 + t * 0.5;
   const pingOpacity = 0.15 * (1 - t);
 
@@ -84,7 +84,7 @@ export function getClusterCountLayer(): SymbolLayer {
 }
 
 export function getUnclusteredPointLayers(selectedCountry: string | null, pulse: number): CircleLayer[] {
-  const t = Math.sin(pulse * Math.PI);
+  const t = 0.5 - 0.5 * Math.cos(pulse * 2 * Math.PI);
   const pingScale = 1.0 + t * 0.5;
   const pingOpacity = 0.3 * (1 - t);
   const color = selectedCountry ? selectedColor(selectedCountry, "#1d4ed8", "#ef4444") : "#ef4444";
