@@ -15,8 +15,34 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Omen",
-  description: "Omen",
+  title: {
+    default: "Omen",
+    template: "%s | Omen",
+  },
+  description: "Monitor the situation.",
+  metadataBase: new URL("https://omen.trading"),
+  openGraph: {
+    title: "Omen",
+    description: "Monitor the situation.",
+    siteName: "Omen",
+    url: "https://omen.trading",
+    type: "website",
+    locale: "en_US",
+    images: [{ url: "/og", width: 1200, height: 630, alt: "Omen" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Omen",
+    description: "Monitor the situation.",
+    images: ["/og"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
