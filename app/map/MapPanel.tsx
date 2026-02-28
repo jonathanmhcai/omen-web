@@ -51,7 +51,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
   const [viewState, setViewState] = useState({
     longitude: 0,
     latitude: 20,
-    zoom: 1.5,
+    zoom: 2.5,
   });
   const [hoverInfo, setHoverInfo] = useState<{
     x: number;
@@ -310,7 +310,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
             latitude: Math.max(-70, Math.min(70, vs.latitude)),
           });
         }}
-        minZoom={2}
+        minZoom={2.5}
         renderWorldCopies={true}
         mapStyle={mapStyle}
         mapboxAccessToken={MAPBOX_TOKEN}
