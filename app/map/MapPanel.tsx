@@ -281,10 +281,11 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
   }, [projection]);
 
   return (
-    <div style={{ width: "100%", height: "100%", position: "relative" }}>
+    <div style={{ width: "100%", height: "100%", position: "relative" }} onMouseLeave={() => setHoverInfo(null)}>
       <MapGL
         ref={mapRef}
         {...viewState}
+        onMoveStart={() => setHoverInfo(null)}
         onMove={(evt) => {
           const vs = evt.viewState;
           setViewState({
