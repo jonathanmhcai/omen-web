@@ -153,24 +153,25 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
         return;
       }
 
-      if (props?.country && eventsByLocation.has(props.country)) {
-        onLocationSelect(props.country, eventsByLocation.get(props.country)!);
+      if (props?.country) {
+        const events = eventsByLocation.get(props.country) ?? [];
+        onLocationSelect(props.country, events);
         return;
       }
 
       const layerId = (feature as any).layer?.id;
       if (layerId === "country-fill" && props?.ISO_A2) {
         const slug = getSlugByIso(props.ISO_A2 as string);
-        if (slug && eventsByLocation.has(slug)) {
-          onLocationSelect(slug, eventsByLocation.get(slug)!);
+        if (slug) {
+          onLocationSelect(slug, eventsByLocation.get(slug) ?? []);
           return;
         }
       }
 
       if (layerId === "state-fill" && props?.STUSPS) {
         const slug = getSlugByStateAbbr(props.STUSPS as string);
-        if (slug && eventsByLocation.has(slug)) {
-          onLocationSelect(slug, eventsByLocation.get(slug)!);
+        if (slug) {
+          onLocationSelect(slug, eventsByLocation.get(slug) ?? []);
           return;
         }
       }
