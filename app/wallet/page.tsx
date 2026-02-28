@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import Button from "../components/button/Button";
@@ -11,15 +11,6 @@ export default function WalletPage() {
   const router = useRouter();
   const { login, ready, authenticated } = usePrivy();
   const { user: authUser, loading: authLoading } = useAuthUser();
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDarkMode(prefersDark);
-    document.documentElement.classList.toggle("dark", prefersDark);
-  }, []);
-
   // Redirect fully set up users to /
   const isFullySetUp = authUser?.has_polymarket_credentials && authUser?.isAccountUpgraded;
   useEffect(() => {

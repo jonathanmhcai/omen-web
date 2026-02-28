@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAccessToken, usePrivy } from "@privy-io/react-auth";
 import { User } from "../lib/types";
 import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
@@ -28,13 +29,12 @@ async function authenticateWithPrivy(setSessionToken: (token: string) => void): 
   return sessionToken;
 }
 
-async function fetchMe(sessionToken: string, clearSessionToken: () => void): Promise<User> {
+async function fetchMe(sessionToken: string): Promise<User> {
   const res = await fetch(`${API_BASE}/me`, {
     headers: { Authorization: `Bearer ${sessionToken}` },
   });
 
   if (res.status === 401) {
-    clearSessionToken();
     throw new Error("Session token expired or invalid");
   }
 
@@ -54,67 +54,46 @@ const REFETCH_INTERVAL = 10_000;
 
 export function useAuthUser() {
   const { authenticated } = usePrivy();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const queryClient = useQueryClient();
   const [sessionToken, setSessionToken, clearSessionToken] = useCookieString(SESSION_TOKEN_KEY);
 
-  const fetchUser = useCallback(async () => {
-    try {
+  // Clear state on logout
+  useEffect(() => {
+    if (!authenticated) {
+      queryClient.removeQueries({ queryKey: ["authUser"] });
+      clearSessionToken();
+    }
+  }, [authenticated, queryClient, clearSessionToken]);
+
+  const { data, isLoading, error, refetch } = useQuery<User>({
+    queryKey: ["authUser"],
+    queryFn: async () => {
       let token = sessionToken;
 
       if (!token) {
         token = await authenticateWithPrivy(setSessionToken);
       }
 
-      const me = await fetchMe(token, clearSessionToken);
-      setUser(me);
-      setError(null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-
-      if (message === "Session token expired or invalid") {
-        // Try once more with a fresh token
-        try {
-          const token = await authenticateWithPrivy(setSessionToken);
-          const me = await fetchMe(token, clearSessionToken);
-          setUser(me);
-          setError(null);
-          return;
-        } catch {
-          // Fall through to error handling
+      try {
+        return await fetchMe(token);
+      } catch (err) {
+        if (err instanceof Error && err.message === "Session token expired or invalid") {
+          clearSessionToken();
+          const freshToken = await authenticateWithPrivy(setSessionToken);
+          return await fetchMe(freshToken);
         }
+        throw err;
       }
+    },
+    enabled: authenticated,
+    refetchInterval: REFETCH_INTERVAL,
+    retry: false,
+  });
 
-      setError(message);
-      // Only clear user on definitive "not found" — preserve existing user on transient errors
-      if (message === "User account not found") {
-        setUser(null);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionToken, setSessionToken, clearSessionToken]);
-
-  useEffect(() => {
-    if (!authenticated) {
-      setUser(null);
-      setLoading(false);
-      setError(null);
-      clearSessionToken();
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      return;
-    }
-
-    setLoading(true);
-    fetchUser();
-    intervalRef.current = setInterval(fetchUser, REFETCH_INTERVAL);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [authenticated, fetchUser, clearSessionToken]);
-
-  return { user, loading, error, refetch: fetchUser };
+  return {
+    user: data ?? null,
+    loading: authenticated ? isLoading : false,
+    error: error instanceof Error ? error.message : null,
+    refetch,
+  };
 }
