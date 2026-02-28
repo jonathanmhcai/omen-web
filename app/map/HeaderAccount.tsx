@@ -7,7 +7,7 @@ import { useAuthUser } from "../hooks/useAuthUser";
 import { useUsdcBalance } from "../hooks/useUsdcBalance";
 import { usePositions } from "../hooks/usePositions";
 import { useMapPageContext } from "./MapPageContext";
-import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map } from "lucide-react";
+import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity } from "lucide-react";
 
 export default function HeaderAccount() {
   const { logout, user: privyUser } = usePrivy();
@@ -47,6 +47,15 @@ export default function HeaderAccount() {
           <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
         </button>
       )}
+
+      {/* Live Trades */}
+      <button
+        onClick={() => { ctx.onLiveTradesToggle(); setShowAccount(false); setShowSettings(false); }}
+        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
+        title="Live Trades"
+      >
+        <Activity className="h-4 w-4 text-foreground" />
+      </button>
 
       {/* Settings */}
       <div className="relative">

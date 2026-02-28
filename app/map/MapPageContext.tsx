@@ -17,6 +17,7 @@ export interface MapPageContextValue {
   onMarket: (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => void;
   onMarketClose: () => void;
   onPositionsToggle: () => void;
+  onLiveTradesToggle: () => void;
   toggleDarkMode: () => void;
   toggleProjection: () => void;
 }

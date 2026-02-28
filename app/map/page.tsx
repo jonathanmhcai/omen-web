@@ -15,6 +15,7 @@ import MapPanel from "./MapPanel";
 import EventsPanel from "./EventsPanel";
 import MarketPanel from "./MarketPanel";
 import PositionsPanel from "./PositionsPanel";
+import LiveTradesPanel from "./LiveTradesPanel";
 import HeaderAccount from "./HeaderAccount";
 import { MapPin, Calendar } from "lucide-react";
 
@@ -28,6 +29,7 @@ const COMPONENTS = {
   events: EventsPanel,
   market: MarketPanel,
   positions: PositionsPanel,
+  liveTrades: LiveTradesPanel,
 };
 
 export default function MapPage() {
@@ -117,18 +119,16 @@ export default function MapPage() {
         // Update params on existing panel
         existing.api.updateParameters({ location });
       } else {
-        const positionsPanel = api.getPanel("positions");
-        if (positionsPanel) {
-          // Tab alongside the existing positions panel
+        const sibling = api.getPanel("positions");
+        if (sibling) {
           api.addPanel({
             id: "events",
             component: "events",
             title: "Events",
             params: { location },
-            position: { referencePanel: "positions" },
+            position: { referencePanel: sibling.id },
           });
         } else {
-          // Add new events panel docked to the right of map
           api.addPanel({
             id: "events",
             component: "events",
@@ -188,13 +188,13 @@ export default function MapPage() {
       return;
     }
 
-    const eventsPanel = api.getPanel("events");
-    if (eventsPanel) {
+    const sibling = api.getPanel("events");
+    if (sibling) {
       api.addPanel({
         id: "positions",
         component: "positions",
         title: "Positions",
-        position: { referencePanel: "events" },
+        position: { referencePanel: sibling.id },
       });
     } else {
       api.addPanel({
@@ -205,6 +205,24 @@ export default function MapPage() {
         initialWidth: 384,
       });
     }
+  }, []);
+
+  const onLiveTradesToggle = useCallback(() => {
+    const api = apiRef.current;
+    if (!api) return;
+
+    const existing = api.getPanel("liveTrades");
+    if (existing) {
+      api.removePanel(existing);
+      return;
+    }
+
+    api.addPanel({
+      id: "liveTrades",
+      component: "liveTrades",
+      title: "Live Trades",
+      floating: { width: 384, height: 600, x: 16, y: 16 },
+    });
   }, []);
 
   // --- Escape key closes active non-map panel ---
@@ -265,6 +283,14 @@ export default function MapPage() {
       }
     });
 
+    // Open live trades as a floating panel
+    api.addPanel({
+      id: "liveTrades",
+      component: "liveTrades",
+      title: "Live Trades",
+      floating: { width: 384, height: 600, x: 16, y: 16 },
+    });
+
     // Sync state when panels are removed (e.g. user closes via tab X)
     api.onDidRemovePanel((panel) => {
       if (panel.id === "events") {
@@ -289,6 +315,7 @@ export default function MapPage() {
       onMarket,
       onMarketClose,
       onPositionsToggle,
+      onLiveTradesToggle,
       toggleDarkMode,
       toggleProjection,
     }),
@@ -305,6 +332,7 @@ export default function MapPage() {
       onMarket,
       onMarketClose,
       onPositionsToggle,
+      onLiveTradesToggle,
       toggleDarkMode,
       toggleProjection,
     ]
