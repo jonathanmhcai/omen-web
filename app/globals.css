@@ -170,9 +170,22 @@
   scrollbar-color: var(--muted-foreground) transparent;
 }
 
-/* Widen the sash to cover the full grip strip area */
+/* Hide sash — side panels overlay the map */
 .dockview-theme-custom .dv-horizontal > .dv-sash-container > .dv-sash {
-  width: 10px !important;
+  display: none !important;
+}
+
+/* Map panel always fills full width; side panels overlay on top */
+.dockview-theme-custom .dv-horizontal > .dv-view-container > .dv-view:first-child {
+  width: 100% !important;
+}
+
+.dockview-theme-custom .dv-horizontal > .dv-view-container > .dv-view:not(:first-child) {
+  position: absolute !important;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
 }
 
 /* Grip strip on the left edge of the right-side panel (takes up panel space, not the map) */
