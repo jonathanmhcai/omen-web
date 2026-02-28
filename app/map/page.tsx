@@ -318,6 +318,7 @@ export default function MapPage() {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
         }}
       >
         <header
