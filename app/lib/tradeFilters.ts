@@ -26,7 +26,7 @@ export function slugFilter(trade: LiveTrade): boolean {
 
 /** Preset min-trade-size options (USD). */
 export const MIN_SIZE_OPTIONS = [0, 10, 100, 500, 1_000, 5_000, 10_000] as const;
-export const DEFAULT_MIN_SIZE = 100;
+export const DEFAULT_MIN_SIZE = 10;
 
 /** Creates a combined filter: slug keywords + minimum USD size. */
 export function createTradeFilter(minSize: number) {
