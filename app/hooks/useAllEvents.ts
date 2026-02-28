@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { PolymarketEvent } from "../lib/types";
 
 const PAGE_SIZE = 500;
-const OPTIMISTIC_PAGES = 3;
+const OPTIMISTIC_PAGES = 4;
 
 interface UseAllEventsOptions {
   tagIds?: string[];
