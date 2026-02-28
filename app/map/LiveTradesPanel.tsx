@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { IDockviewPanelProps } from "dockview";
 import { useMapPageContext } from "./MapPageContext";
 import { useLiveTrades, type LiveTrade } from "../hooks/useLiveTrades";
+import { matchTradeLocation } from "./geo";
 import {
   createTradeFilter,
   DEFAULT_MIN_SIZE,
@@ -83,11 +84,31 @@ function formatMinSize(n: number): string {
 }
 
 export default function LiveTradesPanel({}: IDockviewPanelProps) {
+  const ctx = useMapPageContext();
   const [minSize, setMinSize] = useState(DEFAULT_MIN_SIZE);
   const filter = useCallback(createTradeFilter(minSize), [minSize]);
   const { trades, connected } = useLiveTrades(true, filter);
   const listRef = useRef<HTMLDivElement>(null);
   const isAtTopRef = useRef(true);
+  const lastTradeCountRef = useRef(0);
+
+  // Push map pings for new trades with matched locations
+  useEffect(() => {
+    const prev = lastTradeCountRef.current;
+    if (trades.length <= prev) {
+      lastTradeCountRef.current = trades.length;
+      return;
+    }
+    const newCount = trades.length - prev;
+    for (let i = 0; i < newCount; i++) {
+      const trade = trades[i];
+      const loc = matchTradeLocation(trade.title, trade.eventSlug);
+      if (loc) {
+        ctx.addTradePing(loc.lat, loc.lng, trade.usdValue);
+      }
+    }
+    lastTradeCountRef.current = trades.length;
+  }, [trades, ctx]);
 
   useEffect(() => {
     const el = listRef.current;

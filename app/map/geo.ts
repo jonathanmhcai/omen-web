@@ -133,6 +133,60 @@ export function getSlugByStateAbbr(abbr: string): string | null {
   return abbrToSlug.get(abbr) ?? null;
 }
 
+// ── Lightweight trade location matching (title + slug only, no tags) ──
+
+const countryNames = Object.keys(countryCoords).sort((a, b) => b.length - a.length);
+const countryRegexes = countryNames
+  .filter((name) => name.length > 3)
+  .map((name) => ({
+    name,
+    regex: new RegExp(`\\b${name.replace(/-/g, "[- ]")}\\b`, "i"),
+  }));
+
+const tradeLocationCache = new Map<string, LocationMatch | null>();
+
+export function matchTradeLocation(
+  title: string,
+  eventSlug: string,
+): LocationMatch | null {
+  const cached = tradeLocationCache.get(eventSlug);
+  if (cached !== undefined) return cached;
+
+  const result = _matchTradeLocation(title, eventSlug);
+  tradeLocationCache.set(eventSlug, result);
+  return result;
+}
+
+function _matchTradeLocation(
+  title: string,
+  eventSlug: string,
+): LocationMatch | null {
+  for (const { name, regex } of stateRegexes) {
+    if (regex.test(title)) {
+      const s = stateCoords[name];
+      return { slug: `us-${name.replace(/ /g, "-")}`, lat: s.lat, lng: s.lng };
+    }
+  }
+
+  for (const { name, regex } of countryRegexes) {
+    if (regex.test(title)) {
+      const c = countryCoords[name];
+      return { slug: name, lat: c.lat, lng: c.lng };
+    }
+  }
+
+  for (const name of countryNames) {
+    if (name.length <= 3) continue;
+    const slugName = name.replace(/ /g, "-");
+    if (eventSlug.includes(slugName)) {
+      const c = countryCoords[name];
+      return { slug: name, lat: c.lat, lng: c.lng };
+    }
+  }
+
+  return null;
+}
+
 export function groupEventsByLocation(events: PolymarketEvent[]) {
   const map = new Map<string, PolymarketEvent[]>();
   for (const e of events) {

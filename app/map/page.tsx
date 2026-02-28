@@ -11,6 +11,7 @@ import { useAllEvents } from "../hooks/useAllEvents";
 import { PolymarketEvent } from "../lib/types";
 import { buildGeoJSON, groupEventsByLocation } from "./geo";
 import { MapPageContext, type MapPageContextValue } from "./MapPageContext";
+import type { TradePing } from "./layers";
 import MapPanel from "./MapPanel";
 import EventsPanel from "./EventsPanel";
 import MarketPanel from "./MarketPanel";
@@ -34,6 +35,10 @@ const COMPONENTS = {
 
 export default function MapPage() {
   const apiRef = useRef<DockviewApi | null>(null);
+  const tradePingsRef = useRef<TradePing[]>([]);
+  const addTradePing = useCallback((lat: number, lng: number, usdValue: number) => {
+    tradePingsRef.current.push({ lat, lng, usdValue, timestamp: Date.now() });
+  }, []);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [projection, setProjection] = useState<"mercator" | "globe">(() => {
@@ -316,6 +321,8 @@ export default function MapPage() {
       onMarketClose,
       onPositionsToggle,
       onLiveTradesToggle,
+      addTradePing,
+      tradePingsRef,
       toggleDarkMode,
       toggleProjection,
     }),
@@ -333,6 +340,7 @@ export default function MapPage() {
       onMarketClose,
       onPositionsToggle,
       onLiveTradesToggle,
+      addTradePing,
       toggleDarkMode,
       toggleProjection,
     ]

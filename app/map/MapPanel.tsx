@@ -20,6 +20,7 @@ import {
   getCountryLineLayer,
   getStateFillLayer,
   getStateLineLayer,
+  getTradePingLayers,
   INTERACTIVE_LAYER_IDS,
 } from "./layers";
 import HoverTooltip from "./HoverTooltip";
@@ -42,6 +43,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     loading,
     onLocationSelect,
     onLocationDeselect,
+    tradePingsRef,
   } = ctx;
 
   const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
@@ -67,27 +69,39 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     return () => disposable.dispose();
   }, [api]);
 
-  // Pulse animation
-  const [pulse, setPulse] = useState(0);
+  // Trade ping animation — only runs when there are active pings
+  const [pingTick, setPingTick] = useState(0);
   useEffect(() => {
     let frame: number;
     const animate = () => {
-      setPulse((Date.now() % 2000) / 2000);
+      const now = Date.now();
+      // Prune expired pings (>3s old)
+      tradePingsRef.current = tradePingsRef.current.filter((p) => now - p.timestamp < 1200);
+      // Only trigger re-render when there are active pings
+      if (tradePingsRef.current.length > 0) {
+        setPingTick(now);
+      }
       frame = requestAnimationFrame(animate);
     };
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [tradePingsRef]);
 
   const selectedIso = selectedLocation ? getIsoCode(selectedLocation) : null;
   const selectedStateAbbr = selectedLocation
     ? getStateAbbr(selectedLocation)
     : null;
 
-  const clusterLayers = useMemo(() => getClusterLayers(pulse), [pulse]);
+  const tradePingData = useMemo(
+    () => getTradePingLayers(tradePingsRef.current),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pingTick]
+  );
+
+  const clusterLayers = useMemo(() => getClusterLayers(), []);
   const unclusteredPointLayers = useMemo(
-    () => getUnclusteredPointLayers(selectedLocation, pulse),
-    [selectedLocation, pulse]
+    () => getUnclusteredPointLayers(selectedLocation),
+    [selectedLocation]
   );
   const countryFillLayer = useMemo(
     () => getCountryFillLayer(selectedIso),
@@ -341,6 +355,12 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
             <Layer key={layer.id} {...layer} />
           ))}
           {unclusteredPointLayers.map((layer) => (
+            <Layer key={layer.id} {...layer} />
+          ))}
+        </Source>
+
+        <Source id="trade-pings" type="geojson" data={tradePingData.geojson}>
+          {tradePingData.layers.map((layer) => (
             <Layer key={layer.id} {...layer} />
           ))}
         </Source>

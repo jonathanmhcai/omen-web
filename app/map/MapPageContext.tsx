@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, type MutableRefObject } from "react";
 import type * as GeoJSON from "geojson";
 import type { PolymarketEvent } from "../lib/types";
+import type { TradePing } from "./layers";
 
 export interface MapPageContextValue {
   geojson: GeoJSON.GeoJSON;
@@ -18,6 +19,8 @@ export interface MapPageContextValue {
   onMarketClose: () => void;
   onPositionsToggle: () => void;
   onLiveTradesToggle: () => void;
+  addTradePing: (lat: number, lng: number, usdValue: number) => void;
+  tradePingsRef: MutableRefObject<TradePing[]>;
   toggleDarkMode: () => void;
   toggleProjection: () => void;
 }
