@@ -375,7 +375,7 @@ export default function MapPage() {
         </div>
 
         <footer
-          className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-between px-5 border-t border-border bg-background text-xs text-muted-foreground"
+          className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-between px-5 border-t border-border bg-background text-xs text-muted-foreground/50"
           style={{ height: 28 }}
         >
           <span className="flex items-center gap-3">
