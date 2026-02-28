@@ -44,6 +44,8 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     onLocationDeselect,
   } = ctx;
 
+  const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+
   const [viewState, setViewState] = useState({
     longitude: 0,
     latitude: 20,
@@ -181,6 +183,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
 
   const onHover = useCallback(
     (e: MapMouseEvent) => {
+      if (isTouch) return;
       const feature = e.features?.[0];
       if (!feature) {
         setHoverInfo(null);
@@ -264,7 +267,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
         }
       );
     },
-    [eventsByLocation, volume24hrByLocation]
+    [isTouch, eventsByLocation, volume24hrByLocation]
   );
 
   const onMouseLeave = useCallback(() => setHoverInfo(null), []);
