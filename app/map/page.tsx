@@ -165,7 +165,7 @@ export default function MapPage() {
         component: "market",
         title: opts?.title || "Market",
         params: { conditionId, outcomeIndex: opts?.outcomeIndex },
-        floating: { width: 400, height: 640 },
+        floating: { width: 400, height: 640, x: 16, y: 16 },
       });
     },
     []

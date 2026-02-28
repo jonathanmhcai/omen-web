@@ -170,9 +170,9 @@
   scrollbar-color: var(--muted-foreground) transparent;
 }
 
-/* Hide sash — side panels overlay the map */
+/* Widen the sash to cover the full grip strip area */
 .dockview-theme-custom .dv-horizontal > .dv-sash-container > .dv-sash {
-  display: none !important;
+  width: 10px !important;
 }
 
 /* Map panel always fills full width; side panels overlay on top */
