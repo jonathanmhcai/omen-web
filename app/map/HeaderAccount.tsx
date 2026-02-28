@@ -6,15 +6,19 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useUsdcBalance } from "../hooks/useUsdcBalance";
 import { usePositions } from "../hooks/usePositions";
+import { useDepositAddresses } from "../hooks/useDepositAddresses";
 import { useMapPageContext } from "./MapPageContext";
 import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity } from "lucide-react";
+import DepositModal from "../components/DepositModal";
 
 export default function HeaderAccount() {
   const { login, logout, authenticated, user: privyUser } = usePrivy();
   const { user, loading } = useAuthUser();
   const { balance } = useUsdcBalance();
   const positions = usePositions();
+  const { data: depositData } = useDepositAddresses();
   const ctx = useMapPageContext();
+  const [showDeposit, setShowDeposit] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -92,6 +96,21 @@ export default function HeaderAccount() {
           <Wallet className="h-3.5 w-3.5" />
           ${balance.toFixed(2)}
         </div>
+      )}
+
+      {/* Deposit */}
+      <button
+        onClick={() => { setShowDeposit(true); setShowAccount(false); setShowSettings(false); }}
+        className="px-3 py-1 text-sm font-medium text-foreground bg-accent hover:bg-accent/80 rounded-full transition-colors cursor-pointer"
+      >
+        Deposit
+      </button>
+
+      {showDeposit && depositData?.addresses && (
+        <DepositModal
+          addresses={depositData.addresses}
+          onClose={() => setShowDeposit(false)}
+        />
       )}
 
       {/* Positions */}

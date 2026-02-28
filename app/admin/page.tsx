@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import Button from "../components/button/Button";
+import { Button } from "@/components/ui/button";
 import EventTable, { EventFilters } from "../components/event-table/EventTable";
 import UsersTable from "../components/users-table/UsersTable";
 import { useAuthUser } from "../hooks/useAuthUser";
@@ -82,7 +82,7 @@ function AdminContent() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-black/[.08] p-8 dark:border-white/[.145]">
           <p className="text-sm text-red-500">Authentication error: {authError}</p>
-          <Button variant="secondary" onClick={logout}>Log Out</Button>
+          <Button variant="outline" onClick={logout}>Log Out</Button>
         </div>
       </div>
     );
@@ -94,7 +94,7 @@ function AdminContent() {
         <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-black/[.08] p-8 dark:border-white/[.145]">
           <h1 className="text-xl font-semibold">Access Denied</h1>
           <p className="text-sm text-muted-foreground">You do not have admin access.</p>
-          <Button variant="secondary" onClick={logout}>Log Out</Button>
+          <Button variant="outline" onClick={logout}>Log Out</Button>
         </div>
       </div>
     );

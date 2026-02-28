@@ -5,7 +5,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useSetup } from "../hooks/useSetup";
 import { LogOut } from "lucide-react";
-import Button from "./button/Button";
+import { Button } from "@/components/ui/button";
 
 export default function SetupModal() {
   const router = useRouter();

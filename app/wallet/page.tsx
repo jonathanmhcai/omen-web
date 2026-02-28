@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
-import Button from "../components/button/Button";
+import { Button } from "@/components/ui/button";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { Loader } from "lucide-react";
 
