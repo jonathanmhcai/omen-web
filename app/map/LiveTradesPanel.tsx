@@ -90,16 +90,18 @@ export default function LiveTradesPanel({}: IDockviewPanelProps) {
   const { trades, connected } = useLiveTrades(true, filter);
   const listRef = useRef<HTMLDivElement>(null);
   const isAtTopRef = useRef(true);
-  const lastTradeCountRef = useRef(0);
+  const lastSeenTradeIdRef = useRef<string | null>(null);
 
   // Push map pings for new trades with matched locations
   useEffect(() => {
-    const prev = lastTradeCountRef.current;
-    if (trades.length <= prev) {
-      lastTradeCountRef.current = trades.length;
-      return;
+    if (trades.length === 0) return;
+
+    let newCount = 0;
+    for (let i = 0; i < trades.length; i++) {
+      if (trades[i].id === lastSeenTradeIdRef.current) break;
+      newCount++;
     }
-    const newCount = trades.length - prev;
+
     for (let i = 0; i < newCount; i++) {
       const trade = trades[i];
       const loc = matchTradeLocation(trade.title, trade.eventSlug);
@@ -107,7 +109,8 @@ export default function LiveTradesPanel({}: IDockviewPanelProps) {
         ctx.addTradePing(loc.lat, loc.lng, trade.usdValue);
       }
     }
-    lastTradeCountRef.current = trades.length;
+
+    lastSeenTradeIdRef.current = trades[0].id;
   }, [trades, ctx]);
 
   useEffect(() => {
