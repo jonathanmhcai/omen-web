@@ -341,14 +341,16 @@ export default function MapPage() {
           className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-between px-5 border-t border-border bg-background text-xs text-muted-foreground"
           style={{ height: 28 }}
         >
-          <span>
-            Powered by Polymarket
+          <span className="flex items-center gap-3">
+            <span className="hidden sm:inline">Powered by Polymarket</span>
             {!loading && (
               <>
-                {" · "}
-                <MapPin className="inline h-3 w-3" /> {eventsByLocation.size}
-                {" · "}
-                <Calendar className="inline h-3 w-3" /> {mappedEventCount}
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> {eventsByLocation.size}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> {mappedEventCount}
+                </span>
               </>
             )}
           </span>
