@@ -3,10 +3,12 @@
 import { useState } from "react";
 import type { IDockviewPanelProps } from "dockview";
 import { toast } from "sonner";
+import { usePrivy } from "@privy-io/react-auth";
 import { PolymarketMarket } from "../lib/types";
 import { useCreateOrder } from "../hooks/useCreateOrder";
 import { usePositions, PolymarketPosition } from "../hooks/usePositions";
 import { useMarket } from "../hooks/useMarket";
+import { useAuthUser } from "../hooks/useAuthUser";
 
 function parseJSON<T>(str: string, fallback: T): T {
   try {
@@ -34,6 +36,8 @@ function OutcomeRow({
   position: PolymarketPosition | undefined;
   conditionId: string;
 }) {
+  const { login } = usePrivy();
+  const { user: authUser } = useAuthUser();
   const [buyAmount, setBuyAmount] = useState("");
   const [sellShares, setSellShares] = useState("");
   const { createOrder, loading, error } = useCreateOrder(conditionId);
@@ -110,11 +114,11 @@ function OutcomeRow({
           <p className="text-xs text-red-500 mb-1">Minimum amount is $1</p>
         )}
         <button
-          onClick={handleBuy}
-          disabled={!isBuyValid || loading}
+          onClick={authUser ? handleBuy : login}
+          disabled={authUser ? (!isBuyValid || loading) : false}
           className="w-full rounded bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "..." : "Buy"}
+          {loading ? "..." : authUser ? "Buy" : "Log in to Buy"}
         </button>
       </div>
 

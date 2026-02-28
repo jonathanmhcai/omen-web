@@ -10,8 +10,8 @@ import { useMapPageContext } from "./MapPageContext";
 import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity } from "lucide-react";
 
 export default function HeaderAccount() {
-  const { logout, user: privyUser } = usePrivy();
-  const { user } = useAuthUser();
+  const { login, logout, authenticated, user: privyUser } = usePrivy();
+  const { user, loading } = useAuthUser();
   const { balance } = useUsdcBalance();
   const positions = usePositions();
   const ctx = useMapPageContext();
@@ -24,7 +24,65 @@ export default function HeaderAccount() {
   const posCount = positions.data?.positions.length ?? 0;
   const posValue = positions.data?.totalValue ?? 0;
 
-  if (!user) return null;
+  if (loading) return null;
+
+  if (!user) return (
+    <div className="flex items-center gap-1 text-muted-foreground">
+      {/* Live Trades */}
+      <button
+        onClick={() => { ctx.onLiveTradesToggle(); setShowSettings(false); }}
+        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
+        title="Live Trades"
+      >
+        <Activity className="h-4 w-4 text-foreground" />
+      </button>
+
+      {/* Settings */}
+      <div className="relative">
+        <button
+          onClick={() => setShowSettings((v) => !v)}
+          className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <Settings className="h-4 w-4 text-foreground" />
+        </button>
+
+        {showSettings && (
+          <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-lg bg-popover/90 backdrop-blur-sm shadow-lg border border-border overflow-hidden">
+            <div className="flex flex-col py-1">
+              <button
+                onClick={ctx.toggleDarkMode}
+                className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-accent"
+              >
+                <span className="flex items-center gap-2">
+                  {ctx.darkMode ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+                  Theme
+                </span>
+                <span className="text-xs text-muted-foreground">{ctx.darkMode ? "Dark" : "Light"}</span>
+              </button>
+              <button
+                onClick={ctx.toggleProjection}
+                className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-accent"
+              >
+                <span className="flex items-center gap-2">
+                  {ctx.projection === "globe" ? <Globe className="h-3.5 w-3.5" /> : <Map className="h-3.5 w-3.5" />}
+                  Projection
+                </span>
+                <span className="text-xs text-muted-foreground">{ctx.projection === "globe" ? "Globe" : "Flat"}</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Log In / Log Out */}
+      <button
+        onClick={authenticated ? () => logout() : login}
+        className="px-3 py-1 text-sm font-medium text-foreground bg-accent hover:bg-accent/80 rounded-md transition-colors"
+      >
+        {authenticated ? "Log out" : "Log in / Sign up"}
+      </button>
+    </div>
+  );
 
   return (
     <div className="flex items-center gap-1 text-muted-foreground">
@@ -121,12 +179,7 @@ export default function HeaderAccount() {
               {privyUser?.email?.address && (
                 <p className="text-xs text-muted-foreground">{privyUser.email.address}</p>
               )}
-              {privyUser?.wallet?.address && (
-                <p className="text-xs text-muted-foreground">
-                  {privyUser.wallet.address.slice(0, 6)}...{privyUser.wallet.address.slice(-4)}
-                </p>
-              )}
-              {privyUser?.id && !privyUser?.email?.address && !privyUser?.wallet?.address && (
+              {privyUser?.id && !privyUser?.email?.address && (
                 <p className="text-xs text-muted-foreground">{privyUser.id}</p>
               )}
             </div>
