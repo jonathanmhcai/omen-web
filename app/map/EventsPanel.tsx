@@ -191,6 +191,9 @@ export default function EventsPanel({
               <span>
                 ${Math.round(e.volume24hr || 0).toLocaleString()} 24h
               </span>
+              {e.endDate && (
+                <span>Ends {new Date(e.endDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+              )}
             </div>
             {e.markets && e.markets.length > 0 && (
               <MarketList markets={e.markets} onMarket={ctx.onMarket} />
