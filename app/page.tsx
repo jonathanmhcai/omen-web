@@ -222,11 +222,14 @@ export default function MapPage() {
       return;
     }
 
+    const isMobile = window.innerWidth < 640;
     api.addPanel({
       id: "liveTrades",
       component: "liveTrades",
       title: "Live Trades",
-      floating: { width: 384, height: 600, x: 16, y: 16 },
+      floating: isMobile
+        ? { width: window.innerWidth - 32, height: 260, x: 16, y: window.innerHeight - 260 - 28 - 48 - 16 }
+        : { width: 384, height: 600, x: 16, y: 16 },
     });
   }, []);
 
@@ -289,11 +292,14 @@ export default function MapPage() {
     });
 
     // Open live trades as a floating panel
+    const isMobile = window.innerWidth < 640;
     api.addPanel({
       id: "liveTrades",
       component: "liveTrades",
       title: "Live Trades",
-      floating: { width: 384, height: 600, x: 16, y: 16 },
+      floating: isMobile
+        ? { width: window.innerWidth - 32, height: 260, x: 16, y: window.innerHeight - 260 - 28 - 48 - 16 }
+        : { width: 384, height: 600, x: 16, y: 16 },
     });
 
     // Sync state when panels are removed (e.g. user closes via tab X)
