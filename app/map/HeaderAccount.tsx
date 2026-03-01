@@ -193,6 +193,9 @@ export default function HeaderAccount() {
             </DropdownMenuItem>
           )}
           <DropdownMenuItem asChild>
+            <a href="https://x.com/OmenTrading" target="_blank" rel="noopener noreferrer">Follow on X</a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <a href="mailto:support@omen.trading">Contact support</a>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => logout()}>
