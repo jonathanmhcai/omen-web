@@ -18,7 +18,8 @@ import MarketPanel from "./map/MarketPanel";
 import PositionsPanel from "./map/PositionsPanel";
 import LiveTradesPanel from "./map/LiveTradesPanel";
 import HeaderAccount from "./map/HeaderAccount";
-import { MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar, Users } from "lucide-react";
+import { useLiveUserCount } from "./hooks/useLiveUserCount";
 
 const THEME: DockviewTheme = {
   name: "omen",
@@ -72,6 +73,8 @@ export default function MapPage() {
       return next;
     });
   }, []);
+
+  const liveUserCount = useLiveUserCount();
 
   const { events, loading } = useAllEvents({
     tagIds: ["100265", "2"],
@@ -395,6 +398,11 @@ export default function MapPage() {
                   <Calendar className="h-3 w-3" /> {mappedEventCount}
                 </span>
               </>
+            )}
+            {liveUserCount !== null && (
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" /> {liveUserCount} online
+              </span>
             )}
           </span>
           <span className="flex items-center gap-2">
