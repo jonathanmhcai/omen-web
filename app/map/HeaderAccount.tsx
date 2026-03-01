@@ -192,6 +192,9 @@ export default function HeaderAccount() {
               <Link href="/admin">Admin</Link>
             </DropdownMenuItem>
           )}
+          <DropdownMenuItem asChild>
+            <a href="mailto:support@omen.trading">Contact support</a>
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => logout()}>
             Log out
           </DropdownMenuItem>
