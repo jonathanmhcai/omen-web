@@ -12,6 +12,7 @@ import {
   getStateAbbr,
   getSlugByIso,
   getSlugByStateAbbr,
+  getCoordinatesBySlug,
 } from "./geo";
 import {
   getClusterLayers,
@@ -44,6 +45,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     onLocationSelect,
     onLocationDeselect,
     tradePingsRef,
+    flyToLocationRef,
   } = ctx;
 
   const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
@@ -68,6 +70,23 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     });
     return () => disposable.dispose();
   }, [api]);
+
+  // Register flyToLocation so search can navigate the map
+  useEffect(() => {
+    flyToLocationRef.current = (slug: string) => {
+      const coords = getCoordinatesBySlug(slug);
+      if (!coords) return;
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+      const zoom = slug.startsWith("us-") && slug !== "us-washington-dc" ? 5.5 : 4;
+      map.flyTo({ center: [coords.lng, coords.lat], zoom, duration: 1500 });
+      const events = eventsByLocation.get(slug) ?? [];
+      onLocationSelect(slug, events);
+    };
+    return () => {
+      flyToLocationRef.current = null;
+    };
+  }, [flyToLocationRef, eventsByLocation, onLocationSelect]);
 
   // Trade ping animation — only runs when there are active pings
   const [pingTick, setPingTick] = useState(0);

@@ -187,6 +187,28 @@ function _matchTradeLocation(
   return null;
 }
 
+export function getCoordinatesBySlug(slug: string): { lat: number; lng: number } | null {
+  if (slug.startsWith("us-")) {
+    const stateName = slug.slice(3).replace(/-/g, " ");
+    const s = stateCoords[stateName];
+    return s ? { lat: s.lat, lng: s.lng } : null;
+  }
+  const c = countryCoords[slug];
+  return c ? { lat: c.lat, lng: c.lng } : null;
+}
+
+export function slugToDisplayName(slug: string): string {
+  if (slug.startsWith("us-")) {
+    return slug
+      .slice(3)
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+  return slug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export function groupEventsByLocation(events: PolymarketEvent[]) {
   const map = new Map<string, PolymarketEvent[]>();
   for (const e of events) {

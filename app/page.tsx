@@ -16,6 +16,7 @@ import MapPanel from "./map/MapPanel";
 import EventsPanel from "./map/EventsPanel";
 import MarketPanel from "./map/MarketPanel";
 import PositionsPanel from "./map/PositionsPanel";
+import EventPanel from "./map/EventPanel";
 import LiveTradesPanel from "./map/LiveTradesPanel";
 import HeaderAccount from "./map/HeaderAccount";
 import { MapPin, Calendar, Users } from "lucide-react";
@@ -29,6 +30,7 @@ const THEME: DockviewTheme = {
 
 const COMPONENTS = {
   map: MapPanel,
+  event: EventPanel,
   events: EventsPanel,
   market: MarketPanel,
   positions: PositionsPanel,
@@ -38,6 +40,7 @@ const COMPONENTS = {
 export default function MapPage() {
   const apiRef = useRef<DockviewApi | null>(null);
   const tradePingsRef = useRef<TradePing[]>([]);
+  const flyToLocationRef = useRef<((slug: string) => void) | null>(null);
   const addTradePing = useCallback((lat: number, lng: number, usdValue: number) => {
     tradePingsRef.current.push({ lat, lng, usdValue, timestamp: Date.now() });
   }, []);
@@ -113,8 +116,12 @@ export default function MapPage() {
       const api = apiRef.current;
       if (!api) return;
 
-      // Toggle: clicking same location closes the panel
-      if (selectedLocation === location) {
+      // Close single-event panel when opening the location events list
+      const eventPanel = api.getPanel("event");
+      if (eventPanel) api.removePanel(eventPanel);
+
+      // Toggle: clicking same location closes the panel (but not when navigating from EventPanel)
+      if (selectedLocation === location && !eventPanel) {
         const panel = api.getPanel("events");
         if (panel) api.removePanel(panel);
         setSelectedLocation(null);
@@ -159,6 +166,37 @@ export default function MapPage() {
     if (panel) api.removePanel(panel);
     setSelectedLocation(null);
   }, []);
+
+  const onEvent = useCallback(
+    (event: PolymarketEvent, locationSlug: string) => {
+      const api = apiRef.current;
+      if (!api) return;
+
+      const existing = api.getPanel("event");
+      if (existing) api.removePanel(existing);
+
+      const sibling = api.getPanel("events") || api.getPanel("positions");
+      if (sibling) {
+        api.addPanel({
+          id: "event",
+          component: "event",
+          title: event.title,
+          params: { event, locationSlug },
+          position: { referencePanel: sibling.id },
+        });
+      } else {
+        api.addPanel({
+          id: "event",
+          component: "event",
+          title: event.title,
+          params: { event, locationSlug },
+          position: { referencePanel: "map", direction: "right" },
+          initialWidth: 384,
+        });
+      }
+    },
+    []
+  );
 
   const onMarket = useCallback(
     (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => {
@@ -242,6 +280,8 @@ export default function MapPage() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
+      // Let the search modal handle its own Escape
+      if (document.querySelector("[data-search-modal]")) return;
       e.preventDefault();
       e.stopImmediatePropagation();
       const api = apiRef.current;
@@ -327,12 +367,14 @@ export default function MapPage() {
       loading,
       onLocationSelect,
       onLocationDeselect,
+      onEvent,
       onMarket,
       onMarketClose,
       onPositionsToggle,
       onLiveTradesToggle,
       addTradePing,
       tradePingsRef,
+      flyToLocationRef,
       toggleDarkMode,
       toggleProjection,
     }),
@@ -346,6 +388,7 @@ export default function MapPage() {
       loading,
       onLocationSelect,
       onLocationDeselect,
+      onEvent,
       onMarket,
       onMarketClose,
       onPositionsToggle,

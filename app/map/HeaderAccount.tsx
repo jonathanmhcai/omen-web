@@ -9,6 +9,7 @@ import { usePositions } from "../hooks/usePositions";
 import { useDepositAddresses } from "../hooks/useDepositAddresses";
 import { useMapPageContext } from "./MapPageContext";
 import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity } from "lucide-react";
+import SearchModal from "./SearchModal";
 import DepositModal from "../components/DepositModal";
 import {
   DropdownMenu,
@@ -37,6 +38,9 @@ export default function HeaderAccount() {
 
   if (!user) return (
     <div className="flex items-center gap-1 text-muted-foreground">
+      {/* Search */}
+      <SearchModal />
+
       {/* Live Trades */}
       <button
         onClick={() => ctx.onLiveTradesToggle()}
@@ -83,6 +87,18 @@ export default function HeaderAccount() {
 
   return (
     <div className="flex items-center gap-1 text-muted-foreground">
+      {/* Search */}
+      <SearchModal />
+
+      {/* Live Trades */}
+      <button
+        onClick={() => ctx.onLiveTradesToggle()}
+        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
+        title="Live Trades"
+      >
+        <Activity className="h-4 w-4 text-foreground" />
+      </button>
+
       {/* Balance */}
       {balance !== null && (
         <div className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground">
@@ -117,15 +133,6 @@ export default function HeaderAccount() {
           <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
         </button>
       )}
-
-      {/* Live Trades */}
-      <button
-        onClick={() => ctx.onLiveTradesToggle()}
-        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
-        title="Live Trades"
-      >
-        <Activity className="h-4 w-4 text-foreground" />
-      </button>
 
       {/* Settings */}
       <DropdownMenu>
