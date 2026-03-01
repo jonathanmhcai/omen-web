@@ -10,6 +10,13 @@ import { useDepositAddresses } from "../hooks/useDepositAddresses";
 import { useMapPageContext } from "./MapPageContext";
 import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity } from "lucide-react";
 import DepositModal from "../components/DepositModal";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 
 export default function HeaderAccount() {
   const { login, logout, authenticated, user: privyUser } = usePrivy();
@@ -19,8 +26,6 @@ export default function HeaderAccount() {
   const { data: depositData } = useDepositAddresses();
   const ctx = useMapPageContext();
   const [showDeposit, setShowDeposit] = useState(false);
-  const [showAccount, setShowAccount] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
 
   const displayName = user?.display_name || user?.username;
   const initials = displayName?.[0]?.toUpperCase() ?? "?";
@@ -34,7 +39,7 @@ export default function HeaderAccount() {
     <div className="flex items-center gap-1 text-muted-foreground">
       {/* Live Trades */}
       <button
-        onClick={() => { ctx.onLiveTradesToggle(); setShowSettings(false); }}
+        onClick={() => ctx.onLiveTradesToggle()}
         className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
         title="Live Trades"
       >
@@ -42,41 +47,29 @@ export default function HeaderAccount() {
       </button>
 
       {/* Settings */}
-      <div className="relative">
-        <button
-          onClick={() => setShowSettings((v) => !v)}
-          className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <Settings className="h-4 w-4 text-foreground" />
-        </button>
-
-        {showSettings && (
-          <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-lg bg-popover/90 backdrop-blur-sm shadow-lg border border-border overflow-hidden">
-            <div className="flex flex-col py-1">
-              <button
-                onClick={ctx.toggleDarkMode}
-                className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-accent"
-              >
-                <span className="flex items-center gap-2">
-                  {ctx.darkMode ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
-                  Theme
-                </span>
-                <span className="text-xs text-muted-foreground">{ctx.darkMode ? "Dark" : "Light"}</span>
-              </button>
-              <button
-                onClick={ctx.toggleProjection}
-                className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-accent"
-              >
-                <span className="flex items-center gap-2">
-                  {ctx.projection === "globe" ? <Globe className="h-3.5 w-3.5" /> : <Map className="h-3.5 w-3.5" />}
-                  Projection
-                </span>
-                <span className="text-xs text-muted-foreground">{ctx.projection === "globe" ? "Globe" : "Flat"}</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground">
+            <Settings className="h-4 w-4 text-foreground" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={ctx.toggleDarkMode}>
+            <span className="flex items-center gap-2">
+              {ctx.darkMode ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+              Theme
+            </span>
+            <span className="ml-auto text-xs text-muted-foreground">{ctx.darkMode ? "Dark" : "Light"}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={ctx.toggleProjection}>
+            <span className="flex items-center gap-2">
+              {ctx.projection === "globe" ? <Globe className="h-3.5 w-3.5" /> : <Map className="h-3.5 w-3.5" />}
+              Projection
+            </span>
+            <span className="ml-auto text-xs text-muted-foreground">{ctx.projection === "globe" ? "Globe" : "Flat"}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Log In / Log Out */}
       <button
@@ -100,7 +93,7 @@ export default function HeaderAccount() {
 
       {/* Deposit */}
       <button
-        onClick={() => { setShowDeposit(true); setShowAccount(false); setShowSettings(false); }}
+        onClick={() => setShowDeposit(true)}
         className="px-3 py-1 text-sm font-medium text-foreground bg-accent hover:bg-accent/80 rounded-full transition-colors cursor-pointer"
       >
         Deposit
@@ -116,7 +109,7 @@ export default function HeaderAccount() {
       {/* Positions */}
       {positions.data && posCount > 0 && (
         <button
-          onClick={() => { ctx.onPositionsToggle(); setShowAccount(false); setShowSettings(false); }}
+          onClick={() => ctx.onPositionsToggle()}
           className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground transition-colors hover:text-foreground"
         >
           <BarChart3 className="h-3.5 w-3.5" />
@@ -127,7 +120,7 @@ export default function HeaderAccount() {
 
       {/* Live Trades */}
       <button
-        onClick={() => { ctx.onLiveTradesToggle(); setShowAccount(false); setShowSettings(false); }}
+        onClick={() => ctx.onLiveTradesToggle()}
         className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
         title="Live Trades"
       >
@@ -135,93 +128,68 @@ export default function HeaderAccount() {
       </button>
 
       {/* Settings */}
-      <div className="relative">
-        <button
-          onClick={() => { setShowSettings((v) => !v); setShowAccount(false); }}
-          className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <Settings className="h-4 w-4 text-foreground" />
-        </button>
-
-        {showSettings && (
-          <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-lg bg-popover/90 backdrop-blur-sm shadow-lg border border-border overflow-hidden">
-            <div className="flex flex-col py-1">
-              <button
-                onClick={ctx.toggleDarkMode}
-                className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-accent"
-              >
-                <span className="flex items-center gap-2">
-                  {ctx.darkMode ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
-                  Theme
-                </span>
-                <span className="text-xs text-muted-foreground">{ctx.darkMode ? "Dark" : "Light"}</span>
-              </button>
-              <button
-                onClick={ctx.toggleProjection}
-                className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-accent"
-              >
-                <span className="flex items-center gap-2">
-                  {ctx.projection === "globe" ? <Globe className="h-3.5 w-3.5" /> : <Map className="h-3.5 w-3.5" />}
-                  Projection
-                </span>
-                <span className="text-xs text-muted-foreground">{ctx.projection === "globe" ? "Globe" : "Flat"}</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground">
+            <Settings className="h-4 w-4 text-foreground" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={ctx.toggleDarkMode}>
+            <span className="flex items-center gap-2">
+              {ctx.darkMode ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+              Theme
+            </span>
+            <span className="ml-auto text-xs text-muted-foreground">{ctx.darkMode ? "Dark" : "Light"}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={ctx.toggleProjection}>
+            <span className="flex items-center gap-2">
+              {ctx.projection === "globe" ? <Globe className="h-3.5 w-3.5" /> : <Map className="h-3.5 w-3.5" />}
+              Projection
+            </span>
+            <span className="ml-auto text-xs text-muted-foreground">{ctx.projection === "globe" ? "Globe" : "Flat"}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Account */}
-      <div className="relative">
-        <button
-          onClick={() => { setShowAccount((v) => !v); setShowSettings(false); }}
-          className="flex items-center gap-2 px-2 py-1 text-sm transition-colors hover:text-foreground"
-        >
-          {user.avatar_url ? (
-            <img src={user.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
-          ) : (
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
-              {initials}
-            </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex items-center gap-2 px-2 py-1 text-sm transition-colors hover:text-foreground">
+            {user.avatar_url ? (
+              <img src={user.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
+            ) : (
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
+                {initials}
+              </div>
+            )}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>
+            {displayName && (
+              <p className="font-medium text-foreground">{displayName}</p>
+            )}
+            {user.username && (
+              <p className="text-xs text-muted-foreground">@{user.username}</p>
+            )}
+            {privyUser?.email?.address && (
+              <p className="text-xs text-muted-foreground">{privyUser.email.address}</p>
+            )}
+            {privyUser?.id && !privyUser?.email?.address && (
+              <p className="text-xs text-muted-foreground">{privyUser.id}</p>
+            )}
+          </DropdownMenuLabel>
+          {user.isAdmin && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin">Admin</Link>
+            </DropdownMenuItem>
           )}
-        </button>
-
-        {showAccount && (
-          <div className="absolute right-0 top-full mt-2 z-50 w-56 rounded-lg bg-popover/90 backdrop-blur-sm shadow-lg border border-border overflow-hidden">
-            <div className="border-b border-border px-3 py-2.5 text-sm">
-              {displayName && (
-                <p className="font-medium text-foreground">{displayName}</p>
-              )}
-              {user.username && (
-                <p className="text-xs text-muted-foreground">@{user.username}</p>
-              )}
-              {privyUser?.email?.address && (
-                <p className="text-xs text-muted-foreground">{privyUser.email.address}</p>
-              )}
-              {privyUser?.id && !privyUser?.email?.address && (
-                <p className="text-xs text-muted-foreground">{privyUser.id}</p>
-              )}
-            </div>
-            <div className="flex flex-col py-1">
-              {user.isAdmin && (
-                <Link
-                  href="/admin"
-                  onClick={() => setShowAccount(false)}
-                  className="px-3 py-2 text-sm text-foreground hover:bg-accent"
-                >
-                  Admin
-                </Link>
-              )}
-              <button
-                onClick={() => { setShowAccount(false); logout(); }}
-                className="px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
-              >
-                Log out
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+          <DropdownMenuItem onClick={() => logout()}>
+            Log out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
