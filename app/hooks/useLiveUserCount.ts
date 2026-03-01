@@ -10,7 +10,7 @@ export function useLiveUserCount() {
     es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        setCount(data.count);
+        setCount(Math.max(data.count, 1));
       } catch {
         // ignore parse errors
       }
