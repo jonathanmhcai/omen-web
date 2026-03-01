@@ -20,6 +20,7 @@ import LiveTradesPanel from "./map/LiveTradesPanel";
 import HeaderAccount from "./map/HeaderAccount";
 import { MapPin, Calendar, Users } from "lucide-react";
 import { useLiveUserCount } from "./hooks/useLiveUserCount";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 const THEME: DockviewTheme = {
   name: "omen",
@@ -388,21 +389,36 @@ export default function MapPage() {
           style={{ height: 28 }}
         >
           <span className="flex items-center gap-3">
-            <span className="hidden sm:inline">Powered by Polymarket</span>
+            <a href="https://polymarket.com" target="_blank" rel="noopener noreferrer" className="hidden sm:inline hover:text-foreground">Powered by Polymarket</a>
             {!loading && (
               <>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> {eventsByLocation.size}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" /> {mappedEventCount}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" /> {eventsByLocation.size}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Locations with active markets</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" /> {mappedEventCount}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Total mapped events</TooltipContent>
+                </Tooltip>
               </>
             )}
             {liveUserCount !== null && (
-              <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" /> {liveUserCount} online
-              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" /> {liveUserCount} online
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">Users currently on the site</TooltipContent>
+              </Tooltip>
             )}
           </span>
           <span className="flex items-center gap-2">
