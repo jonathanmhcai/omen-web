@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { initOnRamp, type CBPayInstanceType } from "@coinbase/cbpay-js";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCoinbaseSession } from "../hooks/useCoinbaseSession";
 import { Loader2, CheckCircle2 } from "lucide-react";
 
 const MIN_AMOUNT = 10;
+const POPUP_WIDTH = 460;
+const POPUP_HEIGHT = 720;
 
 interface BuyWithCoinbaseTabProps {
   onClose: () => void;
@@ -16,56 +17,41 @@ export default function BuyWithCoinbaseTab({ onClose }: BuyWithCoinbaseTabProps)
   const [amount, setAmount] = useState("");
   const [success, setSuccess] = useState(false);
   const session = useCoinbaseSession();
-  const onrampInstance = useRef<CBPayInstanceType | null>(null);
 
   const parsedAmount = parseFloat(amount);
   const isValidAmount = !isNaN(parsedAmount) && parsedAmount >= MIN_AMOUNT;
 
-  const initWidget = useCallback(
-    (sessionToken: string) => {
-      // Destroy previous instance if any
-      onrampInstance.current?.destroy();
-
-      initOnRamp(
-        {
-          appId: "", // Not needed when using sessionToken
-          widgetParameters: {
-            sessionToken,
-            presetFiatAmount: parsedAmount,
-          } as any,
-          experienceLoggedIn: "popup",
-          experienceLoggedOut: "popup",
-          closeOnSuccess: true,
-          closeOnExit: true,
-          onSuccess: () => setSuccess(true),
-          onExit: () => {
-            // User closed the popup — no action needed
-          },
-        },
-        (error, instance) => {
-          if (instance) {
-            onrampInstance.current = instance;
-            instance.open();
-          }
-        },
-      );
-    },
-    [parsedAmount],
-  );
-
-  // When session is fetched, init + open the widget
+  // When session token is ready, open the Coinbase popup
   useEffect(() => {
-    if (session.isSuccess && session.data) {
-      initWidget(session.data.sessionToken);
-    }
-  }, [session.isSuccess, session.data, initWidget]);
+    if (!session.isSuccess || !session.data) return;
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      onrampInstance.current?.destroy();
-    };
-  }, []);
+    const params = new URLSearchParams({
+      sessionToken: session.data.sessionToken,
+      presetFiatAmount: String(parsedAmount),
+      fiatCurrency: "USD",
+    });
+    const url = `https://pay.coinbase.com/buy/select-asset?${params}`;
+
+    const left = window.screenX + (window.outerWidth - POPUP_WIDTH) / 2;
+    const top = window.screenY + (window.outerHeight - POPUP_HEIGHT) / 2;
+    const popup = window.open(
+      url,
+      "coinbase-onramp",
+      `width=${POPUP_WIDTH},height=${POPUP_HEIGHT},left=${left},top=${top}`,
+    );
+
+    if (!popup) return;
+
+    // Poll for popup close — Coinbase doesn't post messages back
+    const interval = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(interval);
+        setSuccess(true);
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [session.isSuccess, session.data, parsedAmount]);
 
   function handleContinue() {
     session.mutate();
