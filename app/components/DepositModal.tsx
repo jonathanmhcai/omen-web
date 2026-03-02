@@ -13,6 +13,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { type DepositAddressesResponse } from "../hooks/useDepositAddresses";
+import BuyWithCoinbaseTab from "./BuyWithCoinbaseTab";
 
 type Network = "evm" | "svm" | "btc";
 
@@ -71,23 +72,36 @@ export default function DepositModal({ addresses, onClose }: DepositModalProps) 
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="evm">
+        <Tabs defaultValue="coinbase">
           <TabsList>
-            {(Object.keys(networkLabels) as Network[]).map((n) => (
-              <TabsTrigger key={n} value={n}>
-                {networkLabels[n]}
-              </TabsTrigger>
-            ))}
+            <TabsTrigger value="coinbase">Coinbase</TabsTrigger>
+            <TabsTrigger value="crypto">Crypto</TabsTrigger>
           </TabsList>
 
-          {(Object.keys(networkLabels) as Network[]).map((n) => (
-            <TabsContent key={n} value={n} className="flex flex-col gap-4">
-              <p className="text-sm text-muted-foreground">
-                {depositInstructions[n]}
-              </p>
-              <NetworkContent address={addresses[n]} />
-            </TabsContent>
-          ))}
+          <TabsContent value="coinbase">
+            <BuyWithCoinbaseTab onClose={onClose} />
+          </TabsContent>
+
+          <TabsContent value="crypto">
+            <Tabs defaultValue="evm">
+              <TabsList>
+                {(Object.keys(networkLabels) as Network[]).map((n) => (
+                  <TabsTrigger key={n} value={n}>
+                    {networkLabels[n]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {(Object.keys(networkLabels) as Network[]).map((n) => (
+                <TabsContent key={n} value={n} className="flex flex-col gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    {depositInstructions[n]}
+                  </p>
+                  <NetworkContent address={addresses[n]} />
+                </TabsContent>
+              ))}
+            </Tabs>
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
