@@ -11,6 +11,7 @@ import { useMapPageContext } from "./MapPageContext";
 import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity } from "lucide-react";
 import SearchModal from "./SearchModal";
 import DepositModal from "../components/DepositModal";
+import WithdrawModal from "../components/WithdrawModal";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -27,6 +28,7 @@ export default function HeaderAccount() {
   const { data: depositData } = useDepositAddresses();
   const ctx = useMapPageContext();
   const [showDeposit, setShowDeposit] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
 
   const displayName = user?.display_name || user?.username;
   const initials = displayName?.[0]?.toUpperCase() ?? "?";
@@ -53,7 +55,7 @@ export default function HeaderAccount() {
       {/* Settings */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground">
+          <button className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer">
             <Settings className="h-4 w-4 text-foreground" />
           </button>
         </DropdownMenuTrigger>
@@ -103,7 +105,7 @@ export default function HeaderAccount() {
       {balance !== null && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground cursor-pointer hover:text-foreground/80 transition-colors">
+            <button className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground cursor-pointer">
               <Wallet className="h-3.5 w-3.5" />
               ${balance.toFixed(2)}
             </button>
@@ -113,7 +115,7 @@ export default function HeaderAccount() {
               <p className="font-medium">${balance.toFixed(2)} USDC</p>
               <p className="text-xs text-muted-foreground font-normal">Polygon</p>
             </DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => {}}>
+            <DropdownMenuItem onClick={() => setShowWithdraw(true)}>
               Withdraw
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -135,6 +137,10 @@ export default function HeaderAccount() {
         />
       )}
 
+      {showWithdraw && (
+        <WithdrawModal onClose={() => setShowWithdraw(false)} />
+      )}
+
       {/* Positions */}
       {positions.data && posCount > 0 && (
         <button
@@ -150,7 +156,7 @@ export default function HeaderAccount() {
       {/* Settings */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground">
+          <button className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer">
             <Settings className="h-4 w-4 text-foreground" />
           </button>
         </DropdownMenuTrigger>
@@ -175,7 +181,7 @@ export default function HeaderAccount() {
       {/* Account */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-2 px-2 py-1 text-sm transition-colors hover:text-foreground">
+          <button className="flex items-center gap-2 px-2 py-1 text-sm transition-colors hover:text-foreground cursor-pointer">
             {user.avatar_url ? (
               <img src={user.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
             ) : (
@@ -205,9 +211,6 @@ export default function HeaderAccount() {
               <Link href="/admin">Admin</Link>
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem asChild>
-            <a href="https://x.com/OmenTrading" target="_blank" rel="noopener noreferrer">Follow on X</a>
-          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <a href="mailto:support@omen.trading">Contact support</a>
           </DropdownMenuItem>

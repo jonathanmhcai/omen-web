@@ -126,6 +126,10 @@
   }
 }
 
+button {
+  cursor: pointer;
+}
+
 /* Dockview theme overrides — match our oklch design tokens */
 .dockview-theme-custom {
   --dv-group-view-background-color: var(--background);
