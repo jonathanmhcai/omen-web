@@ -53,7 +53,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
   const [viewState, setViewState] = useState({
     longitude: 53.7,
     latitude: 32.4,
-    zoom: 3.2,
+    zoom: 2.8,
   });
   const [hoverInfo, setHoverInfo] = useState<{
     x: number;

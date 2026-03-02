@@ -354,6 +354,17 @@ export default function MapPage() {
     });
   }, []);
 
+  // --- Auto-select Iran on first load ---
+
+  const didAutoSelect = useRef(false);
+  useEffect(() => {
+    if (didAutoSelect.current || !apiRef.current || loading) return;
+    const iranEvents = eventsByLocation.get("iran");
+    if (!iranEvents?.length) return;
+    didAutoSelect.current = true;
+    onLocationSelect("iran", iranEvents);
+  }, [loading, eventsByLocation, onLocationSelect]);
+
   // --- Context value ---
 
   const contextValue = useMemo<MapPageContextValue>(
