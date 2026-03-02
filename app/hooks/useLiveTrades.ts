@@ -153,9 +153,10 @@ export function useLiveTrades(enabled: boolean, filter?: TradeFilter) {
       socket.onclose = () => {
         if (!active) return;
         setConnected(false);
-        const delay = Math.min(RECONNECT_BASE * Math.pow(2, attempt), RECONNECT_MAX);
+        const base = Math.min(RECONNECT_BASE * Math.pow(2, attempt), RECONNECT_MAX);
+        const jitter = base * (0.5 + Math.random() * 0.5);
         attempt++;
-        reconnectTimeout = setTimeout(connect, delay);
+        reconnectTimeout = setTimeout(connect, jitter);
       };
 
       socket.onerror = () => {
