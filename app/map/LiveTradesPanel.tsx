@@ -167,7 +167,7 @@ export default function LiveTradesPanel({}: IDockviewPanelProps) {
 
         {trades.length === 0 && !connected && (
           <p className="px-3 py-6 text-center text-xs text-muted-foreground">
-            Connecting to trade feed...
+            Connecting to feed...
           </p>
         )}
 

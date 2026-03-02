@@ -78,7 +78,7 @@ export default function SearchModal() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
+        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
         title="Search"
       >
         <Search className="h-4 w-4 text-foreground" />

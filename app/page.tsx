@@ -268,7 +268,7 @@ export default function MapPage() {
     api.addPanel({
       id: "liveTrades",
       component: "liveTrades",
-      title: "Live Trades",
+      title: "Pulse",
       floating: isMobile
         ? { width: window.innerWidth - 32, height: 260, x: 16, y: window.innerHeight - 260 - 28 - 48 - 16 }
         : { width: 384, height: 600, x: 16, y: 16 },
@@ -340,7 +340,7 @@ export default function MapPage() {
     api.addPanel({
       id: "liveTrades",
       component: "liveTrades",
-      title: "Live Trades",
+      title: "Pulse",
       floating: isMobile
         ? { width: window.innerWidth - 32, height: 260, x: 16, y: window.innerHeight - 260 - 28 - 48 - 16 }
         : { width: 384, height: 600, x: 16, y: 16 },

@@ -44,8 +44,8 @@ export default function HeaderAccount() {
       {/* Live Trades */}
       <button
         onClick={() => ctx.onLiveTradesToggle()}
-        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
-        title="Live Trades"
+        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+        title="Pulse"
       >
         <Activity className="h-4 w-4 text-foreground" />
       </button>
@@ -93,18 +93,31 @@ export default function HeaderAccount() {
       {/* Live Trades */}
       <button
         onClick={() => ctx.onLiveTradesToggle()}
-        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground"
-        title="Live Trades"
+        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+        title="Pulse"
       >
         <Activity className="h-4 w-4 text-foreground" />
       </button>
 
       {/* Balance */}
       {balance !== null && (
-        <div className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground">
-          <Wallet className="h-3.5 w-3.5" />
-          ${balance.toFixed(2)}
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground cursor-pointer hover:text-foreground/80 transition-colors">
+              <Wallet className="h-3.5 w-3.5" />
+              ${balance.toFixed(2)}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel>
+              <p className="font-medium">${balance.toFixed(2)} USDC</p>
+              <p className="text-xs text-muted-foreground font-normal">Polygon</p>
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => {}}>
+              Withdraw
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
       {/* Deposit */}
@@ -126,7 +139,7 @@ export default function HeaderAccount() {
       {positions.data && posCount > 0 && (
         <button
           onClick={() => ctx.onPositionsToggle()}
-          className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground transition-colors hover:text-foreground"
+          className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground transition-colors hover:text-foreground cursor-pointer"
         >
           <BarChart3 className="h-3.5 w-3.5" />
           <span className="font-medium text-foreground">{posCount}</span>
