@@ -83,15 +83,24 @@ export default function DepositModal({ addresses, onClose }: DepositModalProps) 
           </TabsContent>
 
           <TabsContent value="crypto">
-            {(Object.keys(networkLabels) as Network[]).map((n) => (
-              <div key={n} className="flex flex-col gap-4 mb-6 last:mb-0">
-                <h3 className="text-sm font-medium">{networkLabels[n]}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {depositInstructions[n]}
-                </p>
-                <NetworkContent address={addresses[n]} />
-              </div>
-            ))}
+            <Tabs defaultValue="evm">
+              <TabsList>
+                {(Object.keys(networkLabels) as Network[]).map((n) => (
+                  <TabsTrigger key={n} value={n}>
+                    {networkLabels[n]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {(Object.keys(networkLabels) as Network[]).map((n) => (
+                <TabsContent key={n} value={n} className="flex flex-col gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    {depositInstructions[n]}
+                  </p>
+                  <NetworkContent address={addresses[n]} />
+                </TabsContent>
+              ))}
+            </Tabs>
           </TabsContent>
         </Tabs>
       </DialogContent>
