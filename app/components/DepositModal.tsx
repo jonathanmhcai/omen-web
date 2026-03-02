@@ -1,18 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { type DepositAddressesResponse } from "../hooks/useDepositAddresses";
+import ModalShell from "./ModalShell";
 import BuyWithCoinbaseTab from "./BuyWithCoinbaseTab";
 
 type Network = "evm" | "svm" | "btc";
@@ -42,8 +37,8 @@ function NetworkContent({ address }: { address: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-center rounded-xl bg-white p-4">
-        <QRCodeSVG value={address} size={200} />
+      <div className="flex justify-center rounded-xl border border-border bg-gray-100 p-5">
+        <QRCodeSVG value={address} size={176} />
       </div>
 
       <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2.5">
@@ -62,48 +57,58 @@ function NetworkContent({ address }: { address: string }) {
 }
 
 export default function DepositModal({ addresses, onClose }: DepositModalProps) {
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Deposit</DialogTitle>
-          <DialogDescription className="sr-only">
-            Deposit funds to your account
-          </DialogDescription>
-        </DialogHeader>
+    <ModalShell
+      open
+      onClose={onClose}
+      title="Deposit"
+      isPending={popupOpen}
+      isSuccess={isSuccess}
+      loadingMessage="Waiting for Coinbase..."
+      successMessage="Deposit submitted"
+      successDescription="Your balance will update shortly."
+    >
+      <Tabs defaultValue="coinbase">
+        <TabsList>
+          <TabsTrigger value="coinbase">Coinbase</TabsTrigger>
+          <TabsTrigger value="crypto">Crypto</TabsTrigger>
+        </TabsList>
 
-        <Tabs defaultValue="coinbase">
-          <TabsList>
-            <TabsTrigger value="coinbase">Coinbase</TabsTrigger>
-            <TabsTrigger value="crypto">Crypto</TabsTrigger>
-          </TabsList>
+        <TabsContent value="coinbase">
+          <BuyWithCoinbaseTab
+            onPopupOpened={() => setPopupOpen(true)}
+            onSuccess={() => {
+              setPopupOpen(false);
+              setIsSuccess(true);
+            }}
+            onCancel={() => setPopupOpen(false)}
+          />
+        </TabsContent>
 
-          <TabsContent value="coinbase">
-            <BuyWithCoinbaseTab onClose={onClose} />
-          </TabsContent>
-
-          <TabsContent value="crypto">
-            <Tabs defaultValue="evm">
-              <TabsList>
-                {(Object.keys(networkLabels) as Network[]).map((n) => (
-                  <TabsTrigger key={n} value={n}>
-                    {networkLabels[n]}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
+        <TabsContent value="crypto">
+          <Tabs defaultValue="evm">
+            <TabsList>
               {(Object.keys(networkLabels) as Network[]).map((n) => (
-                <TabsContent key={n} value={n} className="flex flex-col gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    {depositInstructions[n]}
-                  </p>
-                  <NetworkContent address={addresses[n]} />
-                </TabsContent>
+                <TabsTrigger key={n} value={n}>
+                  {networkLabels[n]}
+                </TabsTrigger>
               ))}
-            </Tabs>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+            </TabsList>
+
+            {(Object.keys(networkLabels) as Network[]).map((n) => (
+              <TabsContent key={n} value={n} className="flex flex-col gap-4">
+                <p className="text-sm text-muted-foreground">
+                  {depositInstructions[n]}
+                </p>
+                <NetworkContent address={addresses[n]} />
+              </TabsContent>
+            ))}
+          </Tabs>
+        </TabsContent>
+      </Tabs>
+    </ModalShell>
   );
 }
