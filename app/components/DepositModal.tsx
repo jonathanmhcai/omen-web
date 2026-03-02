@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { type DepositAddressesResponse } from "../hooks/useDepositAddresses";
 import BuyWithCoinbaseTab from "./BuyWithCoinbaseTab";
+import BuyWithCardTab from "./BuyWithCardTab";
 
 type Network = "evm" | "svm" | "btc";
 
@@ -75,11 +76,16 @@ export default function DepositModal({ addresses, onClose }: DepositModalProps) 
         <Tabs defaultValue="coinbase">
           <TabsList>
             <TabsTrigger value="coinbase">Coinbase</TabsTrigger>
+            <TabsTrigger value="card">Card / Apple Pay</TabsTrigger>
             <TabsTrigger value="crypto">Crypto</TabsTrigger>
           </TabsList>
 
           <TabsContent value="coinbase">
             <BuyWithCoinbaseTab onClose={onClose} />
+          </TabsContent>
+
+          <TabsContent value="card">
+            <BuyWithCardTab evmAddress={addresses.evm} onClose={onClose} />
           </TabsContent>
 
           <TabsContent value="crypto">
