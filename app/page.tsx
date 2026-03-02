@@ -354,16 +354,32 @@ export default function MapPage() {
     });
   }, []);
 
-  // --- Auto-select Iran on first load ---
+  // --- Auto-select highest-volume location on first load ---
 
   const didAutoSelect = useRef(false);
   useEffect(() => {
     if (didAutoSelect.current || !apiRef.current || loading) return;
-    const iranEvents = eventsByLocation.get("iran");
-    if (!iranEvents?.length) return;
+    if (volume24hrByLocation.size === 0) return;
+
+    // Find location with highest 24hr volume
+    let topSlug: string | null = null;
+    let topVolume = 0;
+    for (const [slug, vol] of volume24hrByLocation) {
+      if (vol > topVolume) {
+        topVolume = vol;
+        topSlug = slug;
+      }
+    }
+    if (!topSlug) return;
     didAutoSelect.current = true;
-    onLocationSelect("iran", iranEvents);
-  }, [loading, eventsByLocation, onLocationSelect]);
+
+    if (flyToLocationRef.current) {
+      flyToLocationRef.current(topSlug);
+    } else {
+      const events = eventsByLocation.get(topSlug) ?? [];
+      onLocationSelect(topSlug, events);
+    }
+  }, [loading, eventsByLocation, volume24hrByLocation, onLocationSelect]);
 
   // --- Context value ---
 
