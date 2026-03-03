@@ -20,11 +20,11 @@ function selectedColor(country: string | null, selected: string, fallback: strin
 
 const CLUSTER_RADIUS = ["interpolate", ["linear"], ["get", "totalVolume24hr"], 0, 6, 100000, 14, 1000000, 22, 5000000, 36, 30000000, 56] as any;
 
-export function getClusterLayers(pulse: number): CircleLayer[] {
+export function getClusterLayers(pulse: number, reveal: number): CircleLayer[] {
   const t = pulse;
   const pingScale = 1.0 + t * 0.3;
   // Bell curve: 0 at both ends, peaks in middle — no jarring pop on reset
-  const pingOpacity = 0.15 * 4 * t * (1 - t);
+  const pingOpacity = 0.15 * 4 * t * (1 - t) * reveal;
 
   return [
     // Expanding ping ring
@@ -34,7 +34,7 @@ export function getClusterLayers(pulse: number): CircleLayer[] {
       filter: ["has", "point_count"],
       paint: {
         "circle-color": "#ef4444",
-        "circle-radius": ["*", CLUSTER_RADIUS, pingScale],
+        "circle-radius": ["*", CLUSTER_RADIUS, pingScale * reveal],
         "circle-opacity": pingOpacity,
       },
     },
@@ -45,9 +45,9 @@ export function getClusterLayers(pulse: number): CircleLayer[] {
       filter: ["has", "point_count"],
       paint: {
         "circle-color": "#ef4444",
-        "circle-radius": CLUSTER_RADIUS,
+        "circle-radius": ["*", CLUSTER_RADIUS, reveal],
         "circle-blur": 0.4,
-        "circle-opacity": 0.4,
+        "circle-opacity": 0.4 * reveal,
       },
     },
     // Core circle
@@ -57,8 +57,8 @@ export function getClusterLayers(pulse: number): CircleLayer[] {
       filter: ["has", "point_count"],
       paint: {
         "circle-color": "#dc2626",
-        "circle-radius": ["*", CLUSTER_RADIUS, 0.6],
-        "circle-opacity": 0.75,
+        "circle-radius": ["*", CLUSTER_RADIUS, 0.6 * reveal],
+        "circle-opacity": 0.75 * reveal,
       },
     },
   ];
@@ -79,11 +79,11 @@ export function getClusterCountLayer(): SymbolLayer {
   };
 }
 
-export function getUnclusteredPointLayers(selectedCountry: string | null, pulse: number): CircleLayer[] {
+export function getUnclusteredPointLayers(selectedCountry: string | null, pulse: number, reveal: number): CircleLayer[] {
   const t = pulse;
   const pingScale = 1.0 + t * 0.3;
   // Bell curve: 0 at both ends, peaks in middle
-  const pingOpacity = 0.3 * 4 * t * (1 - t);
+  const pingOpacity = 0.3 * 4 * t * (1 - t) * reveal;
   const color = selectedCountry ? selectedColor(selectedCountry, "#1d4ed8", "#ef4444") : "#ef4444";
   const coreColor = selectedCountry ? selectedColor(selectedCountry, "#1e40af", "#dc2626") : "#dc2626";
 
@@ -94,7 +94,7 @@ export function getUnclusteredPointLayers(selectedCountry: string | null, pulse:
       filter: ["!", ["has", "point_count"]],
       paint: {
         "circle-color": color as any,
-        "circle-radius": 7 * pingScale,
+        "circle-radius": 7 * pingScale * reveal,
         "circle-opacity": pingOpacity,
       },
     },
@@ -104,9 +104,9 @@ export function getUnclusteredPointLayers(selectedCountry: string | null, pulse:
       filter: ["!", ["has", "point_count"]],
       paint: {
         "circle-color": color as any,
-        "circle-radius": 7,
+        "circle-radius": 7 * reveal,
         "circle-blur": 0.4,
-        "circle-opacity": 0.4,
+        "circle-opacity": 0.4 * reveal,
       },
     },
     {
@@ -115,8 +115,8 @@ export function getUnclusteredPointLayers(selectedCountry: string | null, pulse:
       filter: ["!", ["has", "point_count"]],
       paint: {
         "circle-color": coreColor as any,
-        "circle-radius": 4,
-        "circle-opacity": 0.75,
+        "circle-radius": 4 * reveal,
+        "circle-opacity": 0.75 * reveal,
       },
     },
   ];

@@ -140,10 +140,27 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const clusterLayers = useMemo(() => getClusterLayers(pulse), [pulse]);
+  // Reveal animation — scale + fade circles in when loading finishes
+  const [reveal, setReveal] = useState(0);
+  useEffect(() => {
+    if (loading) return;
+    const duration = 600;
+    const start = performance.now();
+    let frame: number;
+    const animate = (now: number) => {
+      const t = Math.max(0, Math.min((now - start) / duration, 1));
+      // ease-out cubic
+      setReveal(1 - Math.pow(1 - t, 3));
+      if (t < 1) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [loading]);
+
+  const clusterLayers = useMemo(() => getClusterLayers(pulse, reveal), [pulse, reveal]);
   const unclusteredPointLayers = useMemo(
-    () => getUnclusteredPointLayers(selectedLocation, pulse),
-    [selectedLocation, pulse]
+    () => getUnclusteredPointLayers(selectedLocation, pulse, reveal),
+    [selectedLocation, pulse, reveal]
   );
   const countryFillLayer = useMemo(
     () => getCountryFillLayer(selectedIso),
