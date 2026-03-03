@@ -2,7 +2,7 @@
 
 import { PrivyProvider } from "@privy-io/react-auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { CookiesProvider } from "react-cookie";
 import SetupModal from "./components/SetupModal";
 
@@ -41,7 +41,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             },
           }}
         >
-          <SetupModal />
+          <Suspense><SetupModal /></Suspense>
           {children}
         </PrivyProvider>
       </QueryClientProvider>
