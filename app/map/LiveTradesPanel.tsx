@@ -159,16 +159,13 @@ export default function LiveTradesPanel({}: IDockviewPanelProps) {
 
       {/* Trade list */}
       <div ref={listRef} className="flex-1 overflow-y-auto">
-        {trades.length === 0 && connected && (
-          <div className="flex items-center justify-center py-8">
+        {trades.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-2 py-8">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted border-t-foreground" />
+            <p className="text-xs text-muted-foreground">
+              {connected ? "Waiting for trades..." : "Connecting to feed..."}
+            </p>
           </div>
-        )}
-
-        {trades.length === 0 && !connected && (
-          <p className="px-3 py-6 text-center text-xs text-muted-foreground">
-            Connecting to feed...
-          </p>
         )}
 
         {trades.map((trade, i) => (
