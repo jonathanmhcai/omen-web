@@ -63,6 +63,8 @@ export function useAuthUser() {
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
     } else {
       queryClient.removeQueries({ queryKey: ["authUser"] });
+      queryClient.removeQueries({ queryKey: ["usdcBalance"] });
+      queryClient.removeQueries({ queryKey: ["positions"] });
       clearSessionToken();
     }
   }, [authenticated, queryClient, clearSessionToken]);

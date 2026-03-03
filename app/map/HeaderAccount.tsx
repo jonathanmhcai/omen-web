@@ -142,16 +142,14 @@ export default function HeaderAccount() {
       )}
 
       {/* Positions */}
-      {positions.data && posCount > 0 && (
-        <button
-          onClick={() => ctx.onPositionsToggle()}
-          className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground transition-colors hover:text-foreground cursor-pointer"
-        >
-          <BarChart3 className="h-3.5 w-3.5" />
-          <span className="font-medium text-foreground">{posCount}</span>
-          <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
-        </button>
-      )}
+      <button
+        onClick={() => ctx.onPositionsToggle()}
+        className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground transition-colors hover:text-foreground cursor-pointer"
+      >
+        <BarChart3 className="h-3.5 w-3.5" />
+        <span className="font-medium text-foreground">{posCount}</span>
+        <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
+      </button>
 
       {/* Settings */}
       <DropdownMenu>
