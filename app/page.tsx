@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import {
   DockviewReact,
   type DockviewApi,
@@ -298,35 +299,32 @@ export default function MapPage() {
     });
   }, []);
 
-  // --- Escape key closes active non-map panel ---
+  // --- Keyboard shortcuts ---
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key !== "Escape") return;
-      // Let the search modal handle its own Escape
-      if (document.querySelector("[data-search-modal]")) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      const api = apiRef.current;
-      if (!api) return;
+  const closeActivePanel = useCallback(() => {
+    if (document.querySelector("[data-search-modal]")) return;
+    const api = apiRef.current;
+    if (!api) return;
 
-      // Close floating market panel first, then active non-map panel
-      const marketPanel = api.getPanel("market");
-      if (marketPanel) {
-        api.removePanel(marketPanel);
+    const marketPanel = api.getPanel("market");
+    if (marketPanel) {
+      api.removePanel(marketPanel);
+      return;
+    }
+    for (const group of api.groups) {
+      if (group.activePanel && group.activePanel.id !== "map") {
+        api.removePanel(group.activePanel);
+        setSelectedLocation(null);
         return;
       }
-      for (const group of api.groups) {
-        if (group.activePanel && group.activePanel.id !== "map") {
-          api.removePanel(group.activePanel);
-          setSelectedLocation(null);
-          return;
-        }
-      }
     }
-    window.addEventListener("keydown", handleKeyDown, true);
-    return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, []);
+
+  useKeyboardShortcuts([
+    { key: "Escape", action: closeActivePanel, allowInInput: true },
+    { key: "/",      action: () => window.dispatchEvent(new Event("open-search")) },
+    { key: "p",      action: onPositionsToggle },
+  ]);
 
   // --- Dockview ready ---
 

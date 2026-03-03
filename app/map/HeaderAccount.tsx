@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 export default function HeaderAccount() {
   const { login, logout, authenticated, user: privyUser } = usePrivy();
@@ -44,22 +45,30 @@ export default function HeaderAccount() {
       <SearchModal />
 
       {/* Hot Markets */}
-      <button
-        onClick={() => ctx.onHotMarketsToggle()}
-        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
-        title="Trending Events"
-      >
-        <Flame className="h-4 w-4 text-orange-500" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => ctx.onHotMarketsToggle()}
+            className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+          >
+            <Flame className="h-4 w-4 text-orange-500" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Trending Events</TooltipContent>
+      </Tooltip>
 
       {/* Live Trades */}
-      <button
-        onClick={() => ctx.onLiveTradesToggle()}
-        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
-        title="Pulse"
-      >
-        <Activity className="h-4 w-4 text-foreground" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => ctx.onLiveTradesToggle()}
+            className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+          >
+            <Activity className="h-4 w-4 text-foreground" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Pulse</TooltipContent>
+      </Tooltip>
 
       {/* Settings */}
       <DropdownMenu>
@@ -102,22 +111,30 @@ export default function HeaderAccount() {
       <SearchModal />
 
       {/* Hot Markets */}
-      <button
-        onClick={() => ctx.onHotMarketsToggle()}
-        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
-        title="Trending Events"
-      >
-        <Flame className="h-4 w-4 text-orange-500" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => ctx.onHotMarketsToggle()}
+            className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+          >
+            <Flame className="h-4 w-4 text-orange-500" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Trending Events</TooltipContent>
+      </Tooltip>
 
       {/* Live Trades */}
-      <button
-        onClick={() => ctx.onLiveTradesToggle()}
-        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
-        title="Pulse"
-      >
-        <Activity className="h-4 w-4 text-foreground" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => ctx.onLiveTradesToggle()}
+            className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+          >
+            <Activity className="h-4 w-4 text-foreground" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Pulse</TooltipContent>
+      </Tooltip>
 
       {/* Balance */}
       {balance !== null && (
@@ -160,14 +177,24 @@ export default function HeaderAccount() {
       )}
 
       {/* Positions */}
-      <button
-        onClick={() => ctx.onPositionsToggle()}
-        className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground transition-colors hover:text-foreground cursor-pointer"
-      >
-        <BarChart3 className="h-3.5 w-3.5" />
-        <span className="font-medium text-foreground">{posCount}</span>
-        <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => ctx.onPositionsToggle()}
+            className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-foreground transition-colors hover:text-foreground cursor-pointer"
+          >
+            <BarChart3 className="h-3.5 w-3.5" />
+            <span className="font-medium text-foreground">{posCount}</span>
+            <span className="font-medium text-foreground">${posValue.toFixed(2)}</span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <span className="flex items-center gap-1.5">
+            Positions
+            <kbd className="text-[10px] text-muted-foreground border border-border rounded px-1 py-0.5">P</kbd>
+          </span>
+        </TooltipContent>
+      </Tooltip>
 
       {/* Settings */}
       <DropdownMenu>

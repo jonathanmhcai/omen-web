@@ -7,6 +7,7 @@ import { MapPin } from "lucide-react";
 import { useSearchEvents } from "../hooks/useSearchEvents";
 import { useMapPageContext } from "./MapPageContext";
 import { matchLocation, slugToDisplayName } from "./geo";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { PolymarketEvent } from "../lib/types";
 
 export default function SearchModal() {
@@ -14,8 +15,10 @@ export default function SearchModal() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Debounce input
   useEffect(() => {
@@ -35,6 +38,13 @@ export default function SearchModal() {
       })
       .filter((r): r is NonNullable<typeof r> => r !== null);
   }, [events]);
+
+  // Open via keyboard shortcut (custom event from page.tsx)
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-search", handler);
+    return () => window.removeEventListener("open-search", handler);
+  }, []);
 
   // Auto-focus input when modal opens
   useEffect(() => {
@@ -57,11 +67,17 @@ export default function SearchModal() {
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [open]);
 
+  // Reset selectedIndex when results change
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [mappableResults]);
+
   // Reset state on close
   useEffect(() => {
     if (!open) {
       setInput("");
       setDebouncedQuery("");
+      setSelectedIndex(-1);
     }
   }, [open]);
 
@@ -74,15 +90,59 @@ export default function SearchModal() {
     [ctx.flyToLocationRef, ctx.onEvent]
   );
 
+  const handleKeyNav = useCallback(
+    (e: React.KeyboardEvent) => {
+      const count = mappableResults.length;
+      if (!count) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((i) => {
+          const next = Math.min(i + 1, count - 1);
+          // Scroll the result into view
+          const el = resultsRef.current?.children[next] as HTMLElement | undefined;
+          el?.scrollIntoView({ block: "nearest" });
+          return next;
+        });
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((i) => {
+          const next = i - 1;
+          if (next < 0) {
+            inputRef.current?.focus();
+            return -1;
+          }
+          const el = resultsRef.current?.children[next] as HTMLElement | undefined;
+          el?.scrollIntoView({ block: "nearest" });
+          return next;
+        });
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        e.preventDefault();
+        const result = mappableResults[selectedIndex];
+        if (result) handleResultClick(result.slug, result.event);
+      }
+    },
+    [mappableResults, selectedIndex, handleResultClick]
+  );
+
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
-        title="Search"
-      >
-        <Search className="h-4 w-4 text-foreground" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => setOpen(true)}
+            className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+          >
+            <Search className="h-4 w-4 text-foreground" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <span className="flex items-center gap-1.5">
+            Search
+            <kbd className="text-[10px] text-muted-foreground border border-border rounded px-1 py-0.5">/</kbd>
+          </span>
+        </TooltipContent>
+      </Tooltip>
 
       {open &&
         createPortal(
@@ -96,6 +156,7 @@ export default function SearchModal() {
             {/* Panel */}
             <div
               ref={panelRef}
+              onKeyDown={handleKeyNav}
               className="relative w-full max-w-lg mx-4 flex flex-col rounded-lg border border-border bg-popover shadow-2xl"
               style={{ height: 420 }}
             >
@@ -129,7 +190,7 @@ export default function SearchModal() {
               </div>
 
               {/* Results body */}
-              <div className="flex-1 overflow-y-auto">
+              <div ref={resultsRef} className="flex-1 overflow-y-auto">
                 {!debouncedQuery.trim() && (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <Search className="h-8 w-8 mb-2 opacity-30" />
@@ -152,11 +213,12 @@ export default function SearchModal() {
                 )}
 
                 {debouncedQuery.trim().length > 0 && !loading &&
-                  mappableResults.map((result) => (
+                  mappableResults.map((result, i) => (
                     <button
                       key={result.event.id}
                       onClick={() => handleResultClick(result.slug, result.event)}
-                      className="w-full text-left px-4 py-2.5 hover:bg-accent transition-colors border-b border-border last:border-b-0"
+                      onMouseEnter={() => setSelectedIndex(i)}
+                      className={`w-full text-left px-4 py-2.5 transition-colors border-b border-border last:border-b-0 ${i === selectedIndex ? "bg-accent" : "hover:bg-accent"}`}
                     >
                       <div className="flex items-start gap-3">
                         {result.event.image && (
