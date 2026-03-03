@@ -57,9 +57,11 @@ export function useAuthUser() {
   const queryClient = useQueryClient();
   const [sessionToken, setSessionToken, clearSessionToken] = useCookieString(SESSION_TOKEN_KEY);
 
-  // Clear state on logout
+  // Invalidate on login, clear on logout
   useEffect(() => {
-    if (!authenticated) {
+    if (authenticated) {
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+    } else {
       queryClient.removeQueries({ queryKey: ["authUser"] });
       clearSessionToken();
     }

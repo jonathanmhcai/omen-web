@@ -1,17 +1,26 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useSetup } from "../hooks/useSetup";
-import { LogOut } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 export default function SetupModal() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const refCode = searchParams.get("ref");
+
   const { authenticated, logout, ready } = usePrivy();
   const { user: authUser, loading: authLoading, refetch } = useAuthUser();
   const { setup, loading: setupLoading, error: setupError } = useSetup();
+
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [showCodeInput, setShowCodeInput] = useState(!!refCode);
+  const displayCode = inviteCode ?? refCode ?? "";
 
   const needsSetup =
     ready &&
@@ -20,9 +29,14 @@ export default function SetupModal() {
     authUser != null &&
     (!authUser.has_polymarket_credentials || !authUser.isAccountUpgraded);
 
-  async function handleSetup() {
+  async function handleSetup(code?: string) {
     try {
-      await setup();
+      const result = await setup(code);
+      if (result?.bonusUsdc) {
+        toast.success(`Redeemed invite code for $${result.bonusUsdc}`, {
+          description: "Funds will arrive within seconds...",
+        });
+      }
       await refetch();
       router.push("/");
     } catch {
@@ -44,19 +58,65 @@ export default function SetupModal() {
             <LogOut className="h-4 w-4" />
           </button>
         </div>
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Let&apos;s finish setting up your account.
-          </p>
-        </div>
+
         {setupError && (
           <p className="text-xs text-red-500">
             Something went wrong: {setupError}. Please try again.
           </p>
         )}
-        <Button onClick={handleSetup} disabled={setupLoading}>
-          {setupLoading ? "Setting up..." : "Get Started"}
-        </Button>
+
+        {setupLoading ? (
+          <div className="flex flex-col items-center gap-4 py-4">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Setting up your account...</p>
+          </div>
+        ) : showCodeInput ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Enter your invite code below.
+            </p>
+            <input
+              type="text"
+              placeholder="Invite code"
+              value={displayCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && displayCode.trim()) {
+                  handleSetup(displayCode.trim());
+                }
+              }}
+              autoFocus
+              className="w-full rounded-xl border border-border bg-muted/50 py-2.5 px-3 text-sm outline-none focus:border-ring"
+            />
+            <Button
+              onClick={() => handleSetup(displayCode.trim())}
+              disabled={!displayCode.trim()}
+            >
+              Submit
+            </Button>
+            <button
+              onClick={() => {
+                setShowCodeInput(false);
+                setInviteCode(null);
+              }}
+              className="cursor-pointer text-sm text-muted-foreground hover:text-foreground"
+            >
+              Back
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">
+              Do you have an invite code?
+            </p>
+            <Button onClick={() => setShowCodeInput(true)} variant="outline">
+              Yes, I have a code
+            </Button>
+            <Button onClick={() => handleSetup()}>
+              No, continue without one
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

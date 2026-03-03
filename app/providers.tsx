@@ -37,7 +37,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             },
             appearance: {
               theme: darkMode ? "dark" : "light",
-              accentColor: "#10b981",
+              accentColor: "#007AFF",
             },
           }}
         >
