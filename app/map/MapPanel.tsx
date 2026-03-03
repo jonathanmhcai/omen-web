@@ -316,6 +316,24 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     map.setProjection(projection);
   }, [projection]);
 
+  // Slowly spin the globe while events are loading
+  useEffect(() => {
+    if (!loading) return;
+    let frame: number;
+    let prev = performance.now();
+    const spin = (now: number) => {
+      const dt = now - prev;
+      prev = now;
+      setViewState((vs) => ({
+        ...vs,
+        longitude: vs.longitude + dt * 0.005,
+      }));
+      frame = requestAnimationFrame(spin);
+    };
+    frame = requestAnimationFrame(spin);
+    return () => cancelAnimationFrame(frame);
+  }, [loading]);
+
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }} onMouseLeave={() => setHoverInfo(null)}>
       <MapGL
@@ -396,9 +414,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
       )}
 
       {loading && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/50">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-foreground" />
-        </div>
+        <div className="absolute inset-0 z-40 bg-background/50" />
       )}
     </div>
   );
