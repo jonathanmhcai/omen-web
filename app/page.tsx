@@ -18,6 +18,7 @@ import MarketPanel from "./map/MarketPanel";
 import PositionsPanel from "./map/PositionsPanel";
 import EventPanel from "./map/EventPanel";
 import LiveTradesPanel from "./map/LiveTradesPanel";
+import HotMarketsPanel from "./map/HotMarketsPanel";
 import HeaderAccount from "./map/HeaderAccount";
 import { MapPin, Calendar, Users } from "lucide-react";
 import { useLiveUserCount } from "./hooks/useLiveUserCount";
@@ -35,6 +36,7 @@ const COMPONENTS = {
   market: MarketPanel,
   positions: PositionsPanel,
   liveTrades: LiveTradesPanel,
+  hotMarkets: HotMarketsPanel,
 };
 
 export default function MapPage() {
@@ -275,6 +277,27 @@ export default function MapPage() {
     });
   }, []);
 
+  const onHotMarketsToggle = useCallback(() => {
+    const api = apiRef.current;
+    if (!api) return;
+
+    const existing = api.getPanel("hotMarkets");
+    if (existing) {
+      api.removePanel(existing);
+      return;
+    }
+
+    const isMobile = window.innerWidth < 640;
+    api.addPanel({
+      id: "hotMarkets",
+      component: "hotMarkets",
+      title: "Trending Events",
+      floating: isMobile
+        ? { width: window.innerWidth - 32, height: 260, x: 16, y: window.innerHeight - 260 - 28 - 48 - 16 }
+        : { width: 560, height: 600, x: 16, y: 16 },
+    });
+  }, []);
+
   // --- Escape key closes active non-map panel ---
 
   useEffect(() => {
@@ -341,6 +364,7 @@ export default function MapPage() {
         setSelectedLocation(null);
       }
     });
+
   }, []);
 
   // --- Auto-select highest-volume location on first load ---
@@ -388,6 +412,7 @@ export default function MapPage() {
       onMarketClose,
       onPositionsToggle,
       onLiveTradesToggle,
+      onHotMarketsToggle,
       addTradePing,
       tradePingsRef,
       flyToLocationRef,
@@ -409,6 +434,7 @@ export default function MapPage() {
       onMarketClose,
       onPositionsToggle,
       onLiveTradesToggle,
+      onHotMarketsToggle,
       addTradePing,
       toggleDarkMode,
       toggleProjection,

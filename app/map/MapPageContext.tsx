@@ -20,6 +20,7 @@ export interface MapPageContextValue {
   onMarketClose: () => void;
   onPositionsToggle: () => void;
   onLiveTradesToggle: () => void;
+  onHotMarketsToggle: () => void;
   addTradePing: (lat: number, lng: number, usdValue: number) => void;
   tradePingsRef: MutableRefObject<TradePing[]>;
   flyToLocationRef: MutableRefObject<((slug: string) => void) | null>;

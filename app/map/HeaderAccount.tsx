@@ -8,7 +8,7 @@ import { useUsdcBalance } from "../hooks/useUsdcBalance";
 import { usePositions } from "../hooks/usePositions";
 import { useDepositAddresses } from "../hooks/useDepositAddresses";
 import { useMapPageContext } from "./MapPageContext";
-import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity } from "lucide-react";
+import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity, Flame } from "lucide-react";
 import SearchModal from "./SearchModal";
 import DepositModal from "../components/DepositModal";
 import WithdrawModal from "../components/WithdrawModal";
@@ -42,6 +42,15 @@ export default function HeaderAccount() {
     <div className="flex items-center gap-1 text-muted-foreground">
       {/* Search */}
       <SearchModal />
+
+      {/* Hot Markets */}
+      <button
+        onClick={() => ctx.onHotMarketsToggle()}
+        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+        title="Trending Events"
+      >
+        <Flame className="h-4 w-4 text-orange-500" />
+      </button>
 
       {/* Live Trades */}
       <button
@@ -91,6 +100,15 @@ export default function HeaderAccount() {
     <div className="flex items-center gap-1 text-muted-foreground">
       {/* Search */}
       <SearchModal />
+
+      {/* Hot Markets */}
+      <button
+        onClick={() => ctx.onHotMarketsToggle()}
+        className="flex items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+        title="Trending Events"
+      >
+        <Flame className="h-4 w-4 text-orange-500" />
+      </button>
 
       {/* Live Trades */}
       <button
