@@ -27,10 +27,16 @@ export function useSetup() {
       const wallet = getEmbeddedConnectedWallet(wallets);
       if (!wallet) throw new Error("No embedded wallet found");
 
-      await addSessionSigners({
-        address: wallet.address,
-        signers: [{ signerId: SERVER_WALLET_SIGNER_ID, policyIds: [] }],
-      });
+      try {
+        await addSessionSigners({
+          address: wallet.address,
+          signers: [{ signerId: SERVER_WALLET_SIGNER_ID, policyIds: [] }],
+        });
+      } catch (err) {
+        // Ignore if signer is already added
+        const msg = err instanceof Error ? err.message : "";
+        if (!msg.includes("Duplicate signer")) throw err;
+      }
 
       // 2. Call /me/setup with invite code
       const res = await fetch(`${API_BASE}/me/setup`, {
