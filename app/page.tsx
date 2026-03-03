@@ -302,9 +302,9 @@ export default function MapPage() {
   // --- Keyboard shortcuts ---
 
   const closeActivePanel = useCallback(() => {
-    if (document.querySelector("[data-search-modal]")) return;
+    if (document.querySelector("[data-search-modal]")) return false;
     const api = apiRef.current;
-    if (!api) return;
+    if (!api) return false;
 
     const marketPanel = api.getPanel("market");
     if (marketPanel) {

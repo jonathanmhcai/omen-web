@@ -3,8 +3,8 @@ import { useEffect, useRef } from "react";
 export interface Shortcut {
   /** Key value to match (e.g. "/", "p", "Escape") */
   key: string;
-  /** Action to run when the shortcut fires */
-  action: () => void;
+  /** Action to run when the shortcut fires. Return false to let the event propagate to other handlers. */
+  action: () => void | boolean;
   /** Allow this shortcut to fire even when the user is typing in an input/textarea (default: false) */
   allowInInput?: boolean;
 }
@@ -43,9 +43,11 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[]) {
           (e.metaKey || e.ctrlKey || e.altKey)
         ) continue;
 
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        shortcut.action();
+        const handled = shortcut.action();
+        if (handled !== false) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
         return;
       }
     }

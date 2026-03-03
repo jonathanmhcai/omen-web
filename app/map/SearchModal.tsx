@@ -53,19 +53,25 @@ export default function SearchModal() {
     }
   }, [open]);
 
-  // Close on Escape
+  // Escape: clear input first, then close
   useEffect(() => {
     if (!open) return;
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.stopPropagation();
         e.preventDefault();
-        setOpen(false);
+        if (input) {
+          setInput("");
+          setDebouncedQuery("");
+          setSelectedIndex(-1);
+        } else {
+          setOpen(false);
+        }
       }
     }
     window.addEventListener("keydown", handleKeyDown, true);
     return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [open]);
+  }, [open, input]);
 
   // Reset selectedIndex when results change
   useEffect(() => {
