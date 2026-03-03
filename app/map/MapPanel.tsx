@@ -88,6 +88,17 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     };
   }, [flyToLocationRef, eventsByLocation, onLocationSelect]);
 
+  // Fly to selected location
+  useEffect(() => {
+    if (!selectedLocation) return;
+    const coords = getCoordinatesBySlug(selectedLocation);
+    if (!coords) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const zoom = selectedLocation.startsWith("us-") && selectedLocation !== "us-washington-dc" ? 5.5 : 4;
+    map.flyTo({ center: [coords.lng, coords.lat], zoom, duration: 1500 });
+  }, [selectedLocation]);
+
   // Trade ping animation — only runs when there are active pings
   const [pingTick, setPingTick] = useState(0);
   useEffect(() => {
