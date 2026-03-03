@@ -50,10 +50,11 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
 
   const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
   const [viewState, setViewState] = useState({
-    longitude: 0,
-    latitude: 20,
-    zoom: 2.5,
+    longitude: isMobile ? 35 : 0,
+    latitude: isMobile ? 31 : 20,
+    zoom: isMobile ? 1.8 : 2.5,
   });
   const [hoverInfo, setHoverInfo] = useState<{
     x: number;

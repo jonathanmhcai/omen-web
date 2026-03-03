@@ -154,7 +154,7 @@ export default function MapPage() {
             title: "Events",
             params: { location },
             position: { referencePanel: "map", direction: "right" },
-            initialWidth: 384,
+            initialWidth: window.innerWidth < 640 ? 260 : 384,
           });
         }
       }
@@ -322,8 +322,8 @@ export default function MapPage() {
 
   useKeyboardShortcuts([
     { key: "Escape", action: closeActivePanel, allowInInput: true },
-    { key: "/",      action: () => window.dispatchEvent(new Event("open-search")) },
-    { key: "p",      action: onPositionsToggle },
+    { key: "/", action: () => window.dispatchEvent(new Event("open-search")) },
+    { key: "p", action: onPositionsToggle },
   ]);
 
   // --- Dockview ready ---
@@ -371,6 +371,7 @@ export default function MapPage() {
   useEffect(() => {
     if (didAutoSelect.current || !apiRef.current || loading) return;
     if (volume24hrByLocation.size === 0) return;
+    if (window.innerWidth < 640) return;
 
     // Find location with highest 24hr volume
     let topSlug: string | null = null;
