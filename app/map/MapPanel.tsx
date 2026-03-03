@@ -128,10 +128,22 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     [pingTick]
   );
 
-  const clusterLayers = useMemo(() => getClusterLayers(), []);
+  // Pulse animation
+  const [pulse, setPulse] = useState(0);
+  useEffect(() => {
+    let frame: number;
+    const animate = () => {
+      setPulse((Date.now() % 2000) / 2000);
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const clusterLayers = useMemo(() => getClusterLayers(pulse), [pulse]);
   const unclusteredPointLayers = useMemo(
-    () => getUnclusteredPointLayers(selectedLocation),
-    [selectedLocation]
+    () => getUnclusteredPointLayers(selectedLocation, pulse),
+    [selectedLocation, pulse]
   );
   const countryFillLayer = useMemo(
     () => getCountryFillLayer(selectedIso),
