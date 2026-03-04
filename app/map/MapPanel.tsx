@@ -33,6 +33,40 @@ import type { PolymarketEvent } from "../lib/types";
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 if (!MAPBOX_TOKEN) throw new Error("NEXT_PUBLIC_MAPBOX_TOKEN is not set");
 
+function LoadingOverlay() {
+  const [dots, setDots] = useState(0);
+  const [barWidth, setBarWidth] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setDots((d) => (d + 1) % 4), 400);
+    return () => clearInterval(id);
+  }, []);
+  useEffect(() => {
+    // Trigger width transition on next frame so the browser sees 0 -> 100%
+    const frame = requestAnimationFrame(() => setBarWidth(100));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  const ellipsis = ".".repeat(dots).padEnd(3, "\u00A0");
+
+  return (
+    <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <span className="text-sm font-medium text-foreground/70 font-mono tracking-wide">
+          Loading{ellipsis}
+        </span>
+        <div className="w-48 h-1 rounded-full bg-foreground/10 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-foreground/40"
+            style={{
+              width: `${barWidth}%`,
+              transition: "width 1.5s cubic-bezier(0.1, 0.8, 0.2, 1)",
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MapPanel({ api }: IDockviewPanelProps) {
   const mapRef = useRef<MapRef>(null);
   const ctx = useMapPageContext();
@@ -59,6 +93,23 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     zoom: isMobile ? 1.8 : 2.5,
   });
   const [spinMode, setSpinMode] = useState(false);
+  // Ref-based spin control so flyTo can stop spinning without an effect teardown gap
+  const spinActiveRef = useRef(loading);
+
+  // Fade-out overlay state
+  const [overlayVisible, setOverlayVisible] = useState(loading);
+  const [overlayOpacity, setOverlayOpacity] = useState(loading ? 1 : 0);
+  useEffect(() => {
+    if (loading) {
+      setOverlayVisible(true);
+      setOverlayOpacity(1);
+    } else {
+      // Start fade — set opacity to 0 on next frame so CSS transition kicks in
+      const frame = requestAnimationFrame(() => setOverlayOpacity(0));
+      const timer = setTimeout(() => setOverlayVisible(false), 500);
+      return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
+    }
+  }, [loading]);
 
   // Toggle spin mode via keyboard shortcut (custom event from page.tsx)
   useEffect(() => {
@@ -124,6 +175,8 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
       if (!coords) return;
       const map = mapRef.current?.getMap();
       if (!map) return;
+      // Stop spin via ref first — flyTo seamlessly takes over camera control
+      spinActiveRef.current = false;
       setSpinMode(false);
       const zoom = slug.startsWith("us-") && slug !== "us-washington-dc" ? 5.5 : 4;
       map.flyTo({ center: [coords.lng, coords.lat], zoom, duration: 1500 });
@@ -403,23 +456,39 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     map.setProjection(projection);
   }, [projection]);
 
-  // Slowly spin the globe while loading or in spin mode
+  // Keep spinActiveRef in sync: loading or spinMode keeps it alive,
+  // but flyToLocation can stop it directly via the ref (no effect gap).
   useEffect(() => {
-    if (!loading && !spinMode) return;
+    if (loading || spinMode) spinActiveRef.current = true;
+  }, [loading, spinMode]);
+
+  // Safety: if loading finishes but no flyTo fires within 2s, stop spinning
+  useEffect(() => {
+    if (loading) return;
+    const timeout = setTimeout(() => {
+      if (!spinMode) spinActiveRef.current = false;
+    }, 2000);
+    return () => clearTimeout(timeout);
+  }, [loading, spinMode]);
+
+  // Slowly spin the globe while spinActiveRef is true
+  useEffect(() => {
     let frame: number;
     let prev = performance.now();
     const spin = (now: number) => {
       const dt = now - prev;
       prev = now;
-      setViewState((vs) => ({
-        ...vs,
-        longitude: vs.longitude + dt * 0.005,
-      }));
+      if (spinActiveRef.current) {
+        setViewState((vs) => ({
+          ...vs,
+          longitude: vs.longitude + dt * 0.005,
+        }));
+      }
       frame = requestAnimationFrame(spin);
     };
     frame = requestAnimationFrame(spin);
     return () => cancelAnimationFrame(frame);
-  }, [loading, spinMode]);
+  }, []);
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }} onMouseLeave={() => setHoverInfo(null)}>
@@ -524,8 +593,19 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
         />
       )}
 
-      {loading && (
-        <div className="absolute inset-0 z-40 bg-background/50" />
+      {overlayVisible && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 40,
+            opacity: overlayOpacity,
+            transition: "opacity 500ms ease-out",
+            pointerEvents: overlayOpacity < 1 ? "none" : "auto",
+          }}
+        >
+          <LoadingOverlay />
+        </div>
       )}
     </div>
   );

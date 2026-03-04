@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import {
   DockviewReact,
@@ -9,6 +9,7 @@ import {
   type DockviewTheme,
 } from "dockview";
 import { useAllEvents } from "./hooks/useAllEvents";
+import type * as GeoJSON from "geojson";
 import { PolymarketEvent } from "./lib/types";
 import { buildGeoJSON, groupEventsByLocation } from "./map/geo";
 import { MapPageContext, type MapPageContextValue } from "./map/MapPageContext";
@@ -86,10 +87,36 @@ export default function MapPage() {
     excludeTagIds: ["972"],
     closed: false,
   });
-  const eventsByLocation = useMemo(
-    () => groupEventsByLocation(events),
-    [events]
-  );
+  const emptyEventsByLocation = useMemo(() => new Map<string, PolymarketEvent[]>(), []);
+  const [eventsByLocation, setEventsByLocation] = useState<Map<string, PolymarketEvent[]>>(emptyEventsByLocation);
+  const emptyGeojson = useMemo<GeoJSON.GeoJSON>(() => ({ type: "FeatureCollection" as const, features: [] }), []);
+  const [geojson, setGeojson] = useState<GeoJSON.GeoJSON>(emptyGeojson);
+  // Defer heavy groupEventsByLocation + buildGeoJSON off the critical render path.
+  // Double-rAF gives the flyTo animation one clean frame before computation starts.
+  // groupEventsByLocation runs first to populate the matchLocation cache,
+  // then buildGeoJSON hits the cache. startTransition lets React yield during the
+  // resulting re-render so the flyTo animation stays smooth.
+  useEffect(() => {
+    if (events.length === 0) {
+      setEventsByLocation(emptyEventsByLocation);
+      setGeojson(emptyGeojson);
+      return;
+    }
+    let cancelled = false;
+    requestAnimationFrame(() => {
+      if (cancelled) return;
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        const grouped = groupEventsByLocation(events);
+        const geo = buildGeoJSON(events);
+        startTransition(() => {
+          setEventsByLocation(grouped);
+          setGeojson(geo);
+        });
+      });
+    });
+    return () => { cancelled = true; };
+  }, [events, emptyEventsByLocation, emptyGeojson]);
   const volume24hrByLocation = useMemo(() => {
     const m = new Map<string, number>();
     for (const [location, evts] of eventsByLocation) {
@@ -108,7 +135,6 @@ export default function MapPage() {
     for (const evts of eventsByLocation.values()) count += evts.length;
     return count;
   }, [eventsByLocation]);
-  const geojson = useMemo(() => buildGeoJSON(events), [events]);
 
   // --- Panel management callbacks ---
 
@@ -344,32 +370,29 @@ export default function MapPage() {
 
   // --- Auto-select highest-volume location on first load ---
 
-  const didAutoSelect = useRef(false);
+  const didAutoFly = useRef(false);
+  const didAutoPanel = useRef(false);
+  const autoSlug = "iran";
+
+  // Effect A (camera): fly immediately when loading finishes — no data dependency
   useEffect(() => {
-    if (didAutoSelect.current || !apiRef.current || loading) return;
-    if (volume24hrByLocation.size === 0) return;
+    if (didAutoFly.current || loading) return;
     if (window.innerWidth < 640) return;
-
-    // // Find location with highest 24hr volume
-    // let topSlug: string | null = null;
-    // let topVolume = 0;
-    // for (const [slug, vol] of volume24hrByLocation) {
-    //   if (vol > topVolume) {
-    //     topVolume = vol;
-    //     topSlug = slug;
-    //   }
-    // }
-    // if (!topSlug) return;
-
-    const topSlug = "iran";
-    didAutoSelect.current = true;
-
-    const events = eventsByLocation.get(topSlug) ?? [];
+    didAutoFly.current = true;
     if (flyToLocationRef.current) {
-      flyToLocationRef.current(topSlug);
+      flyToLocationRef.current(autoSlug);
     }
-    onLocationSelect(topSlug, events);
-  }, [loading, eventsByLocation, volume24hrByLocation, onLocationSelect]);
+  }, [loading]);
+
+  // Effect B (panel): open events panel once data is ready
+  useEffect(() => {
+    if (didAutoPanel.current || loading || !apiRef.current) return;
+    if (eventsByLocation.size === 0) return;
+    if (window.innerWidth < 640) return;
+    didAutoPanel.current = true;
+    const events = eventsByLocation.get(autoSlug) ?? [];
+    onLocationSelect(autoSlug, events);
+  }, [loading, eventsByLocation, onLocationSelect]);
 
   // --- Context value ---
 

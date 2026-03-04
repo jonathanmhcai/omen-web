@@ -43,7 +43,17 @@ interface LocationMatch {
   lng: number;
 }
 
+const matchLocationCache = new Map<number, LocationMatch | null>();
+
 export function matchLocation(event: PolymarketEvent): LocationMatch | null {
+  const cached = matchLocationCache.get(event.id);
+  if (cached !== undefined) return cached;
+  const result = _matchLocation(event);
+  matchLocationCache.set(event.id, result);
+  return result;
+}
+
+function _matchLocation(event: PolymarketEvent): LocationMatch | null {
   // Step 1: Country tag-slug — exact match (e.g. tag "france" → country "france")
   // Prefer the tag whose country name appears in the title. If no tag matches the
   // title but a different country IS in the title, fall through to step 3 (title regex).
