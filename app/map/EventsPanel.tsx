@@ -67,30 +67,25 @@ export default function EventsPanel({
         )}
         {visible.map((e) => (
           <div key={e.id} className="border-b border-border px-4 py-3">
-            <button
-              onClick={() => ctx.onEvent(e, location)}
-              className="w-full text-left hover:opacity-80 transition-opacity"
-            >
-              <div className="flex items-start gap-3">
-                {e.image && (
-                  <img
-                    src={e.image}
-                    alt=""
-                    className="mt-0.5 h-8 w-8 shrink-0 rounded object-cover"
-                  />
-                )}
-                <p className="text-sm font-medium text-foreground">{e.title}</p>
-              </div>
-              <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                <span>${Math.round(e.volume || 0).toLocaleString()} vol</span>
-                <span>
-                  ${Math.round(e.volume24hr || 0).toLocaleString()} 24h
-                </span>
-                {e.endDate && (
-                  <span>Ends {new Date(e.endDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
-                )}
-              </div>
-            </button>
+            <div className="flex items-start gap-3">
+              {e.image && (
+                <img
+                  src={e.image}
+                  alt=""
+                  className="mt-0.5 h-8 w-8 shrink-0 rounded object-cover"
+                />
+              )}
+              <p className="text-sm font-medium text-foreground">{e.title}</p>
+            </div>
+            <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+              <span>${Math.round(e.volume || 0).toLocaleString()} vol</span>
+              <span>
+                ${Math.round(e.volume24hr || 0).toLocaleString()} 24h
+              </span>
+              {e.endDate && (
+                <span>Ends {new Date(e.endDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+              )}
+            </div>
             {e.markets && e.markets.length > 0 && (
               <MarketList markets={e.markets} onMarket={ctx.onMarket} />
             )}

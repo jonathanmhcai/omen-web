@@ -15,7 +15,6 @@ export interface MapPageContextValue {
   loading: boolean;
   onLocationSelect: (location: string, events: PolymarketEvent[]) => void;
   onLocationDeselect: () => void;
-  onEvent: (event: PolymarketEvent, locationSlug: string) => void;
   onMarket: (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => void;
   onMarketClose: () => void;
   onPositionsToggle: () => void;

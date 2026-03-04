@@ -91,10 +91,12 @@ export default function SearchModal() {
   const handleResultClick = useCallback(
     (slug: string, event: PolymarketEvent) => {
       ctx.flyToLocationRef.current?.(slug);
-      ctx.onEvent(event, slug);
+      window.dispatchEvent(
+        new CustomEvent("open-event-popup", { detail: { event, slug } })
+      );
       setOpen(false);
     },
-    [ctx.flyToLocationRef, ctx.onEvent]
+    [ctx.flyToLocationRef]
   );
 
   const handleKeyNav = useCallback(

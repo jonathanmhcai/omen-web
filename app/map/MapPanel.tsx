@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import MapGL, { Source, Layer } from "react-map-gl/mapbox";
+import MapGL, { Source, Layer, Popup } from "react-map-gl/mapbox";
 import type { MapMouseEvent, MapRef } from "react-map-gl/mapbox";
 import type * as GeoJSON from "geojson";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -25,8 +25,10 @@ import {
   INTERACTIVE_LAYER_IDS,
 } from "./layers";
 import HoverTooltip from "./HoverTooltip";
+import EventPopupCard from "./EventPopupCard";
 import countryBoundaries from "../lib/country-boundaries.json";
 import stateBoundaries from "../lib/us-state-boundaries.json";
+import type { PolymarketEvent } from "../lib/types";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 if (!MAPBOX_TOKEN) throw new Error("NEXT_PUBLIC_MAPBOX_TOKEN is not set");
@@ -81,6 +83,32 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     volume24hr: number;
   } | null>(null);
 
+  // --- Event popup (triggered from search) ---
+  const [popupEvent, setPopupEvent] = useState<{
+    event: PolymarketEvent;
+    slug: string;
+    lng: number;
+    lat: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { event: PolymarketEvent; slug: string };
+      const coords = getCoordinatesBySlug(detail.slug);
+      if (!coords) return;
+      setPopupEvent({ event: detail.event, slug: detail.slug, lng: coords.lng, lat: coords.lat });
+    };
+    window.addEventListener("open-event-popup", handler);
+    return () => window.removeEventListener("open-event-popup", handler);
+  }, []);
+
+  // Close popup via custom event (dispatched by Escape handler in page.tsx)
+  useEffect(() => {
+    const handler = () => setPopupEvent(null);
+    window.addEventListener("close-event-popup", handler);
+    return () => window.removeEventListener("close-event-popup", handler);
+  }, []);
+
   // Resize map when dockview resizes the panel
   useEffect(() => {
     const disposable = api.onDidDimensionsChange(() => {
@@ -99,13 +127,11 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
       setSpinMode(false);
       const zoom = slug.startsWith("us-") && slug !== "us-washington-dc" ? 5.5 : 4;
       map.flyTo({ center: [coords.lng, coords.lat], zoom, duration: 1500 });
-      const events = eventsByLocation.get(slug) ?? [];
-      onLocationSelect(slug, events);
     };
     return () => {
       flyToLocationRef.current = null;
     };
-  }, [flyToLocationRef, eventsByLocation, onLocationSelect]);
+  }, [flyToLocationRef]);
 
   // Fly to selected location
   useEffect(() => {
@@ -201,6 +227,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
   const onClick = useCallback(
     (e: MapMouseEvent) => {
       setSpinMode(false);
+      setPopupEvent(null);
       const feature = e.features?.[0];
       if (!feature) {
         onLocationDeselect();
@@ -464,6 +491,25 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
             <Layer key={layer.id} {...layer} />
           ))}
         </Source>
+
+        {popupEvent && (
+          <Popup
+            longitude={popupEvent.lng}
+            latitude={popupEvent.lat}
+            onClose={() => setPopupEvent(null)}
+            closeOnClick={false}
+            anchor="left"
+            offset={[40, 0]}
+            maxWidth="360px"
+            className="event-popup"
+          >
+            <EventPopupCard
+              event={popupEvent.event}
+              slug={popupEvent.slug}
+              onClose={() => setPopupEvent(null)}
+            />
+          </Popup>
+        )}
       </MapGL>
 
       {hoverInfo && (

@@ -88,7 +88,10 @@ export default function HotMarketsPanel({
           return (
             <button
               key={item.event.id}
-              onClick={() => ctx.onEvent(item.event, item.locationSlug)}
+              onClick={() => {
+                ctx.flyToLocationRef.current?.(item.locationSlug);
+                window.dispatchEvent(new CustomEvent("open-event-popup", { detail: { event: item.event, slug: item.locationSlug } }));
+              }}
               className="flex w-full items-center gap-3 border-b border-border px-4 py-2 text-left hover:bg-accent/50 transition-colors"
             >
               <span className="w-5 shrink-0 text-xs font-medium text-muted-foreground text-right">

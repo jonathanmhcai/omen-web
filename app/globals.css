@@ -219,3 +219,19 @@ button {
   z-index: 2;
   pointer-events: none;
 }
+
+/* Event popup — strip default Mapbox popup chrome */
+.event-popup.mapboxgl-popup .mapboxgl-popup-content {
+  padding: 0 !important;
+  background: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.event-popup.mapboxgl-popup .mapboxgl-popup-close-button {
+  display: none;
+}
+
+.event-popup.mapboxgl-popup .mapboxgl-popup-tip {
+  display: none;
+}

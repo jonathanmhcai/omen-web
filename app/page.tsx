@@ -17,7 +17,6 @@ import MapPanel from "./map/MapPanel";
 import EventsPanel from "./map/EventsPanel";
 import MarketPanel from "./map/MarketPanel";
 import PositionsPanel from "./map/PositionsPanel";
-import EventPanel from "./map/EventPanel";
 import LiveTradesPanel from "./map/LiveTradesPanel";
 import HotMarketsPanel from "./map/HotMarketsPanel";
 import HeaderAccount from "./map/HeaderAccount";
@@ -32,7 +31,6 @@ const THEME: DockviewTheme = {
 
 const COMPONENTS = {
   map: MapPanel,
-  event: EventPanel,
   events: EventsPanel,
   market: MarketPanel,
   positions: PositionsPanel,
@@ -119,12 +117,8 @@ export default function MapPage() {
       const api = apiRef.current;
       if (!api) return;
 
-      // Close single-event panel when opening the location events list
-      const eventPanel = api.getPanel("event");
-      if (eventPanel) api.removePanel(eventPanel);
-
-      // Toggle: clicking same location closes the panel (but not when navigating from EventPanel)
-      if (selectedLocation === location && !eventPanel) {
+      // Toggle: clicking same location closes the panel
+      if (selectedLocation === location) {
         const panel = api.getPanel("events");
         if (panel) api.removePanel(panel);
         setSelectedLocation(null);
@@ -170,36 +164,6 @@ export default function MapPage() {
     setSelectedLocation(null);
   }, []);
 
-  const onEvent = useCallback(
-    (event: PolymarketEvent, locationSlug: string) => {
-      const api = apiRef.current;
-      if (!api) return;
-
-      const existing = api.getPanel("event");
-      if (existing) api.removePanel(existing);
-
-      const sibling = api.getPanel("events") || api.getPanel("positions");
-      if (sibling) {
-        api.addPanel({
-          id: "event",
-          component: "event",
-          title: event.title,
-          params: { event, locationSlug },
-          position: { referencePanel: sibling.id },
-        });
-      } else {
-        api.addPanel({
-          id: "event",
-          component: "event",
-          title: event.title,
-          params: { event, locationSlug },
-          position: { referencePanel: "map", direction: "right" },
-          initialWidth: 384,
-        });
-      }
-    },
-    []
-  );
 
   const onMarket = useCallback(
     (conditionId: string, opts?: { outcomeIndex?: number; title?: string }) => {
@@ -305,6 +269,13 @@ export default function MapPage() {
     // Let search modal and Radix dialogs handle their own Escape
     if (document.querySelector("[data-search-modal]")) return false;
     if (document.querySelector("[role=dialog]")) return false;
+
+    // Close event popup if open
+    if (document.querySelector(".event-popup")) {
+      window.dispatchEvent(new Event("close-event-popup"));
+      return;
+    }
+
     const api = apiRef.current;
     if (!api) return false;
 
@@ -393,12 +364,11 @@ export default function MapPage() {
     const topSlug = "iran";
     didAutoSelect.current = true;
 
+    const events = eventsByLocation.get(topSlug) ?? [];
     if (flyToLocationRef.current) {
       flyToLocationRef.current(topSlug);
-    } else {
-      const events = eventsByLocation.get(topSlug) ?? [];
-      onLocationSelect(topSlug, events);
     }
+    onLocationSelect(topSlug, events);
   }, [loading, eventsByLocation, volume24hrByLocation, onLocationSelect]);
 
   // --- Context value ---
@@ -414,7 +384,6 @@ export default function MapPage() {
       loading,
       onLocationSelect,
       onLocationDeselect,
-      onEvent,
       onMarket,
       onMarketClose,
       onPositionsToggle,
@@ -436,7 +405,6 @@ export default function MapPage() {
       loading,
       onLocationSelect,
       onLocationDeselect,
-      onEvent,
       onMarket,
       onMarketClose,
       onPositionsToggle,
