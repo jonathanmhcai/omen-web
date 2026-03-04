@@ -234,7 +234,7 @@ export default function MapPage() {
 
     const existing = api.getPanel("positions");
     if (existing) {
-      existing.api.setActive();
+      api.removePanel(existing);
       return;
     }
 
@@ -325,6 +325,7 @@ export default function MapPage() {
     { key: "/", action: () => window.dispatchEvent(new Event("open-search")) },
     { key: "p", action: onPositionsToggle },
     { key: "s", action: () => window.dispatchEvent(new Event("toggle-spin")) },
+    { key: "t", action: onHotMarketsToggle },
   ]);
 
   // --- Dockview ready ---
