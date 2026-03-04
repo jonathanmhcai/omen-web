@@ -270,18 +270,18 @@ export default function MapPage() {
     if (document.querySelector("[data-search-modal]")) return false;
     if (document.querySelector("[role=dialog]")) return false;
 
-    // Close event popup if open
-    if (document.querySelector(".event-popup")) {
-      window.dispatchEvent(new Event("close-event-popup"));
-      return;
-    }
-
     const api = apiRef.current;
     if (!api) return false;
 
     const marketPanel = api.getPanel("market");
     if (marketPanel) {
       api.removePanel(marketPanel);
+      return;
+    }
+
+    // Close event popup if open
+    if (document.querySelector(".event-popup")) {
+      window.dispatchEvent(new Event("close-event-popup"));
       return;
     }
     for (const group of api.groups) {

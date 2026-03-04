@@ -503,11 +503,13 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
             maxWidth="360px"
             className="event-popup"
           >
-            <EventPopupCard
-              event={popupEvent.event}
-              slug={popupEvent.slug}
-              onClose={() => setPopupEvent(null)}
-            />
+            <div onMouseEnter={() => setHoverInfo(null)}>
+              <EventPopupCard
+                event={popupEvent.event}
+                slug={popupEvent.slug}
+                onClose={() => setPopupEvent(null)}
+              />
+            </div>
           </Popup>
         )}
       </MapGL>
