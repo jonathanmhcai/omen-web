@@ -28,9 +28,10 @@ export default function SearchModal() {
 
   const { events, loading } = useSearchEvents(debouncedQuery);
 
-  // Filter to only mappable events, preserve API relevancy order
+  // Filter to only active, mappable events, preserve API relevancy order
   const mappableResults = useMemo(() => {
     return events
+      .filter((event) => event.active && !event.closed)
       .map((event) => {
         const match = matchLocation(event);
         if (!match) return null;
@@ -73,9 +74,9 @@ export default function SearchModal() {
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [open, input]);
 
-  // Reset selectedIndex when results change
+  // Auto-highlight first result when results change
   useEffect(() => {
-    setSelectedIndex(-1);
+    setSelectedIndex(mappableResults.length > 0 ? 0 : -1);
   }, [mappableResults]);
 
   // Reset state on close
