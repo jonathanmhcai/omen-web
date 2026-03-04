@@ -373,16 +373,18 @@ export default function MapPage() {
     if (volume24hrByLocation.size === 0) return;
     if (window.innerWidth < 640) return;
 
-    // Find location with highest 24hr volume
-    let topSlug: string | null = null;
-    let topVolume = 0;
-    for (const [slug, vol] of volume24hrByLocation) {
-      if (vol > topVolume) {
-        topVolume = vol;
-        topSlug = slug;
-      }
-    }
-    if (!topSlug) return;
+    // // Find location with highest 24hr volume
+    // let topSlug: string | null = null;
+    // let topVolume = 0;
+    // for (const [slug, vol] of volume24hrByLocation) {
+    //   if (vol > topVolume) {
+    //     topVolume = vol;
+    //     topSlug = slug;
+    //   }
+    // }
+    // if (!topSlug) return;
+
+    const topSlug = "iran";
     didAutoSelect.current = true;
 
     if (flyToLocationRef.current) {
