@@ -8,7 +8,7 @@ import { useUsdcBalance } from "../hooks/useUsdcBalance";
 import { usePositions } from "../hooks/usePositions";
 import { useDepositAddresses } from "../hooks/useDepositAddresses";
 import { useMapPageContext } from "./MapPageContext";
-import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity, Flame } from "lucide-react";
+import { Wallet, BarChart3, Settings, Sun, Moon, Globe, Map, Activity, Flame, RotateCw } from "lucide-react";
 import SearchModal from "./SearchModal";
 import DepositModal from "../components/DepositModal";
 import WithdrawModal from "../components/WithdrawModal";
@@ -91,6 +91,13 @@ export default function HeaderAccount() {
               Projection
             </span>
             <span className="ml-auto text-xs text-muted-foreground">{ctx.projection === "globe" ? "Globe" : "Flat"}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => window.dispatchEvent(new Event("toggle-spin"))}>
+            <span className="flex items-center gap-2">
+              <RotateCw className="h-3.5 w-3.5" />
+              Spin Globe
+            </span>
+            <kbd className="ml-auto text-[10px] text-muted-foreground border border-border rounded px-1 py-0.5">S</kbd>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -217,6 +224,13 @@ export default function HeaderAccount() {
               Projection
             </span>
             <span className="ml-auto text-xs text-muted-foreground">{ctx.projection === "globe" ? "Globe" : "Flat"}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => window.dispatchEvent(new Event("toggle-spin"))}>
+            <span className="flex items-center gap-2">
+              <RotateCw className="h-3.5 w-3.5" />
+              Spin Globe
+            </span>
+            <kbd className="ml-auto text-[10px] text-muted-foreground border border-border rounded px-1 py-0.5">S</kbd>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

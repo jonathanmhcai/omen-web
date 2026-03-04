@@ -324,6 +324,7 @@ export default function MapPage() {
     { key: "Escape", action: closeActivePanel, allowInInput: true },
     { key: "/", action: () => window.dispatchEvent(new Event("open-search")) },
     { key: "p", action: onPositionsToggle },
+    { key: "s", action: () => window.dispatchEvent(new Event("toggle-spin")) },
   ]);
 
   // --- Dockview ready ---

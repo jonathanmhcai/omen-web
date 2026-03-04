@@ -56,6 +56,23 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     latitude: isMobile ? 31 : 20,
     zoom: isMobile ? 1.8 : 2.5,
   });
+  const [spinMode, setSpinMode] = useState(false);
+
+  // Toggle spin mode via keyboard shortcut (custom event from page.tsx)
+  useEffect(() => {
+    const handler = () => setSpinMode((s) => !s);
+    window.addEventListener("toggle-spin", handler);
+    return () => window.removeEventListener("toggle-spin", handler);
+  }, []);
+
+  // Ease zoom out when entering spin mode
+  useEffect(() => {
+    if (!spinMode) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    map.easeTo({ zoom: 2.5, duration: 1000 });
+  }, [spinMode]);
+
   const [hoverInfo, setHoverInfo] = useState<{
     x: number;
     y: number;
@@ -357,9 +374,9 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     map.setProjection(projection);
   }, [projection]);
 
-  // Slowly spin the globe while events are loading
+  // Slowly spin the globe while loading or in spin mode
   useEffect(() => {
-    if (!loading) return;
+    if (!loading && !spinMode) return;
     let frame: number;
     let prev = performance.now();
     const spin = (now: number) => {
@@ -373,14 +390,17 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
     };
     frame = requestAnimationFrame(spin);
     return () => cancelAnimationFrame(frame);
-  }, [loading]);
+  }, [loading, spinMode]);
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }} onMouseLeave={() => setHoverInfo(null)}>
       <MapGL
         ref={mapRef}
         {...viewState}
-        onMoveStart={() => setHoverInfo(null)}
+        onMoveStart={(evt) => {
+          setHoverInfo(null);
+          if (spinMode && evt.originalEvent) setSpinMode(false);
+        }}
         onMove={(evt) => {
           const vs = evt.viewState;
           setViewState({
