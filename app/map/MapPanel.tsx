@@ -96,6 +96,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
       if (!coords) return;
       const map = mapRef.current?.getMap();
       if (!map) return;
+      setSpinMode(false);
       const zoom = slug.startsWith("us-") && slug !== "us-washington-dc" ? 5.5 : 4;
       map.flyTo({ center: [coords.lng, coords.lat], zoom, duration: 1500 });
       const events = eventsByLocation.get(slug) ?? [];
