@@ -15,7 +15,27 @@ const stateRegexes = stateNames.map((name) => ({
   regex: new RegExp(`\\b${name}\\b`, "i"),
 }));
 
+// Sort country names longest-first so "South Korea" matches before "Korea", etc.
+const countryNames = Object.keys(countryCoords).sort((a, b) => b.length - a.length);
+const countryRegexes = countryNames
+  .filter((name) => name.length > 3)
+  .map((name) => ({
+    name,
+    regex: new RegExp(`\\b${name.replace(/-/g, "[- ]")}\\b`, "i"),
+  }));
+
 const POLITICS_TAG_ID = "2";
+
+// Common short-form tag slugs that don't match countryCoords keys
+const TAG_ALIASES: Record<string, string> = {
+  uk: "united kingdom",
+  britain: "united kingdom",
+  england: "united kingdom",
+  scotland: "united kingdom",
+  uae: "united arab emirates",
+};
+
+const US_KEYWORDS = /\b(us|u\.s\.|united states|american|congress|senate|house of representatives|scotus|supreme court|fbi|cia|doj|fcc|ftc|sec|fed\b|federal reserve|trump|biden|gop|republican|democrat|filibuster|impeach|oval office|white house|pentagon|midterm|electoral|epstein|pardon|medicaid|medicare|social security)\b/i;
 
 interface LocationMatch {
   slug: string;
@@ -24,14 +44,55 @@ interface LocationMatch {
 }
 
 export function matchLocation(event: PolymarketEvent): LocationMatch | null {
-  // 1. Try country tag-slug lookup (existing logic)
-  const countryTag = event.tags.find((t) => countryCoords[t.slug]);
-  if (countryTag) {
-    const c = countryCoords[countryTag.slug];
-    return { slug: countryTag.slug, lat: c.lat, lng: c.lng };
+  // Step 1: Country tag-slug — exact match (e.g. tag "france" → country "france")
+  // Prefer the tag whose country name appears in the title. If no tag matches the
+  // title but a different country IS in the title, fall through to step 3 (title regex).
+  const countryTags = event.tags.filter((t) => countryCoords[t.slug]);
+  if (countryTags.length > 0) {
+    const titleLower = event.title.toLowerCase();
+    const titleMatch = countryTags.find((t) => titleLower.includes(t.slug.replace(/-/g, " ")));
+    if (titleMatch) {
+      const c = countryCoords[titleMatch.slug];
+      return { slug: titleMatch.slug, lat: c.lat, lng: c.lng };
+    }
+    // No tag country appears in the title — check if a different country is in the title
+    const hasTitleCountry = countryRegexes.some(({ regex }) => regex.test(event.title));
+    if (!hasTitleCountry) {
+      // No country in title at all — trust the first tag
+      const c = countryCoords[countryTags[0].slug];
+      return { slug: countryTags[0].slug, lat: c.lat, lng: c.lng };
+    }
+    // A different country is in the title — fall through to step 3
   }
 
-  // 2. Try US state name in title (longest-first, word-boundary)
+  // Step 1.5: Country tag-slug — alias match (e.g. tag "uk" → "united kingdom")
+  for (const tag of event.tags) {
+    const aliased = TAG_ALIASES[tag.slug];
+    if (aliased && countryCoords[aliased]) {
+      const c = countryCoords[aliased];
+      return { slug: aliased, lat: c.lat, lng: c.lng };
+    }
+  }
+
+  // Step 2: Country name in title — regex (e.g. "Colombia Presidential Election" → "colombia")
+  for (const { name, regex } of countryRegexes) {
+    if (regex.test(event.title)) {
+      const c = countryCoords[name];
+      return { slug: name, lat: c.lat, lng: c.lng };
+    }
+  }
+
+  // Step 3: Country tag-slug — substring match (e.g. tag "colombian-politics" contains "colombia")
+  for (const name of countryNames) {
+    if (name.length <= 3) continue; // skip short names like "uk" — too ambiguous for substring
+    const slugName = name.replace(/ /g, "-");
+    if (event.tags.some((t) => t.slug.includes(slugName))) {
+      const c = countryCoords[name];
+      return { slug: name, lat: c.lat, lng: c.lng };
+    }
+  }
+
+  // Step 4: US state name in title — regex (e.g. "Texas Primary" → "us-texas")
   for (const { name, regex } of stateRegexes) {
     if (regex.test(event.title)) {
       const s = stateCoords[name];
@@ -39,24 +100,26 @@ export function matchLocation(event: PolymarketEvent): LocationMatch | null {
     }
   }
 
-  // 3. Try US state name in tag slugs (e.g. "texas-primary" contains "texas")
+  // Step 5: US state name in tag slugs (e.g. tag "texas-primary" contains "texas")
   for (const name of stateNames) {
     const slugName = name.replace(/ /g, "-");
-    const hasStateTag = event.tags.some((t) => t.slug.includes(slugName));
-    if (hasStateTag) {
+    if (event.tags.some((t) => t.slug.includes(slugName))) {
       const s = stateCoords[name];
       return { slug: `us-${slugName}`, lat: s.lat, lng: s.lng };
     }
   }
 
-  // 4. DC fallback for unmatched US-politics events (has "Politics" tag but no country or state match)
+  // Step 6: DC fallback — only if event has Politics tag AND US-specific keywords in title/tags
   const hasPoliticsTag = event.tags.some((t) => t.id === POLITICS_TAG_ID);
   if (hasPoliticsTag) {
-    const dc = stateCoords["washington dc"];
-    return { slug: "us-washington-dc", lat: dc.lat, lng: dc.lng };
+    const tagLabels = event.tags.map((t) => t.label).join(" ");
+    if (US_KEYWORDS.test(event.title) || US_KEYWORDS.test(tagLabels)) {
+      const dc = stateCoords["washington dc"];
+      return { slug: "us-washington-dc", lat: dc.lat, lng: dc.lng };
+    }
   }
 
-  // 5. Unmatched — drop
+  // Step 7: Unmatched — drop
   return null;
 }
 
@@ -105,7 +168,8 @@ export function buildGeoJSON(events: PolymarketEvent[]): GeoJSON {
 export function getIsoCode(slug: string): string | null {
   if (slug === "us-washington-dc") return "US"; // DC highlights entire US
   if (slug.startsWith("us-")) return null; // other states highlight individually
-  return countryCoords[slug]?.iso2 ?? null;
+  const c = countryCoords[slug] || countryCoords[slug.replace(/-/g, " ")];
+  return c?.iso2 ?? null;
 }
 
 export function getStateAbbr(slug: string): string | null {
@@ -134,14 +198,6 @@ export function getSlugByStateAbbr(abbr: string): string | null {
 }
 
 // ── Lightweight trade location matching (title + slug only, no tags) ──
-
-const countryNames = Object.keys(countryCoords).sort((a, b) => b.length - a.length);
-const countryRegexes = countryNames
-  .filter((name) => name.length > 3)
-  .map((name) => ({
-    name,
-    regex: new RegExp(`\\b${name.replace(/-/g, "[- ]")}\\b`, "i"),
-  }));
 
 const tradeLocationCache = new Map<string, LocationMatch | null>();
 
@@ -193,7 +249,7 @@ export function getCoordinatesBySlug(slug: string): { lat: number; lng: number }
     const s = stateCoords[stateName];
     return s ? { lat: s.lat, lng: s.lng } : null;
   }
-  const c = countryCoords[slug];
+  const c = countryCoords[slug] || countryCoords[slug.replace(/-/g, " ")];
   return c ? { lat: c.lat, lng: c.lng } : null;
 }
 
