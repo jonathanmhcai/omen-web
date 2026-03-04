@@ -399,7 +399,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
         {...viewState}
         onMoveStart={(evt) => {
           setHoverInfo(null);
-          if (spinMode && evt.originalEvent) setSpinMode(false);
+          if (spinMode && (evt as any).originalEvent) setSpinMode(false);
         }}
         onMove={(evt) => {
           const vs = evt.viewState;
