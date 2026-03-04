@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 import { useAuthUser } from "../hooks/useAuthUser";
@@ -30,6 +30,18 @@ export default function HeaderAccount() {
   const ctx = useMapPageContext();
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
+
+  // Open deposit/withdraw via keyboard shortcuts (close the other to prevent stacking)
+  useEffect(() => {
+    const onDeposit = () => { setShowWithdraw(false); setShowDeposit(true); };
+    const onWithdraw = () => { setShowDeposit(false); setShowWithdraw(true); };
+    window.addEventListener("open-deposit", onDeposit);
+    window.addEventListener("open-withdraw", onWithdraw);
+    return () => {
+      window.removeEventListener("open-deposit", onDeposit);
+      window.removeEventListener("open-withdraw", onWithdraw);
+    };
+  }, []);
 
   const displayName = user?.display_name || user?.username;
   const initials = displayName?.[0]?.toUpperCase() ?? "?";

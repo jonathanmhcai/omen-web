@@ -200,6 +200,7 @@ export default function MapPanel({ api }: IDockviewPanelProps) {
 
   const onClick = useCallback(
     (e: MapMouseEvent) => {
+      setSpinMode(false);
       const feature = e.features?.[0];
       if (!feature) {
         onLocationDeselect();

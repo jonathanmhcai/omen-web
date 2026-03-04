@@ -302,7 +302,9 @@ export default function MapPage() {
   // --- Keyboard shortcuts ---
 
   const closeActivePanel = useCallback(() => {
+    // Let search modal and Radix dialogs handle their own Escape
     if (document.querySelector("[data-search-modal]")) return false;
+    if (document.querySelector("[role=dialog]")) return false;
     const api = apiRef.current;
     if (!api) return false;
 
@@ -326,6 +328,8 @@ export default function MapPage() {
     { key: "p", action: onPositionsToggle },
     { key: "s", action: () => window.dispatchEvent(new Event("toggle-spin")) },
     { key: "t", action: onHotMarketsToggle },
+    { key: "d", action: () => window.dispatchEvent(new Event("open-deposit")) },
+    { key: "w", action: () => window.dispatchEvent(new Event("open-withdraw")) },
   ]);
 
   // --- Dockview ready ---
