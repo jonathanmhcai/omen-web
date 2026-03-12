@@ -71,10 +71,15 @@ export interface PolymarketEvent {
 export interface AdminUser {
   id: string;
   privy_user_id: string;
+  username: string | null;
+  display_name: string | null;
   created_at: string;
   emails: string[];
   wallet_address: string | null;
   last_seen_at: string;
   usdc_balance: string;
   invite_code: string | null;
+  has_push_token: boolean;
+  push_enabled: boolean;
+  following_orders_enabled: boolean;
 }

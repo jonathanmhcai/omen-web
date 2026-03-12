@@ -76,6 +76,18 @@ const columns = [
       );
     },
   }),
+  columnHelper.accessor("username", {
+    header: "Username",
+    size: 120,
+    enableSorting: false,
+    cell: (info) => info.getValue() ?? "\u2014",
+  }),
+  columnHelper.accessor("display_name", {
+    header: "Display Name",
+    size: 140,
+    enableSorting: false,
+    cell: (info) => info.getValue() ?? "\u2014",
+  }),
   columnHelper.accessor((row) => row.emails[0] ?? "\u2014", {
     id: "email",
     header: "Email",
@@ -117,17 +129,47 @@ const columns = [
     enableSorting: false,
     cell: (info) => info.getValue() ?? "\u2014",
   }),
+  columnHelper.display({
+    id: "notifications",
+    header: "Notifs",
+    size: 90,
+    enableSorting: false,
+    cell: (info) => {
+      const row = info.row.original;
+      if (!row.has_push_token) return <span className="text-muted-foreground">{"\u2014"}</span>;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex gap-1">
+              <span className={row.push_enabled ? "text-green-500" : "text-red-400"} title="Market resolution">{row.push_enabled ? "\u2713" : "\u2717"}</span>
+              <span className={row.following_orders_enabled ? "text-green-500" : "text-red-400"} title="Following orders">{row.following_orders_enabled ? "\u2713" : "\u2717"}</span>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="text-xs">
+              <div>Push token: active</div>
+              <div>Market resolution: {row.push_enabled ? "on" : "off"}</div>
+              <div>Following orders: {row.following_orders_enabled ? "on" : "off"}</div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+  }),
 ];
 
 const skeletonWidths: Record<string, string> = {
   id: "h-4 w-14",
   privy_user_id: "h-4 w-20",
+  username: "h-4 w-20",
+  display_name: "h-4 w-24",
   email: "h-4 w-36",
   wallet_address: "h-4 w-24",
   usdc_balance: "h-4 w-16",
   invite_code: "h-4 w-20",
   created_at: "h-4 w-20",
   last_seen_at: "h-4 w-20",
+  notifications: "h-4 w-12",
 };
 
 interface UsersTableProps {
