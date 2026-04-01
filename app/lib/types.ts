@@ -99,6 +99,7 @@ export interface AdminPosition {
   created_at: string;
   updated_at: string;
   username: string | null;
+  display_name: string | null;
   market_title: string | null;
   market_end_date: string | null;
 }

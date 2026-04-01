@@ -4,6 +4,7 @@ import { createColumnHelper, type SortingState } from "@tanstack/react-table";
 import { toast } from "sonner";
 import DataTable from "../data-table/DataTable";
 import Pagination from "../data-table/Pagination";
+import Link from "next/link";
 import { AdminUser } from "../../../lib/types";
 import { formatFriendlyDate, formatExactDate } from "../../../lib/utils";
 import {
@@ -87,17 +88,24 @@ const columns = [
       );
     },
   }),
-  columnHelper.accessor("username", {
-    header: "Username",
-    size: 120,
+  columnHelper.display({
+    id: "user",
+    header: "User",
+    size: 200,
     enableSorting: false,
-    cell: (info) => info.getValue() ?? "\u2014",
-  }),
-  columnHelper.accessor("display_name", {
-    header: "Display Name",
-    size: 140,
-    enableSorting: false,
-    cell: (info) => info.getValue() ?? "\u2014",
+    cell: (info) => {
+      const { username, display_name, id } = info.row.original;
+      if (!username && !display_name) return "\u2014";
+      const parts = [
+        username ? `@${username}` : null,
+        display_name ? `(${display_name})` : null,
+      ].filter(Boolean).join(" ");
+      return (
+        <Link href={`/admin/users/${id}`} className="hover:underline">
+          {parts}
+        </Link>
+      );
+    },
   }),
   columnHelper.accessor((row) => row.emails[0] ?? "\u2014", {
     id: "email",
@@ -192,8 +200,7 @@ const columns = [
 const skeletonWidths: Record<string, string> = {
   id: "h-4 w-14",
   privy_user_id: "h-4 w-20",
-  username: "h-4 w-8",
-  display_name: "h-4 w-24",
+  user: "h-4 w-28",
   email: "h-4 w-24",
   wallet_address: "h-4 w-24",
   usdc_balance: "h-4 w-16",

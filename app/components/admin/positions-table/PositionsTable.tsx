@@ -4,6 +4,7 @@ import { createColumnHelper, type SortingState } from "@tanstack/react-table";
 import { toast } from "sonner";
 import DataTable from "../data-table/DataTable";
 import Pagination from "../data-table/Pagination";
+import Link from "next/link";
 import { AdminPosition } from "../../../lib/types";
 import { formatFriendlyDate, formatExactDate } from "../../../lib/utils";
 import {
@@ -84,11 +85,24 @@ const columns = [
       );
     },
   }),
-  columnHelper.accessor("username", {
+  columnHelper.display({
+    id: "user",
     header: "User",
-    size: 100,
+    size: 160,
     enableSorting: false,
-    cell: (info) => info.getValue() ?? "\u2014",
+    cell: (info) => {
+      const { username, display_name, user_id } = info.row.original;
+      if (!username && !display_name) return "\u2014";
+      const parts = [
+        username ? `@${username}` : null,
+        display_name ? `(${display_name})` : null,
+      ].filter(Boolean).join(" ");
+      return (
+        <Link href={`/admin/users/${user_id}`} className="hover:underline">
+          {parts}
+        </Link>
+      );
+    },
   }),
   columnHelper.accessor("market_title", {
     header: "Market",
@@ -115,7 +129,7 @@ const columns = [
   }),
   columnHelper.accessor("status", {
     header: "Status",
-    size: 70,
+    size: 55,
     cell: (info) => {
       const status = info.getValue();
       return (
@@ -133,7 +147,7 @@ const columns = [
   }),
   columnHelper.accessor("market_end_date", {
     header: "End Date",
-    size: 70,
+    size: 90,
     enableSorting: false,
     cell: (info) => {
       const value = info.getValue();
@@ -150,7 +164,7 @@ const columns = [
   }),
   columnHelper.accessor("shares", {
     header: "Shares",
-    size: 90,
+    size: 70,
     cell: (info) => {
       const val = info.getValue();
       if (val == null) return "\u2014";
@@ -159,24 +173,36 @@ const columns = [
   }),
   columnHelper.accessor("avg_entry_price", {
     header: "Avg Price",
-    size: 80,
+    size: 65,
     cell: (info) => {
       const val = info.getValue();
       if (val == null) return "\u2014";
       return `$${Number(val).toFixed(2)}`;
     },
   }),
+  columnHelper.display({
+    id: "cost",
+    header: "Cost",
+    size: 70,
+    enableSorting: false,
+    cell: (info) => {
+      const { shares, avg_entry_price } = info.row.original;
+      if (shares == null || avg_entry_price == null) return "\u2014";
+      return `$${(Number(shares) * Number(avg_entry_price)).toFixed(2)}`;
+    },
+  }),
 ];
 
 const skeletonWidths: Record<string, string> = {
   id: "h-4 w-14",
-  username: "h-4 w-20",
+  user: "h-4 w-24",
   market_title: "h-4 w-8",
   market_end_date: "h-4 w-20",
   outcome: "h-4 w-14",
   status: "h-4 w-12",
   shares: "h-4 w-16",
   avg_entry_price: "h-4 w-16",
+  cost: "h-4 w-16",
   opened_at: "h-4 w-20",
   closed_at: "h-4 w-20",
   created_at: "h-4 w-20",

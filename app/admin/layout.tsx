@@ -158,7 +158,7 @@ export default function AdminLayout({
             <Link
               key={tab.href}
               href={tab.href}
-              className={`px-3 py-2 text-sm font-medium ${pathname === tab.href ? "border-b-2 border-foreground text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              className={`px-3 py-2 text-sm font-medium ${pathname.startsWith(tab.href) ? "border-b-2 border-foreground text-foreground" : "text-muted-foreground hover:text-foreground"}`}
             >
               {tab.label}
             </Link>
