@@ -171,7 +171,7 @@ const columns = [
 const skeletonWidths: Record<string, string> = {
   id: "h-4 w-14",
   username: "h-4 w-20",
-  market_title: "h-4 w-40",
+  market_title: "h-4 w-8",
   market_end_date: "h-4 w-20",
   outcome: "h-4 w-14",
   status: "h-4 w-12",
