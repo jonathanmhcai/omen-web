@@ -83,3 +83,22 @@ export interface AdminUser {
   push_enabled: boolean;
   following_orders_enabled: boolean;
 }
+
+export interface AdminPosition {
+  id: string;
+  user_id: string;
+  market_id: string;
+  clob_token_id: string;
+  status: "open" | "closed";
+  shares: number;
+  avg_entry_price: number;
+  outcome: string | null;
+  opened_at: string | null;
+  closed_at: string | null;
+  last_synced_at: string | null;
+  created_at: string;
+  updated_at: string;
+  username: string | null;
+  market_title: string | null;
+  market_end_date: string | null;
+}

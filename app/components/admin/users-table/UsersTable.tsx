@@ -3,9 +3,14 @@
 import { createColumnHelper, type SortingState } from "@tanstack/react-table";
 import { toast } from "sonner";
 import DataTable from "../data-table/DataTable";
-import { AdminUser } from "../../lib/types";
-import { formatFriendlyDate, formatExactDate } from "../../lib/utils";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import Pagination from "../data-table/Pagination";
+import { AdminUser } from "../../../lib/types";
+import { formatFriendlyDate, formatExactDate } from "../../../lib/utils";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 const columnHelper = createColumnHelper<AdminUser>();
 
@@ -19,7 +24,10 @@ const columns = [
       return (
         <button
           className="cursor-pointer hover:underline"
-          onClick={() => { navigator.clipboard.writeText(id); toast("ID copied to clipboard"); }}
+          onClick={() => {
+            navigator.clipboard.writeText(id);
+            toast("ID copied to clipboard");
+          }}
           title={id}
         >
           {id.slice(0, 8)}
@@ -36,7 +44,10 @@ const columns = [
       return (
         <button
           className="cursor-pointer hover:underline"
-          onClick={() => { navigator.clipboard.writeText(id); toast("Privy ID copied to clipboard"); }}
+          onClick={() => {
+            navigator.clipboard.writeText(id);
+            toast("Privy ID copied to clipboard");
+          }}
           title={id}
         >
           {id.slice(0, 12)}
@@ -104,7 +115,10 @@ const columns = [
       return (
         <button
           className="cursor-pointer hover:underline"
-          onClick={() => { navigator.clipboard.writeText(addr); toast("Wallet address copied to clipboard"); }}
+          onClick={() => {
+            navigator.clipboard.writeText(addr);
+            toast("Wallet address copied to clipboard");
+          }}
           title={addr}
         >
           {addr.slice(0, 6)}...{addr.slice(-4)}
@@ -136,20 +150,37 @@ const columns = [
     enableSorting: false,
     cell: (info) => {
       const row = info.row.original;
-      if (!row.has_push_token) return <span className="text-muted-foreground">{"\u2014"}</span>;
+      if (!row.has_push_token)
+        return <span className="text-muted-foreground">{"\u2014"}</span>;
       return (
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="flex gap-1">
-              <span className={row.push_enabled ? "text-green-500" : "text-red-400"} title="Market resolution">{row.push_enabled ? "\u2713" : "\u2717"}</span>
-              <span className={row.following_orders_enabled ? "text-green-500" : "text-red-400"} title="Following orders">{row.following_orders_enabled ? "\u2713" : "\u2717"}</span>
+              <span
+                className={row.push_enabled ? "text-green-500" : "text-red-400"}
+                title="Market resolution"
+              >
+                {row.push_enabled ? "\u2713" : "\u2717"}
+              </span>
+              <span
+                className={
+                  row.following_orders_enabled
+                    ? "text-green-500"
+                    : "text-red-400"
+                }
+                title="Following orders"
+              >
+                {row.following_orders_enabled ? "\u2713" : "\u2717"}
+              </span>
             </span>
           </TooltipTrigger>
           <TooltipContent>
             <div className="text-xs">
               <div>Push token: active</div>
               <div>Market resolution: {row.push_enabled ? "on" : "off"}</div>
-              <div>Following orders: {row.following_orders_enabled ? "on" : "off"}</div>
+              <div>
+                Following orders: {row.following_orders_enabled ? "on" : "off"}
+              </div>
             </div>
           </TooltipContent>
         </Tooltip>
@@ -161,9 +192,9 @@ const columns = [
 const skeletonWidths: Record<string, string> = {
   id: "h-4 w-14",
   privy_user_id: "h-4 w-20",
-  username: "h-4 w-20",
+  username: "h-4 w-8",
   display_name: "h-4 w-24",
-  email: "h-4 w-36",
+  email: "h-4 w-24",
   wallet_address: "h-4 w-24",
   usdc_balance: "h-4 w-16",
   invite_code: "h-4 w-20",
@@ -178,6 +209,7 @@ interface UsersTableProps {
   error: string | null;
   page: number;
   hasMore: boolean;
+  total?: number | null;
   onNextPage: () => void;
   onPrevPage: () => void;
   onFirstPage: () => void;
@@ -185,35 +217,29 @@ interface UsersTableProps {
   onSortingChange: (sorting: SortingState) => void;
 }
 
-export default function UsersTable({ users, loading, error, page, hasMore, onNextPage, onPrevPage, onFirstPage, sorting, onSortingChange }: UsersTableProps) {
+export default function UsersTable({
+  users,
+  loading,
+  error,
+  page,
+  hasMore,
+  total,
+  onNextPage,
+  onPrevPage,
+  onFirstPage,
+  sorting,
+  onSortingChange,
+}: UsersTableProps) {
   const toolbar = (
     <div className="flex items-center gap-3">
-      <div className="ml-auto flex items-center gap-3">
-        <button
-          onClick={onFirstPage}
-          disabled={page === 0}
-          className="rounded-lg border border-black/[.08] px-3 py-1.5 text-sm disabled:opacity-30 dark:border-white/[.145]"
-        >
-          First
-        </button>
-        <button
-          onClick={onPrevPage}
-          disabled={page === 0}
-          className="rounded-lg border border-black/[.08] px-3 py-1.5 text-sm disabled:opacity-30 dark:border-white/[.145]"
-        >
-          Previous
-        </button>
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
-          Page {page + 1}
-        </span>
-        <button
-          onClick={onNextPage}
-          disabled={!hasMore}
-          className="rounded-lg border border-black/[.08] px-3 py-1.5 text-sm disabled:opacity-30 dark:border-white/[.145]"
-        >
-          Next
-        </button>
-      </div>
+      <Pagination
+        page={page}
+        hasMore={hasMore}
+        total={total}
+        onFirstPage={onFirstPage}
+        onPrevPage={onPrevPage}
+        onNextPage={onNextPage}
+      />
     </div>
   );
 

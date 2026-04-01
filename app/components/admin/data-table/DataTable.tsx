@@ -24,7 +24,7 @@ interface DataTableProps<T> {
   toolbar?: React.ReactNode;
 }
 
-const SKELETON_ROWS = 10;
+const SKELETON_ROWS = 15;
 
 function SkeletonRow({ widths }: { widths: Record<string, string> }) {
   return (
@@ -97,6 +97,8 @@ export default function DataTable<T>({
                 {headerGroup.headers.map((header) => {
                   const isSortable = header.column.getCanSort();
                   const sorted = header.column.getIsSorted();
+                  const sortIndex = header.column.getSortIndex();
+                  const isMultiSort = sorting.length > 1;
                   return (
                     <th
                       key={header.id}
@@ -107,7 +109,12 @@ export default function DataTable<T>({
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
                       {sorted && (
-                        <span className="ml-1">{sorted === "asc" ? "\u2191" : "\u2193"}</span>
+                        <span className="ml-1">
+                          {sorted === "asc" ? "\u2191" : "\u2193"}
+                          {isMultiSort && sortIndex >= 0 && (
+                            <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{sortIndex + 1}</span>
+                          )}
+                        </span>
                       )}
                     </th>
                   );

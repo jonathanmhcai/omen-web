@@ -3,14 +3,27 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { createColumnHelper, type SortingState } from "@tanstack/react-table";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import DataTable from "../data-table/DataTable";
-import { PolymarketEvent } from "../../lib/types";
-import { formatFriendlyDate, formatRelativeTime, formatNumber } from "../../lib/utils";
+import Pagination from "../data-table/Pagination";
+import { PolymarketEvent } from "../../../lib/types";
+import {
+  formatFriendlyDate,
+  formatRelativeTime,
+  formatNumber,
+} from "../../../lib/utils";
 
-import { tagColor } from "../../lib/tags";
+import { tagColor } from "../../../lib/tags";
 
 function EventImage({ src, alt }: { src: string; alt: string }) {
   const [errored, setErrored] = useState(false);
@@ -73,7 +86,10 @@ const columns = [
     cell: ({ row }) => (
       <div className="h-8 w-8">
         {row.original.image ? (
-          <EventImage src={row.original.image.trimEnd()} alt={row.original.title} />
+          <EventImage
+            src={row.original.image.trimEnd()}
+            alt={row.original.title}
+          />
         ) : (
           <div className="h-8 w-8 rounded-md bg-zinc-200 dark:bg-zinc-800" />
         )}
@@ -86,7 +102,11 @@ const columns = [
     enableSorting: false,
     cell: ({ row }) => (
       <span className="flex items-center gap-1.5">
-        {row.original.featured && <span className="text-yellow-500" title="Featured">&#9733;</span>}
+        {row.original.featured && (
+          <span className="text-yellow-500" title="Featured">
+            &#9733;
+          </span>
+        )}
         <a
           href={`https://polymarket.com/event/${row.original.slug}`}
           target="_blank"
@@ -133,9 +153,14 @@ const columns = [
     cell: (info) => {
       const tags = info.getValue();
       if (!tags?.length) return "\u2014";
-      const sorted = [...tags].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+      const sorted = [...tags].sort((a, b) =>
+        a.id.localeCompare(b.id, undefined, { numeric: true }),
+      );
       return (
-        <div className="flex gap-1 overflow-x-auto scrollbar-none" style={{ scrollbarWidth: "none" }}>
+        <div
+          className="flex gap-1 overflow-x-auto scrollbar-none"
+          style={{ scrollbarWidth: "none" }}
+        >
           {sorted.map((tag) => (
             <Tooltip key={tag.id}>
               <TooltipTrigger asChild>
@@ -180,8 +205,22 @@ const skeletonWidths: Record<string, string> = {
   series: "h-4 w-16",
 };
 
-
-export default function EventTable({ events, loading, error, page, hasMore, onNextPage, onPrevPage, onFirstPage, filters, onFiltersChange, sorting, onSortingChange, searchQuery, onSearchChange }: EventTableProps) {
+export default function EventTable({
+  events,
+  loading,
+  error,
+  page,
+  hasMore,
+  onNextPage,
+  onPrevPage,
+  onFirstPage,
+  filters,
+  onFiltersChange,
+  sorting,
+  onSortingChange,
+  searchQuery,
+  onSearchChange,
+}: EventTableProps) {
   const [tagInput, setTagInput] = useState("");
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -189,18 +228,24 @@ export default function EventTable({ events, loading, error, page, hasMore, onNe
   useEffect(() => {
     debounceRef.current = setTimeout(() => onSearchChange(localSearch), 300);
     return () => clearTimeout(debounceRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localSearch]);
 
   function addExcludedTag() {
     const id = tagInput.trim();
     if (!id || filters.excludedTags.some((t) => t.id === id)) return;
-    onFiltersChange({ ...filters, excludedTags: [...filters.excludedTags, { id, label: id }] });
+    onFiltersChange({
+      ...filters,
+      excludedTags: [...filters.excludedTags, { id, label: id }],
+    });
     setTagInput("");
   }
 
   function removeExcludedTag(id: string) {
-    onFiltersChange({ ...filters, excludedTags: filters.excludedTags.filter((t) => t.id !== id) });
+    onFiltersChange({
+      ...filters,
+      excludedTags: filters.excludedTags.filter((t) => t.id !== id),
+    });
   }
 
   const toolbar = (
@@ -210,7 +255,9 @@ export default function EventTable({ events, loading, error, page, hasMore, onNe
           <input
             type="checkbox"
             checked={filters.active}
-            onChange={(e) => onFiltersChange({ ...filters, active: e.target.checked })}
+            onChange={(e) =>
+              onFiltersChange({ ...filters, active: e.target.checked })
+            }
             className="rounded"
           />
           Active
@@ -219,7 +266,9 @@ export default function EventTable({ events, loading, error, page, hasMore, onNe
           <input
             type="checkbox"
             checked={filters.archived}
-            onChange={(e) => onFiltersChange({ ...filters, archived: e.target.checked })}
+            onChange={(e) =>
+              onFiltersChange({ ...filters, archived: e.target.checked })
+            }
             className="rounded"
           />
           Hide archived
@@ -228,7 +277,9 @@ export default function EventTable({ events, loading, error, page, hasMore, onNe
           <input
             type="checkbox"
             checked={filters.featured}
-            onChange={(e) => onFiltersChange({ ...filters, featured: e.target.checked })}
+            onChange={(e) =>
+              onFiltersChange({ ...filters, featured: e.target.checked })
+            }
             className="rounded"
           />
           Featured
@@ -239,7 +290,11 @@ export default function EventTable({ events, loading, error, page, hasMore, onNe
             <PopoverTrigger asChild>
               <button className="rounded-md border border-input px-2 py-1 text-left text-sm hover:bg-accent">
                 {filters.endDateMin
-                  ? filters.endDateMin.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                  ? filters.endDateMin.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
                   : "Any"}
               </button>
             </PopoverTrigger>
@@ -247,13 +302,17 @@ export default function EventTable({ events, loading, error, page, hasMore, onNe
               <Calendar
                 mode="single"
                 selected={filters.endDateMin}
-                onSelect={(date) => onFiltersChange({ ...filters, endDateMin: date })}
+                onSelect={(date) =>
+                  onFiltersChange({ ...filters, endDateMin: date })
+                }
               />
             </PopoverContent>
           </Popover>
           {filters.endDateMin && (
             <button
-              onClick={() => onFiltersChange({ ...filters, endDateMin: undefined })}
+              onClick={() =>
+                onFiltersChange({ ...filters, endDateMin: undefined })
+              }
               className="text-xs text-muted-foreground hover:text-foreground"
             >
               &times;
@@ -265,45 +324,33 @@ export default function EventTable({ events, loading, error, page, hasMore, onNe
           <input
             type="number"
             value={filters.volumeMin ?? ""}
-            onChange={(e) => onFiltersChange({ ...filters, volumeMin: e.target.value ? Number(e.target.value) : undefined })}
+            onChange={(e) =>
+              onFiltersChange({
+                ...filters,
+                volumeMin: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
             placeholder="Any"
             className="w-24 rounded-md border border-input px-2 py-1 text-sm"
           />
           {filters.volumeMin != null && (
             <button
-              onClick={() => onFiltersChange({ ...filters, volumeMin: undefined })}
+              onClick={() =>
+                onFiltersChange({ ...filters, volumeMin: undefined })
+              }
               className="text-xs text-muted-foreground hover:text-foreground"
             >
               &times;
             </button>
           )}
         </div>
-        <div className="ml-auto flex items-center gap-3">
-          <button
-            onClick={onFirstPage}
-            disabled={page === 0}
-            className="rounded-lg border border-black/[.08] px-3 py-1.5 text-sm disabled:opacity-30 dark:border-white/[.145]"
-          >
-            First
-          </button>
-          <button
-            onClick={onPrevPage}
-            disabled={page === 0}
-            className="rounded-lg border border-black/[.08] px-3 py-1.5 text-sm disabled:opacity-30 dark:border-white/[.145]"
-          >
-            Previous
-          </button>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            Page {page + 1}
-          </span>
-          <button
-            onClick={onNextPage}
-            disabled={!hasMore}
-            className="rounded-lg border border-black/[.08] px-3 py-1.5 text-sm disabled:opacity-30 dark:border-white/[.145]"
-          >
-            Next
-          </button>
-        </div>
+        <Pagination
+          page={page}
+          hasMore={hasMore}
+          onFirstPage={onFirstPage}
+          onPrevPage={onPrevPage}
+          onNextPage={onNextPage}
+        />
       </div>
       <div className="flex items-center gap-1.5">
         <span className="text-sm text-muted-foreground">Search</span>
@@ -343,7 +390,12 @@ export default function EventTable({ events, loading, error, page, hasMore, onNe
           type="text"
           value={tagInput}
           onChange={(e) => setTagInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addExcludedTag(); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addExcludedTag();
+            }
+          }}
           placeholder="Add tag ID"
           className="w-24 rounded-md border border-input px-2 py-0.5 text-xs"
         />

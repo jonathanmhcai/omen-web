@@ -1,32 +1,41 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AdminUser } from "../lib/types";
-import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
-import { useCookieString } from "./useCookieString";
+import { type SortingState } from "@tanstack/react-table";
+import { AdminUser } from "../../lib/types";
+import { API_BASE, SESSION_TOKEN_KEY } from "../../lib/constants";
+import { buildAdminQueryParams, type Filters } from "../../lib/admin-query";
+import { useCookieString } from "../useCookieString";
 
 interface UseAdminUsersOptions {
   limit?: number;
-  order?: string;
-  ascending?: boolean;
+  sorting?: SortingState;
+  filters?: Filters;
+  search?: string;
 }
 
 export function useAdminUsers({
   limit = 10,
-  order,
-  ascending,
+  sorting,
+  filters,
+  search,
 }: UseAdminUsersOptions = {}) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [total, setTotal] = useState<number | null>(null);
   const [sessionToken] = useCookieString(SESSION_TOKEN_KEY);
 
-  // Reset to first page when sort changes
+  // Stable serialized keys for useEffect deps
+  const sortKey = JSON.stringify(sorting);
+  const filterKey = JSON.stringify(filters);
+
+  // Reset to first page when sort/filter/search changes
   useEffect(() => {
     setPage(0);
-  }, [order, ascending]);
+  }, [sortKey, filterKey, search]);
 
   useEffect(() => {
     if (!sessionToken) {
@@ -36,14 +45,13 @@ export function useAdminUsers({
     setLoading(true);
     setError(null);
 
-    const params = new URLSearchParams({
-      limit: String(limit),
-      offset: String(page * limit),
+    const params = buildAdminQueryParams({
+      limit,
+      offset: page * limit,
+      sorting,
+      filters,
+      search,
     });
-    if (order) {
-      params.set("order", order);
-      params.set("ascending", String(ascending ?? false));
-    }
 
     fetch(`${API_BASE}/admin/users?${params}`, {
       headers: { Authorization: `Bearer ${sessionToken}` },
@@ -60,15 +68,26 @@ export function useAdminUsers({
       .then((body) => {
         setUsers(body.data);
         setHasMore(body.data.length === limit);
+        setTotal(body.total ?? null);
         setError(null);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [sessionToken, limit, page, order, ascending]);
+  }, [sessionToken, limit, page, sortKey, filterKey, search]);
 
   const nextPage = useCallback(() => setPage((p) => p + 1), []);
   const prevPage = useCallback(() => setPage((p) => Math.max(0, p - 1)), []);
   const firstPage = useCallback(() => setPage(0), []);
 
-  return { users, loading, error, page, hasMore, nextPage, prevPage, firstPage };
+  return {
+    users,
+    loading,
+    error,
+    page,
+    hasMore,
+    total,
+    nextPage,
+    prevPage,
+    firstPage,
+  };
 }
