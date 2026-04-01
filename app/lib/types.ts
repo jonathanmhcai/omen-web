@@ -103,3 +103,16 @@ export interface AdminPosition {
   market_title: string | null;
   market_end_date: string | null;
 }
+
+export interface AdminInviteCode {
+  id: string;
+  code: string;
+  max_uses: number;
+  uses_count: number;
+  archived: boolean;
+  bonus_usdc_atomic: string | null;
+  referrer_bonus_usdc_atomic: string | null;
+  referrer_email: string | null;
+  created_at: string;
+  updated_at: string;
+}

@@ -14,8 +14,9 @@ import { Loader } from "lucide-react";
 import Link from "next/link";
 
 const TABS = [
-  { label: "Positions", href: "/admin/positions" },
   { label: "Users", href: "/admin/users" },
+  { label: "Positions", href: "/admin/positions" },
+  { label: "Invite Codes", href: "/admin/invite-codes" },
   { label: "Events", href: "/admin/events" },
 ] as const;
 
@@ -41,6 +42,11 @@ export default function AdminLayout({
     setDarkMode(prefersDark);
     document.documentElement.classList.toggle("dark", prefersDark);
   }, []);
+
+  useEffect(() => {
+    const tab = TABS.find((t) => pathname.startsWith(t.href));
+    document.title = tab ? `${tab.label} - Omen Admin` : "Omen Admin";
+  }, [pathname]);
 
   function toggleDarkMode() {
     const next = !darkMode;
