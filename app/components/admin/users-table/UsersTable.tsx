@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { createColumnHelper, type SortingState } from "@tanstack/react-table";
 import { toast } from "sonner";
 import DataTable from "../data-table/DataTable";
@@ -200,7 +201,7 @@ const columns = [
 const skeletonWidths: Record<string, string> = {
   id: "h-4 w-14",
   privy_user_id: "h-4 w-20",
-  user: "h-4 w-28",
+  user: "h-4 w-24",
   email: "h-4 w-24",
   wallet_address: "h-4 w-24",
   usdc_balance: "h-4 w-16",
@@ -222,6 +223,8 @@ interface UsersTableProps {
   onFirstPage: () => void;
   sorting: SortingState;
   onSortingChange: (sorting: SortingState) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
 export default function UsersTable({
@@ -236,9 +239,32 @@ export default function UsersTable({
   onFirstPage,
   sorting,
   onSortingChange,
+  searchQuery,
+  onSearchChange,
 }: UsersTableProps) {
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "/" && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== "INPUT") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const toolbar = (
     <div className="flex items-center gap-3">
+      <input
+        ref={searchRef}
+        type="text"
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="Search users... (/)"
+        className="w-56 rounded-lg border border-black/[.08] px-3 py-1.5 text-sm placeholder:text-muted-foreground dark:border-white/[.145]"
+      />
       <Pagination
         page={page}
         hasMore={hasMore}

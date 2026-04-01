@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type SortingState } from "@tanstack/react-table";
 import UsersTable from "../../components/admin/users-table/UsersTable";
 import { useAdminUsers } from "../../hooks/admin/useAdminUsers";
@@ -9,6 +9,15 @@ export default function UsersPage() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "last_seen_at", desc: true },
   ]);
+  const [localSearch, setLocalSearch] = useState("");
+  const [search, setSearch] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    debounceRef.current = setTimeout(() => setSearch(localSearch), 150);
+    return () => clearTimeout(debounceRef.current);
+  }, [localSearch]);
+
   const {
     users,
     loading,
@@ -19,7 +28,7 @@ export default function UsersPage() {
     nextPage,
     prevPage,
     firstPage,
-  } = useAdminUsers({ sorting, limit: 15 });
+  } = useAdminUsers({ sorting, search: search || undefined, limit: 15 });
 
   return (
     <UsersTable
@@ -34,6 +43,8 @@ export default function UsersPage() {
       onFirstPage={firstPage}
       sorting={sorting}
       onSortingChange={setSorting}
+      searchQuery={localSearch}
+      onSearchChange={setLocalSearch}
     />
   );
 }
