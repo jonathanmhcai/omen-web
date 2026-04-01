@@ -74,7 +74,12 @@ const columns = [
     size: 60,
     cell: (info) => {
       const row = info.row.original;
-      return `${row.uses_count}/${row.max_uses}`;
+      const full = row.uses_count >= row.max_uses;
+      return (
+        <span className={full ? "text-muted-foreground" : ""}>
+          {row.uses_count}/{row.max_uses}{full ? " (full)" : ""}
+        </span>
+      );
     },
   }),
   columnHelper.accessor("bonus_usdc_atomic", {
