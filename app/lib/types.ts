@@ -104,6 +104,26 @@ export interface AdminPosition {
   market_end_date: string | null;
 }
 
+export interface AdminActivity {
+  id: string;
+  user_id: string;
+  type: string;
+  side: string | null;
+  timestamp: string;
+  title: string | null;
+  outcome: string | null;
+  size: number | null;
+  price: number | null;
+  usdc_size: number | null;
+  transaction_hash: string;
+  asset: string;
+  condition_id: string | null;
+  username: string | null;
+  display_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AdminInviteCode {
   id: string;
   code: string;

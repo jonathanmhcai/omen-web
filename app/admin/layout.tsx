@@ -16,6 +16,7 @@ import Link from "next/link";
 const TABS = [
   { label: "Users", href: "/admin/users" },
   { label: "Positions", href: "/admin/positions" },
+  { label: "Activity", href: "/admin/activity" },
   { label: "Invite Codes", href: "/admin/invite-codes" },
   { label: "Events", href: "/admin/events" },
 ] as const;
