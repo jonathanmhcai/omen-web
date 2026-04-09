@@ -127,33 +127,40 @@ export default function UserDetailPage() {
         <Field label="Invite Code">{user.invite_code ?? "\u2014"}</Field>
         <Field label="Push Notifications">
           {user.has_push_token ? (
-            <span className="flex gap-3">
-              <span>
-                Resolution:{" "}
-                <span
-                  className={
-                    user.push_enabled ? "text-green-500" : "text-red-400"
-                  }
-                >
-                  {user.push_enabled ? "on" : "off"}
+            <span className="flex gap-3 flex-wrap">
+              {([
+                ["enabled", user.push_enabled],
+                ["social", user.push_social],
+                ["trades", user.push_trades],
+                ["subscriptions", user.push_subscriptions],
+                ["resolutions", user.push_resolutions],
+              ] as const).map(([label, value]) => (
+                <span key={label} className="flex items-center gap-1">
+                  <span className={value ? "text-green-500" : "text-red-400"}>
+                    {value ? "✓" : "✗"}
+                  </span>
+                  <span>{label}</span>
                 </span>
-              </span>
-              <span>
-                Following:{" "}
-                <span
-                  className={
-                    user.following_orders_enabled
-                      ? "text-green-500"
-                      : "text-red-400"
-                  }
-                >
-                  {user.following_orders_enabled ? "on" : "off"}
-                </span>
-              </span>
+              ))}
             </span>
           ) : (
-            "\u2014"
+            "No push token"
           )}
+        </Field>
+        <Field label="Onboarding">
+          <span className="flex gap-3">
+            {(user.all_onboarding_steps ?? []).map((step) => {
+              const completed = user.completed_onboarding_steps.includes(step.key);
+              return (
+                <span key={step.key} className="flex items-center gap-1">
+                  {completed && (
+                    <span className="text-green-500">✓</span>
+                  )}
+                  <span>{step.key}</span>
+                </span>
+              );
+            })}
+          </span>
         </Field>
       </div>
       <h3 className="mb-3 mt-8 text-base font-semibold">Positions</h3>

@@ -155,45 +155,13 @@ const columns = [
   columnHelper.display({
     id: "notifications",
     header: "Notifs",
-    size: 90,
+    size: 60,
     enableSorting: false,
     cell: (info) => {
       const row = info.row.original;
       if (!row.has_push_token)
         return <span className="text-muted-foreground">{"\u2014"}</span>;
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex gap-1">
-              <span
-                className={row.push_enabled ? "text-green-500" : "text-red-400"}
-                title="Market resolution"
-              >
-                {row.push_enabled ? "\u2713" : "\u2717"}
-              </span>
-              <span
-                className={
-                  row.following_orders_enabled
-                    ? "text-green-500"
-                    : "text-red-400"
-                }
-                title="Following orders"
-              >
-                {row.following_orders_enabled ? "\u2713" : "\u2717"}
-              </span>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="text-xs">
-              <div>Push token: active</div>
-              <div>Market resolution: {row.push_enabled ? "on" : "off"}</div>
-              <div>
-                Following orders: {row.following_orders_enabled ? "on" : "off"}
-              </div>
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      );
+      return <span className="text-green-500">{"\u2713"}</span>;
     },
   }),
 ];

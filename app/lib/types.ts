@@ -81,7 +81,12 @@ export interface AdminUser {
   invite_code: string | null;
   has_push_token: boolean;
   push_enabled: boolean;
-  following_orders_enabled: boolean;
+  push_social: boolean;
+  push_trades: boolean;
+  push_subscriptions: boolean;
+  push_resolutions: boolean;
+  completed_onboarding_steps: string[];
+  all_onboarding_steps?: { key: string; required: boolean }[];
 }
 
 export interface AdminPosition {
