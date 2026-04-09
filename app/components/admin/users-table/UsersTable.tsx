@@ -164,6 +164,29 @@ const columns = [
       return <span className="text-green-500">{"\u2713"}</span>;
     },
   }),
+  columnHelper.display({
+    id: "onboarding",
+    header: "Onboarding",
+    size: 80,
+    enableSorting: false,
+    cell: (info) => {
+      const row = info.row.original;
+      const steps = ["invite_code", "profile", "push_notifications"];
+      const completed = row.completed_onboarding_steps ?? [];
+      return (
+        <span className="flex gap-1">
+          {steps.map((step) => (
+            <span
+              key={step}
+              className={completed.includes(step) ? "text-green-500" : "text-muted-foreground"}
+            >
+              {completed.includes(step) ? "✓" : "·"}
+            </span>
+          ))}
+        </span>
+      );
+    },
+  }),
 ];
 
 const skeletonWidths: Record<string, string> = {
@@ -177,6 +200,7 @@ const skeletonWidths: Record<string, string> = {
   created_at: "h-4 w-20",
   last_seen_at: "h-4 w-20",
   notifications: "h-4 w-12",
+  onboarding: "h-4 w-20",
 };
 
 interface UsersTableProps {
