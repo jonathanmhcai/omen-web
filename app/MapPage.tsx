@@ -39,7 +39,7 @@ const COMPONENTS = {
   hotMarkets: HotMarketsPanel,
 };
 
-export default function MapPage({ demoMode = false }: { demoMode?: boolean } = {}) {
+export default function MapPage() {
   const apiRef = useRef<DockviewApi | null>(null);
   const tradePingsRef = useRef<TradePing[]>([]);
   const flyToLocationRef = useRef<((slug: string) => void) | null>(null);
@@ -376,34 +376,23 @@ export default function MapPage({ demoMode = false }: { demoMode?: boolean } = {
 
   // Effect A (camera): fly immediately when loading finishes — no data dependency
   useEffect(() => {
-    if (demoMode) return;
     if (didAutoFly.current || loading) return;
     if (window.innerWidth < 640) return;
     didAutoFly.current = true;
     if (flyToLocationRef.current) {
       flyToLocationRef.current(autoSlug);
     }
-  }, [loading, demoMode]);
+  }, [loading]);
 
   // Effect B (panel): open events panel once data is ready
   useEffect(() => {
-    if (demoMode) return;
     if (didAutoPanel.current || loading || !apiRef.current) return;
     if (eventsByLocation.size === 0) return;
     if (window.innerWidth < 640) return;
     didAutoPanel.current = true;
     const events = eventsByLocation.get(autoSlug) ?? [];
     onLocationSelect(autoSlug, events);
-  }, [loading, eventsByLocation, onLocationSelect, demoMode]);
-
-  // Demo mode: keep the globe spinning forever
-  useEffect(() => {
-    if (!demoMode) return;
-    const t = setTimeout(() => {
-      window.dispatchEvent(new Event("toggle-spin"));
-    }, 200);
-    return () => clearTimeout(t);
-  }, [demoMode]);
+  }, [loading, eventsByLocation, onLocationSelect]);
 
   // --- Context value ---
 

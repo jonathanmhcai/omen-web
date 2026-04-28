@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import ComingSoon from "./ComingSoon";
 
-const MapPage = dynamic(() => import("./MapPage"), { ssr: false });
+const DemoMap = dynamic(() => import("./DemoMap"), { ssr: false });
 
 export default function Page() {
   return (
@@ -12,7 +12,7 @@ export default function Page() {
         aria-hidden
         className="pointer-events-none fixed inset-0 z-0 opacity-55"
       >
-        <MapPage demoMode />
+        <DemoMap />
       </div>
       <div className="relative z-10">
         <ComingSoon />
