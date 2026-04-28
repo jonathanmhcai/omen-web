@@ -8,13 +8,15 @@ import SetupModal from "./components/SetupModal";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("dark");
+  });
 
   useEffect(() => {
-    const check = () =>
-      setDarkMode(document.documentElement.classList.contains("dark"));
-    check();
-    const observer = new MutationObserver(check);
+    const observer = new MutationObserver(() =>
+      setDarkMode(document.documentElement.classList.contains("dark"))
+    );
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
