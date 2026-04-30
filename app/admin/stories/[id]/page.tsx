@@ -70,7 +70,16 @@ function formatCents(value: string | null): string {
   if (!Number.isFinite(n)) return value;
   // Polymarket prices are in [0, 1] = probability. Display as cents
   // — "45¢" reads more naturally than "0.450" for traders.
-  return `${Math.round(n * 100)}¢`;
+  //
+  // Sub-1-cent prices need decimal precision: long-tail prediction
+  // markets (e.g. "DHS shutdown ends in July 2026" after the news
+  // already broke that it's ending now) trade at 0.1¢–0.5¢ and
+  // rounding them to "0¢" hides real signal.
+  const cents = n * 100;
+  if (Math.abs(cents) > 0 && Math.abs(cents) < 1) {
+    return `${cents.toFixed(1)}¢`;
+  }
+  return `${Math.round(cents)}¢`;
 }
 
 function formatVolume(value: string | null): string {
