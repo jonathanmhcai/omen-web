@@ -119,7 +119,7 @@ export default function AdminLayout({
           <div className="ml-auto">
             <Popover>
               <PopoverTrigger asChild>
-                <button className="rounded-md p-1.5 text-zinc-500 hover:text-foreground dark:text-zinc-400">
+                <button className="rounded-md p-3 text-zinc-500 hover:text-foreground dark:text-zinc-400">
                   <svg
                     width="20"
                     height="20"
