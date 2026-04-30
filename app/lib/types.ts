@@ -214,6 +214,8 @@ export interface AdminStoryMarket {
   closed: boolean | null;
   archived: boolean | null;
   volume_num: string | null;
+  /** Current last-trade price (up to ~10min stale per indexer cadence). */
+  current_price: string | null;
   /** Snapshots at first match — preserved across re-matches. */
   price_at_match: string | null;
   bid_at_match: string | null;

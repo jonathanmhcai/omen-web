@@ -64,6 +64,15 @@ function formatSim(sim: number | null): string {
   return sim.toFixed(3);
 }
 
+function formatCents(value: string | null): string {
+  if (value == null) return "—";
+  const n = parseFloat(value);
+  if (!Number.isFinite(n)) return value;
+  // Polymarket prices are in [0, 1] = probability. Display as cents
+  // — "45¢" reads more naturally than "0.450" for traders.
+  return `${Math.round(n * 100)}¢`;
+}
+
 function formatVolume(value: string | null): string {
   if (!value) return "—";
   const n = parseFloat(value);
@@ -282,6 +291,24 @@ const marketColumns = [
     size: 110,
     cell: (info) => dateCell(info.getValue()),
   }),
+  marketColumnHelper.accessor("matched_at", {
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Matched
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Time of first match between this story and this market — the
+          "alert moment" for backtest purposes. Preserved across
+          re-matches.
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 90,
+    cell: (info) => dateCell(info.getValue()),
+  }),
   marketColumnHelper.accessor("price_at_match", {
     header: () => (
       <Tooltip>
@@ -292,21 +319,67 @@ const marketColumns = [
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">
           Last-trade price at the moment this market was first linked to the
-          story (preserved across re-matches). Used to backtest whether
-          matched markets moved after the alert.
+          story (preserved across re-matches). Pair with Current to compute
+          the post-match move.
         </TooltipContent>
       </Tooltip>
     ),
-    size: 90,
+    size: 80,
+    cell: (info) => formatCents(info.getValue()),
+  }),
+  marketColumnHelper.accessor("current_price", {
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Current
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Latest last-trade price from the polymarket_markets table.
+          Up to ~10 minutes stale per the indexer&apos;s sync cadence.
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 80,
+    cell: (info) => formatCents(info.getValue()),
+  }),
+  marketColumnHelper.display({
+    id: "delta",
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Δ
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Current price minus match price, in cents. Positive = market
+          moved toward YES after we matched the story; negative = moved
+          toward NO. The headline backtest signal.
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 70,
+    enableSorting: false,
     cell: (info) => {
-      const v = info.getValue();
-      if (v == null) return "—";
-      const n = parseFloat(v);
-      if (!Number.isFinite(n)) return v;
-      // Polymarket prices are in [0, 1] = probability. Display as cents
-      // — "45¢" reads more naturally than "0.450" for traders.
-      const cents = Math.round(n * 100);
-      return `${cents}¢`;
+      const m = info.row.original;
+      if (m.price_at_match == null || m.current_price == null) return "—";
+      const matchN = parseFloat(m.price_at_match);
+      const currN = parseFloat(m.current_price);
+      if (!Number.isFinite(matchN) || !Number.isFinite(currN)) return "—";
+      const diffCents = Math.round((currN - matchN) * 100);
+      if (diffCents === 0) return <span className="text-muted-foreground">0¢</span>;
+      const cls =
+        diffCents > 0
+          ? "text-green-600 dark:text-green-400"
+          : "text-red-600 dark:text-red-400";
+      return (
+        <span className={cls}>
+          {diffCents > 0 ? "+" : ""}
+          {diffCents}¢
+        </span>
+      );
     },
   }),
   marketColumnHelper.accessor("volume_num", {
@@ -321,7 +394,10 @@ const marketSkeleton: Record<string, string> = {
   parent_event_title: "h-4 w-40",
   status: "h-4 w-12",
   end_date: "h-4 w-20",
+  matched_at: "h-4 w-20",
   price_at_match: "h-4 w-12",
+  current_price: "h-4 w-12",
+  delta: "h-4 w-12",
   volume_num: "h-4 w-14",
 };
 
