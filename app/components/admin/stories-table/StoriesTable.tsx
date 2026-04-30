@@ -43,18 +43,18 @@ function dateCell(value: string | null) {
 const columns = [
   columnHelper.accessor("latest_media_at", {
     header: "Latest",
-    size: 70,
+    size: 60,
     cell: (info) => dateCell(info.getValue()),
   }),
   columnHelper.accessor("created_at", {
     header: "Created",
-    size: 70,
+    size: 60,
     cell: (info) => dateCell(info.getValue()),
   }),
   columnHelper.display({
     id: "headline",
     header: "Headline",
-    size: 520,
+    size: 720,
     enableSorting: false,
     cell: (info) => {
       const { id, headline } = info.row.original;
@@ -75,32 +75,32 @@ const columns = [
   }),
   columnHelper.accessor("status", {
     header: "Status",
-    size: 90,
+    size: 80,
     cell: (info) => statusBadge(info.getValue()),
   }),
   columnHelper.accessor("promoted_at", {
     header: "Promoted",
-    size: 90,
+    size: 75,
     cell: (info) => dateCell(info.getValue()),
   }),
   columnHelper.accessor("media_count", {
     header: "Tweets",
-    size: 70,
+    size: 60,
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("distinct_author_count", {
     header: "Authors",
-    size: 70,
+    size: 60,
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("linked_event_count", {
     header: "Events",
-    size: 70,
+    size: 60,
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("linked_market_count", {
     header: "Markets",
-    size: 70,
+    size: 60,
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("top_event_similarity", {
@@ -118,7 +118,7 @@ const columns = [
         </TooltipContent>
       </Tooltip>
     ),
-    size: 90,
+    size: 80,
     cell: (info) => {
       const sim = info.getValue();
       const title = info.row.original.top_event_title;
@@ -149,7 +149,7 @@ const columns = [
         </TooltipContent>
       </Tooltip>
     ),
-    size: 90,
+    size: 80,
     cell: (info) => formatSim(info.getValue()),
   }),
 ];
