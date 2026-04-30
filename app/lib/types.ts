@@ -221,6 +221,20 @@ export interface AdminStoryDetail {
   markets: AdminStoryMarket[];
 }
 
+export interface AdminDeposit {
+  id: string;
+  user_id: string;
+  username: string | null;
+  display_name: string | null;
+  provider: string;
+  amount_usd: string;
+  currency: string;
+  status: string;
+  created_at: string;
+  settled_at: string | null;
+  failure_reason: string | null;
+}
+
 export type AdminStatsWindow = "24h" | "7d" | "30d" | "all";
 
 export interface AdminStats {

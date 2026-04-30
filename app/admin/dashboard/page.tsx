@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { type SortingState } from "@tanstack/react-table";
 import MetricTile from "../../components/admin/dashboard/MetricTile";
+import DepositsTable from "../../components/admin/dashboard/DepositsTable";
 import { useAdminStats } from "../../hooks/admin/useAdminStats";
+import { useAdminDeposits } from "../../hooks/admin/useAdminDeposits";
 import { AdminStatsWindow } from "../../lib/types";
 import { formatNumber } from "../../lib/utils";
 
@@ -42,6 +45,21 @@ function deltaPercentString(
 export default function DashboardPage() {
   const [window, setWindow] = useState<AdminStatsWindow>("7d");
   const { stats, loading, error } = useAdminStats(window);
+
+  const [depositSorting, setDepositSorting] = useState<SortingState>([
+    { id: "settled_at", desc: true },
+  ]);
+  const {
+    deposits,
+    loading: depositsLoading,
+    error: depositsError,
+    page: depositsPage,
+    hasMore: depositsHasMore,
+    total: depositsTotal,
+    nextPage: depositsNextPage,
+    prevPage: depositsPrevPage,
+    firstPage: depositsFirstPage,
+  } = useAdminDeposits({ sorting: depositSorting, limit: 15 });
 
   if (error) {
     return (
@@ -133,6 +151,22 @@ export default function DashboardPage() {
               : null
           }
           loading={loading}
+        />
+      </div>
+
+      <div className="pt-4">
+        <DepositsTable
+          deposits={deposits}
+          loading={depositsLoading}
+          error={depositsError}
+          page={depositsPage}
+          hasMore={depositsHasMore}
+          total={depositsTotal}
+          onNextPage={depositsNextPage}
+          onPrevPage={depositsPrevPage}
+          onFirstPage={depositsFirstPage}
+          sorting={depositSorting}
+          onSortingChange={setDepositSorting}
         />
       </div>
     </div>
