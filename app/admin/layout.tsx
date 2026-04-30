@@ -102,9 +102,13 @@ export default function AdminLayout({
     return (
       <div className="min-h-screen">
         <nav className="flex items-end border-b border-border px-6">
-          <span className="mr-6 pb-3 pt-4 font-semibold leading-none" style={{ fontSize: "24px" }}>
+          <Link
+            href="/admin"
+            className="mr-6 pb-3 pt-4 font-semibold leading-none"
+            style={{ fontSize: "24px" }}
+          >
             Omen Admin
-          </span>
+          </Link>
           <div className="flex gap-1">
             {TABS.map((tab) => (
               <Link
