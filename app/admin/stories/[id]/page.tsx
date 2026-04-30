@@ -303,7 +303,10 @@ const marketColumns = [
       if (v == null) return "—";
       const n = parseFloat(v);
       if (!Number.isFinite(n)) return v;
-      return n.toFixed(3);
+      // Polymarket prices are in [0, 1] = probability. Display as cents
+      // — "45¢" reads more naturally than "0.450" for traders.
+      const cents = Math.round(n * 100);
+      return `${cents}¢`;
     },
   }),
   marketColumnHelper.accessor("volume_num", {
