@@ -220,3 +220,19 @@ export interface AdminStoryDetail {
   events: AdminStoryEvent[];
   markets: AdminStoryMarket[];
 }
+
+export type AdminStatsWindow = "24h" | "7d" | "30d" | "all";
+
+export interface AdminStats {
+  window: AdminStatsWindow;
+  totalCustodiedUsd: string;
+  totalCustodiedUsdPrior: string | null;
+  netInflowUsd: string;
+  netInflowUsdPrior: string | null;
+  tradeVolumeUsd: string;
+  tradeVolumeUsdPrior: string | null;
+  activeTraders: number;
+  activeTradersPrior: number | null;
+  newFirstTimeTraders: number;
+  newFirstTimeTradersPrior: number | null;
+}

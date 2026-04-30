@@ -14,6 +14,7 @@ import { Loader } from "lucide-react";
 import Link from "next/link";
 
 const TABS = [
+  { label: "Dashboard", href: "/admin/dashboard" },
   { label: "Users", href: "/admin/users" },
   { label: "Positions", href: "/admin/positions" },
   { label: "Activity", href: "/admin/activity" },
