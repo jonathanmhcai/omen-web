@@ -282,6 +282,30 @@ const marketColumns = [
     size: 110,
     cell: (info) => dateCell(info.getValue()),
   }),
+  marketColumnHelper.accessor("price_at_match", {
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Match price
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Last-trade price at the moment this market was first linked to the
+          story (preserved across re-matches). Used to backtest whether
+          matched markets moved after the alert.
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 90,
+    cell: (info) => {
+      const v = info.getValue();
+      if (v == null) return "—";
+      const n = parseFloat(v);
+      if (!Number.isFinite(n)) return v;
+      return n.toFixed(3);
+    },
+  }),
   marketColumnHelper.accessor("volume_num", {
     header: "Volume",
     size: 90,
@@ -294,6 +318,7 @@ const marketSkeleton: Record<string, string> = {
   parent_event_title: "h-4 w-40",
   status: "h-4 w-12",
   end_date: "h-4 w-20",
+  price_at_match: "h-4 w-12",
   volume_num: "h-4 w-14",
 };
 

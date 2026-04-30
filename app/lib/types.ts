@@ -195,6 +195,9 @@ export interface AdminStoryEvent {
   closed: boolean | null;
   archived: boolean | null;
   volume_24hr: string | null;
+  /** 24h volume snapshotted at first match. Null on rows matched before
+   *  the snapshot column was added. */
+  volume_24hr_at_match: string | null;
   matched_at: string;
 }
 
@@ -211,6 +214,11 @@ export interface AdminStoryMarket {
   closed: boolean | null;
   archived: boolean | null;
   volume_num: string | null;
+  /** Snapshots at first match — preserved across re-matches. */
+  price_at_match: string | null;
+  bid_at_match: string | null;
+  ask_at_match: string | null;
+  volume_24hr_at_match: string | null;
   matched_at: string;
 }
 
