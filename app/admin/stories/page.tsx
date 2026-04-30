@@ -12,9 +12,7 @@ export default function StoriesPage() {
   ]);
   const [localSearch, setLocalSearch] = useState("");
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "candidate" | "active"
-  >("active");
+  const [activeOnly, setActiveOnly] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -23,9 +21,9 @@ export default function StoriesPage() {
   }, [localSearch]);
 
   const filters: Filters | undefined = useMemo(() => {
-    if (statusFilter === "all") return undefined;
-    return { status: statusFilter };
-  }, [statusFilter]);
+    if (!activeOnly) return undefined;
+    return { status: "active" };
+  }, [activeOnly]);
 
   const {
     stories,
@@ -59,8 +57,8 @@ export default function StoriesPage() {
       onSortingChange={setSorting}
       searchQuery={localSearch}
       onSearchChange={setLocalSearch}
-      statusFilter={statusFilter}
-      onStatusFilterChange={setStatusFilter}
+      activeOnly={activeOnly}
+      onActiveOnlyChange={setActiveOnly}
     />
   );
 }

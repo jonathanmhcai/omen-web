@@ -43,18 +43,18 @@ function dateCell(value: string | null) {
 const columns = [
   columnHelper.accessor("latest_media_at", {
     header: "Latest",
-    size: 90,
+    size: 70,
     cell: (info) => dateCell(info.getValue()),
   }),
   columnHelper.accessor("created_at", {
     header: "Created",
-    size: 90,
+    size: 70,
     cell: (info) => dateCell(info.getValue()),
   }),
   columnHelper.display({
     id: "headline",
     header: "Headline",
-    size: 360,
+    size: 520,
     enableSorting: false,
     cell: (info) => {
       const { id, headline } = info.row.original;
@@ -63,7 +63,7 @@ const columns = [
           <TooltipTrigger asChild>
             <Link
               href={`/admin/stories/${id}`}
-              className="block max-w-[340px] truncate hover:underline"
+              className="block w-full truncate hover:underline"
             >
               {headline}
             </Link>
@@ -182,8 +182,8 @@ interface StoriesTableProps {
   onSortingChange: (sorting: SortingState) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  statusFilter: "all" | "candidate" | "active";
-  onStatusFilterChange: (s: "all" | "candidate" | "active") => void;
+  activeOnly: boolean;
+  onActiveOnlyChange: (v: boolean) => void;
 }
 
 export default function StoriesTable({
@@ -200,8 +200,8 @@ export default function StoriesTable({
   onSortingChange,
   searchQuery,
   onSearchChange,
-  statusFilter,
-  onStatusFilterChange,
+  activeOnly,
+  onActiveOnlyChange,
 }: StoriesTableProps) {
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -231,19 +231,14 @@ export default function StoriesTable({
         placeholder="Search headlines... (/)"
         className="w-56 rounded-lg border border-black/[.08] px-3 py-1.5 text-sm placeholder:text-muted-foreground dark:border-white/[.145]"
       />
-      <select
-        value={statusFilter}
-        onChange={(e) =>
-          onStatusFilterChange(
-            e.target.value as "all" | "candidate" | "active"
-          )
-        }
-        className="rounded-lg border border-black/[.08] bg-transparent px-3 py-1.5 text-sm dark:border-white/[.145]"
-      >
-        <option value="all">All status</option>
-        <option value="active">Active only</option>
-        <option value="candidate">Candidate only</option>
-      </select>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={activeOnly}
+          onChange={(e) => onActiveOnlyChange(e.target.checked)}
+        />
+        Active only
+      </label>
       <Pagination
         page={page}
         hasMore={hasMore}
