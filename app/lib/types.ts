@@ -141,3 +141,82 @@ export interface AdminInviteCode {
   created_at: string;
   updated_at: string;
 }
+
+export interface AdminStory {
+  id: string;
+  status: "candidate" | "active";
+  headline: string;
+  media_count: number;
+  distinct_author_count: number;
+  linked_event_count: number;
+  linked_market_count: number;
+  top_event_similarity: number | null;
+  top_event_title: string | null;
+  avg_join_similarity: number | null;
+  latest_media_at: string;
+  promoted_at: string | null;
+  created_at: string;
+}
+
+export interface AdminStoryDetailStory {
+  id: string;
+  status: "candidate" | "active";
+  headline: string;
+  media_count: number;
+  distinct_author_count: number;
+  latest_media_at: string;
+  promoted_at: string | null;
+  created_at: string;
+  updated_at: string;
+  centroid_model: string | null;
+  centroid_embedded_at: string | null;
+}
+
+export interface AdminStoryTweet {
+  story_tweet_id: string;
+  twitter_event_id: string;
+  tweet_id: string;
+  author_handle: string | null;
+  effective_author_id: string | null;
+  similarity: number | null;
+  posted_at: string | null;
+  body: string;
+  joined_at: string;
+}
+
+export interface AdminStoryEvent {
+  link_id: string;
+  polymarket_event_id: string;
+  polymarket_id: string;
+  slug: string;
+  title: string | null;
+  similarity: number;
+  end_date: string | null;
+  closed: boolean | null;
+  archived: boolean | null;
+  volume_24hr: string | null;
+  matched_at: string;
+}
+
+export interface AdminStoryMarket {
+  link_id: string;
+  polymarket_market_id: string;
+  polymarket_id: string;
+  slug: string;
+  question: string | null;
+  parent_event_title: string | null;
+  parent_event_slug: string | null;
+  similarity: number;
+  end_date: string | null;
+  closed: boolean | null;
+  archived: boolean | null;
+  volume_num: string | null;
+  matched_at: string;
+}
+
+export interface AdminStoryDetail {
+  story: AdminStoryDetailStory;
+  tweets: AdminStoryTweet[];
+  events: AdminStoryEvent[];
+  markets: AdminStoryMarket[];
+}

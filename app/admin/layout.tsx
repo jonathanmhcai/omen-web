@@ -19,6 +19,7 @@ const TABS = [
   { label: "Activity", href: "/admin/activity" },
   { label: "Invite Codes", href: "/admin/invite-codes" },
   { label: "Events", href: "/admin/events" },
+  { label: "Stories", href: "/admin/stories" },
 ] as const;
 
 export default function AdminLayout({
