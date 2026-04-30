@@ -291,94 +291,77 @@ const marketColumns = [
     size: 110,
     cell: (info) => dateCell(info.getValue()),
   }),
-  marketColumnHelper.accessor("matched_at", {
-    header: () => (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="underline decoration-dotted underline-offset-2">
-            Matched
-          </span>
-        </TooltipTrigger>
-        <TooltipContent className="max-w-xs">
-          Time of first match between this story and this market — the
-          "alert moment" for backtest purposes. Preserved across
-          re-matches.
-        </TooltipContent>
-      </Tooltip>
-    ),
-    size: 90,
-    cell: (info) => dateCell(info.getValue()),
-  }),
-  marketColumnHelper.accessor("price_at_match", {
-    header: () => (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="underline decoration-dotted underline-offset-2">
-            Match price
-          </span>
-        </TooltipTrigger>
-        <TooltipContent className="max-w-xs">
-          Last-trade price at the moment this market was first linked to the
-          story (preserved across re-matches). Pair with Current to compute
-          the post-match move.
-        </TooltipContent>
-      </Tooltip>
-    ),
-    size: 80,
-    cell: (info) => formatCents(info.getValue()),
-  }),
-  marketColumnHelper.accessor("current_price", {
-    header: () => (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="underline decoration-dotted underline-offset-2">
-            Current
-          </span>
-        </TooltipTrigger>
-        <TooltipContent className="max-w-xs">
-          Latest last-trade price from the polymarket_markets table.
-          Up to ~10 minutes stale per the indexer&apos;s sync cadence.
-        </TooltipContent>
-      </Tooltip>
-    ),
-    size: 80,
-    cell: (info) => formatCents(info.getValue()),
-  }),
   marketColumnHelper.display({
-    id: "delta",
+    id: "move",
     header: () => (
       <Tooltip>
         <TooltipTrigger asChild>
           <span className="underline decoration-dotted underline-offset-2">
-            Δ
+            Move
           </span>
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">
-          Current price minus match price, in cents. Positive = market
-          moved toward YES after we matched the story; negative = moved
-          toward NO. The headline backtest signal.
+          Price at first match → current last-trade price, with the cents
+          delta colored. The headline backtest signal: did the market
+          move after we linked it to this story? Hover the cell for
+          match time + current-price staleness note.
         </TooltipContent>
       </Tooltip>
     ),
-    size: 70,
+    size: 200,
     enableSorting: false,
     cell: (info) => {
       const m = info.row.original;
-      if (m.price_at_match == null || m.current_price == null) return "—";
-      const matchN = parseFloat(m.price_at_match);
-      const currN = parseFloat(m.current_price);
-      if (!Number.isFinite(matchN) || !Number.isFinite(currN)) return "—";
-      const diffCents = Math.round((currN - matchN) * 100);
-      if (diffCents === 0) return <span className="text-muted-foreground">0¢</span>;
-      const cls =
-        diffCents > 0
-          ? "text-green-600 dark:text-green-400"
-          : "text-red-600 dark:text-red-400";
-      return (
-        <span className={cls}>
-          {diffCents > 0 ? "+" : ""}
-          {diffCents}¢
+      const matchStr = formatCents(m.price_at_match);
+      const currStr = formatCents(m.current_price);
+      const matchN = m.price_at_match != null ? parseFloat(m.price_at_match) : null;
+      const currN = m.current_price != null ? parseFloat(m.current_price) : null;
+
+      let diffEl: React.ReactNode = null;
+      if (
+        matchN != null &&
+        currN != null &&
+        Number.isFinite(matchN) &&
+        Number.isFinite(currN)
+      ) {
+        const diffCents = Math.round((currN - matchN) * 100);
+        if (diffCents === 0) {
+          diffEl = <span className="ml-1 text-muted-foreground">0¢</span>;
+        } else {
+          const cls =
+            diffCents > 0
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400";
+          diffEl = (
+            <span className={`ml-1 ${cls}`}>
+              {diffCents > 0 ? "+" : ""}
+              {diffCents}¢
+            </span>
+          );
+        }
+      }
+
+      const inner = (
+        <span className="whitespace-nowrap">
+          {matchStr}
+          <span className="mx-1 text-muted-foreground">→</span>
+          {currStr}
+          {diffEl}
         </span>
+      );
+
+      // Hover for match time + staleness context.
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>{inner}</span>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-sm">
+            Matched: {formatExactDate(m.matched_at)}
+            <br />
+            Current price is up to ~10 min stale per indexer sync cadence.
+          </TooltipContent>
+        </Tooltip>
       );
     },
   }),
@@ -394,10 +377,7 @@ const marketSkeleton: Record<string, string> = {
   parent_event_title: "h-4 w-40",
   status: "h-4 w-12",
   end_date: "h-4 w-20",
-  matched_at: "h-4 w-20",
-  price_at_match: "h-4 w-12",
-  current_price: "h-4 w-12",
-  delta: "h-4 w-12",
+  move: "h-4 w-32",
   volume_num: "h-4 w-14",
 };
 
