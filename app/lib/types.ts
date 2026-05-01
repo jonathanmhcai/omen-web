@@ -78,6 +78,10 @@ export interface AdminUser {
   wallet_address: string | null;
   last_seen_at: string;
   usdc_balance: string;
+  /** Live USDC.e balance. Populated only by the user-detail endpoint. */
+  usdce_balance: string | null;
+  /** Live pUSD balance. Populated only by the user-detail endpoint. */
+  pusd_balance: string | null;
   invite_code: string | null;
   has_push_token: boolean;
   push_enabled: boolean;

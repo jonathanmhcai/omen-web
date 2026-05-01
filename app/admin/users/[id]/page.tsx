@@ -115,9 +115,14 @@ export default function UserDetailPage() {
             "\u2014"
           )}
         </Field>
-        <Field label="USDC Balance">
-          {user.usdc_balance
-            ? `$${parseFloat(user.usdc_balance).toFixed(2)}`
+        <Field label="USDC.e Balance">
+          {user.usdce_balance != null
+            ? `$${parseFloat(user.usdce_balance).toFixed(2)}`
+            : "\u2014"}
+        </Field>
+        <Field label="pUSD Balance">
+          {user.pusd_balance != null
+            ? `$${parseFloat(user.pusd_balance).toFixed(2)}`
             : "\u2014"}
         </Field>
         <Field label="Created">{formatExactDate(user.created_at)}</Field>
