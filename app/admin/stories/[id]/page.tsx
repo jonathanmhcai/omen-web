@@ -94,16 +94,26 @@ function formatVolume(value: string | null): string {
 function MarketStatus({
   closed,
   archived,
+  active,
   endDate,
 }: {
   closed: boolean | null;
   archived: boolean | null;
+  // Polymarket's `active` flag. Distinct from our derived "active"
+  // status — a row can be not-closed/archived/expired but still
+  // active=false (placeholder/reserved-slot in templated negative-risk
+  // events: "Player A-Z", "Candidate A-Z", etc.). Render those as
+  // "dormant" so they're visually distinguishable from real markets.
+  active: boolean | null;
   endDate: string | null;
 }) {
   if (closed) return <span className="text-zinc-500">closed</span>;
   if (archived) return <span className="text-zinc-500">archived</span>;
   if (endDate && new Date(endDate) < new Date()) {
     return <span className="text-zinc-500">expired</span>;
+  }
+  if (active === false) {
+    return <span className="text-amber-600 dark:text-amber-400">dormant</span>;
   }
   return <span className="text-green-600 dark:text-green-400">active</span>;
 }
@@ -209,6 +219,7 @@ const eventColumns = [
       <MarketStatus
         closed={info.row.original.closed}
         archived={info.row.original.archived}
+        active={info.row.original.active}
         endDate={info.row.original.end_date}
       />
     ),
@@ -291,6 +302,7 @@ const marketColumns = [
       <MarketStatus
         closed={info.row.original.closed}
         archived={info.row.original.archived}
+        active={info.row.original.active}
         endDate={info.row.original.end_date}
       />
     ),

@@ -194,6 +194,9 @@ export interface AdminStoryEvent {
   end_date: string | null;
   closed: boolean | null;
   archived: boolean | null;
+  /** Polymarket's `active` flag — false marks placeholder/reserved-slot
+   *  rows that aren't tradeable yet. Surfaced as "dormant" in the UI. */
+  active: boolean | null;
   volume_24hr: string | null;
   /** 24h volume snapshotted at first match. Null on rows matched before
    *  the snapshot column was added. */
@@ -213,6 +216,8 @@ export interface AdminStoryMarket {
   end_date: string | null;
   closed: boolean | null;
   archived: boolean | null;
+  /** See AdminStoryEvent.active. */
+  active: boolean | null;
   volume_num: string | null;
   /** Current last-trade price (up to ~10min stale per indexer cadence). */
   current_price: string | null;
