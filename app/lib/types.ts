@@ -250,6 +250,40 @@ export interface AdminDeposit {
   failure_reason: string | null;
 }
 
+/**
+ * On-chain ERC-20 transfer surfaced on the admin dashboard. `direction` is
+ * derived server-side relative to the user's wallet, and `classification`
+ * mirrors the server's `classify()` discriminated union — kind plus an
+ * optional `source` ('bridge' | 'direct') for kind=deposit.
+ */
+export type AdminTransferClassification =
+  | { kind: "deposit"; source: "bridge" | "direct" }
+  | { kind: "bonus" }
+  | { kind: "withdrawal" }
+  | { kind: "collateral_swap" }
+  | { kind: "polymarket_buy" }
+  | { kind: "polymarket_sell" }
+  | { kind: "polymarket_redeem" };
+
+export interface AdminTransfer {
+  id: string;
+  user_id: string;
+  username: string | null;
+  display_name: string | null;
+  chain: string;
+  tx_hash: string;
+  block_timestamp: string;
+  from_address: string;
+  to_address: string;
+  asset_address: string;
+  asset_symbol: string | null;
+  amount_atomic: string;
+  amount_usd: string;
+  direction: "in" | "out";
+  classification: AdminTransferClassification;
+  created_at: string;
+}
+
 export type AdminStatsWindow = "24h" | "7d" | "30d" | "all";
 
 export interface AdminStats {

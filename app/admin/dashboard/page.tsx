@@ -4,8 +4,10 @@ import { useState } from "react";
 import { type SortingState } from "@tanstack/react-table";
 import MetricTile from "../../components/admin/dashboard/MetricTile";
 import DepositsTable from "../../components/admin/dashboard/DepositsTable";
+import TransfersTable from "../../components/admin/dashboard/TransfersTable";
 import { useAdminStats } from "../../hooks/admin/useAdminStats";
 import { useAdminDeposits } from "../../hooks/admin/useAdminDeposits";
+import { useAdminTransfers } from "../../hooks/admin/useAdminTransfers";
 import { AdminStatsWindow } from "../../lib/types";
 import { formatNumber } from "../../lib/utils";
 
@@ -60,6 +62,21 @@ export default function DashboardPage() {
     prevPage: depositsPrevPage,
     firstPage: depositsFirstPage,
   } = useAdminDeposits({ sorting: depositSorting, limit: 15 });
+
+  const [transferSorting, setTransferSorting] = useState<SortingState>([
+    { id: "block_timestamp", desc: true },
+  ]);
+  const {
+    transfers,
+    loading: transfersLoading,
+    error: transfersError,
+    page: transfersPage,
+    hasMore: transfersHasMore,
+    total: transfersTotal,
+    nextPage: transfersNextPage,
+    prevPage: transfersPrevPage,
+    firstPage: transfersFirstPage,
+  } = useAdminTransfers({ sorting: transferSorting, limit: 15 });
 
   if (error) {
     return (
@@ -167,6 +184,22 @@ export default function DashboardPage() {
           onFirstPage={depositsFirstPage}
           sorting={depositSorting}
           onSortingChange={setDepositSorting}
+        />
+      </div>
+
+      <div className="pt-4">
+        <TransfersTable
+          transfers={transfers}
+          loading={transfersLoading}
+          error={transfersError}
+          page={transfersPage}
+          hasMore={transfersHasMore}
+          total={transfersTotal}
+          onNextPage={transfersNextPage}
+          onPrevPage={transfersPrevPage}
+          onFirstPage={transfersFirstPage}
+          sorting={transferSorting}
+          onSortingChange={setTransferSorting}
         />
       </div>
     </div>
