@@ -8,7 +8,9 @@ import { Loader } from "lucide-react";
 import Link from "next/link";
 import { useAdminUser } from "../../../hooks/admin/useAdminUser";
 import { useAdminPositions } from "../../../hooks/admin/useAdminPositions";
+import { useAdminActivity } from "../../../hooks/admin/useAdminActivity";
 import PositionsTable from "../../../components/admin/positions-table/PositionsTable";
+import ActivityTable from "../../../components/admin/activity-table/ActivityTable";
 import { formatExactDate } from "../../../lib/utils";
 
 function CopyValue({ label, value }: { label: string; value: string }) {
@@ -62,6 +64,24 @@ export default function UserDetailPage() {
     firstPage: positionsFirstPage,
   } = useAdminPositions({
     sorting: positionsSorting,
+    filters: { user_id: id ?? "" },
+    limit: 15,
+  });
+  const [activitySorting, setActivitySorting] = useState<SortingState>([
+    { id: "timestamp", desc: true },
+  ]);
+  const {
+    activity,
+    loading: activityLoading,
+    error: activityError,
+    page: activityPage,
+    hasMore: activityHasMore,
+    total: activityTotal,
+    nextPage: activityNextPage,
+    prevPage: activityPrevPage,
+    firstPage: activityFirstPage,
+  } = useAdminActivity({
+    sorting: activitySorting,
     filters: { user_id: id ?? "" },
     limit: 15,
   });
@@ -181,6 +201,20 @@ export default function UserDetailPage() {
         onFirstPage={positionsFirstPage}
         sorting={positionsSorting}
         onSortingChange={setPositionsSorting}
+      />
+      <h3 className="mb-3 mt-8 text-base font-semibold">Activity</h3>
+      <ActivityTable
+        activity={activity}
+        loading={activityLoading}
+        error={activityError}
+        page={activityPage}
+        hasMore={activityHasMore}
+        total={activityTotal}
+        onNextPage={activityNextPage}
+        onPrevPage={activityPrevPage}
+        onFirstPage={activityFirstPage}
+        sorting={activitySorting}
+        onSortingChange={setActivitySorting}
       />
     </div>
   );
