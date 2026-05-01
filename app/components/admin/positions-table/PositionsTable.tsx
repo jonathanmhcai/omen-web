@@ -220,7 +220,7 @@ const columns = [
       const cashNum = Number(cash);
       const sign = cashNum >= 0 ? "+" : "-";
       const cashStr = `${sign}$${Math.abs(cashNum).toFixed(2)}`;
-      const pctStr = pct != null ? ` (${cashNum >= 0 ? "+" : ""}${(Number(pct) * 100).toFixed(1)}%)` : "";
+      const pctStr = pct != null ? ` (${cashNum >= 0 ? "+" : ""}${Number(pct).toFixed(1)}%)` : "";
       return (
         <span
           className={
