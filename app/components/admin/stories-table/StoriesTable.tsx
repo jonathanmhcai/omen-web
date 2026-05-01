@@ -51,6 +51,35 @@ const columns = [
     size: 60,
     cell: (info) => dateCell(info.getValue()),
   }),
+  columnHelper.accessor("promoted_at", {
+    header: "Promoted",
+    size: 75,
+    cell: (info) => dateCell(info.getValue()),
+  }),
+  columnHelper.accessor("status", {
+    header: "Status",
+    size: 80,
+    cell: (info) => statusBadge(info.getValue()),
+  }),
+  columnHelper.accessor("seed_author_handle", {
+    header: "Seed author",
+    size: 120,
+    enableSorting: false,
+    cell: (info) => {
+      const handle = info.getValue();
+      if (!handle) return "—";
+      return (
+        <a
+          href={`https://x.com/${handle}`}
+          target="_blank"
+          rel="noreferrer"
+          className="hover:underline"
+        >
+          @{handle}
+        </a>
+      );
+    },
+  }),
   columnHelper.display({
     id: "headline",
     header: "Headline",
@@ -73,35 +102,48 @@ const columns = [
       );
     },
   }),
-  columnHelper.accessor("status", {
-    header: "Status",
-    size: 80,
-    cell: (info) => statusBadge(info.getValue()),
+  columnHelper.display({
+    id: "tweets",
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Tweets
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Member tweets / distinct originating authors (RTs collapse to the
+          original author).
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 70,
+    enableSorting: false,
+    cell: (info) => {
+      const { media_count, distinct_author_count } = info.row.original;
+      return `${media_count} / ${distinct_author_count}`;
+    },
   }),
-  columnHelper.accessor("promoted_at", {
-    header: "Promoted",
-    size: 75,
-    cell: (info) => dateCell(info.getValue()),
-  }),
-  columnHelper.accessor("media_count", {
-    header: "Tweets",
-    size: 60,
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("distinct_author_count", {
-    header: "Authors",
-    size: 60,
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("linked_event_count", {
-    header: "Events",
-    size: 60,
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("linked_market_count", {
-    header: "Markets",
-    size: 60,
-    cell: (info) => info.getValue(),
+  columnHelper.display({
+    id: "markets",
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Markets
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Linked Polymarket markets / events.
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 70,
+    enableSorting: false,
+    cell: (info) => {
+      const { linked_event_count, linked_market_count } = info.row.original;
+      return `${linked_market_count} / ${linked_event_count}`;
+    },
   }),
   columnHelper.accessor("top_event_similarity", {
     header: () => (
@@ -156,11 +198,10 @@ const columns = [
 
 const skeletonWidths: Record<string, string> = {
   status: "h-4 w-16",
+  seed_author_handle: "h-4 w-20",
   headline: "h-4 w-64",
-  media_count: "h-4 w-8",
-  distinct_author_count: "h-4 w-8",
-  linked_event_count: "h-4 w-8",
-  linked_market_count: "h-4 w-8",
+  tweets: "h-4 w-12",
+  markets: "h-4 w-12",
   top_event_similarity: "h-4 w-12",
   avg_join_similarity: "h-4 w-12",
   latest_media_at: "h-4 w-20",

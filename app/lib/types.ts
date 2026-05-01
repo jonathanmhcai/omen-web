@@ -150,6 +150,7 @@ export interface AdminStory {
   id: string;
   status: "candidate" | "active";
   headline: string;
+  seed_author_handle: string | null;
   media_count: number;
   distinct_author_count: number;
   linked_event_count: number;
