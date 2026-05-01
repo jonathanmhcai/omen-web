@@ -9,6 +9,7 @@ import {
   useReactTable,
   SortingState,
 } from "@tanstack/react-table";
+import { Inbox } from "lucide-react";
 
 interface DataTableProps<T> {
   data: T[];
@@ -81,8 +82,6 @@ export default function DataTable<T>({
       {toolbar}
       {error ? (
         <p className="text-sm text-red-500">Error: {error}</p>
-      ) : !loading && data.length === 0 ? (
-        <p className="text-sm text-zinc-500">No data found.</p>
       ) : (
       <div className="w-full overflow-x-auto rounded-xl border border-black/[.08] dark:border-white/[.145]">
         <table className="w-full table-fixed text-left text-sm">
@@ -123,29 +122,40 @@ export default function DataTable<T>({
             ))}
           </thead>
           <tbody>
-            {loading
-              ? Array.from({ length: SKELETON_ROWS }, (_, i) => <SkeletonRow key={i} widths={widths} />)
-              : table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className="border-b border-black/[.04] last:border-0 dark:border-white/[.06]"
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const isTitle = cell.column.id === "title";
-                  let className = "px-4 py-2";
-                  if (isTitle) {
-                    className = "truncate px-4 py-2 font-medium";
-                  } else if (cell.column.id !== "image") {
-                    className = "whitespace-nowrap px-4 py-2";
-                  }
-                  return (
-                    <td key={cell.id} className={className}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  );
-                })}
+            {loading ? (
+              Array.from({ length: SKELETON_ROWS }, (_, i) => <SkeletonRow key={i} widths={widths} />)
+            ) : table.getRowModel().rows.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-12">
+                  <div className="flex flex-col items-center justify-center gap-2 text-zinc-500 dark:text-zinc-400">
+                    <Inbox className="h-8 w-8" strokeWidth={1.5} />
+                    <span className="text-sm">No data found</span>
+                  </div>
+                </td>
               </tr>
-            ))}
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className="border-b border-black/[.04] last:border-0 dark:border-white/[.06]"
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const isTitle = cell.column.id === "title";
+                    let className = "px-4 py-2";
+                    if (isTitle) {
+                      className = "truncate px-4 py-2 font-medium";
+                    } else if (cell.column.id !== "image") {
+                      className = "whitespace-nowrap px-4 py-2";
+                    }
+                    return (
+                      <td key={cell.id} className={className}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

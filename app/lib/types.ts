@@ -83,6 +83,7 @@ export interface AdminUser {
   /** Live pUSD balance. Populated only by the user-detail endpoint. */
   pusd_balance: string | null;
   invite_code: string | null;
+  invite_code_id: string | null;
   has_push_token: boolean;
   push_enabled: boolean;
   push_social: boolean;
@@ -101,6 +102,10 @@ export interface AdminPosition {
   status: "open" | "closed";
   shares: number;
   avg_entry_price: number;
+  cur_price: number | null;
+  current_value: number | null;
+  cash_pnl: number | null;
+  percent_pnl: number | null;
   outcome: string | null;
   opened_at: string | null;
   closed_at: string | null;
@@ -144,6 +149,23 @@ export interface AdminInviteCode {
   referrer_email: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface AdminInviteCodeRedemption {
+  user_id: string;
+  username: string | null;
+  display_name: string | null;
+  email: string | null;
+  redeemed_at: string;
+  referee_bonus_asset_transfer_id: string | null;
+  referrer_bonus_asset_transfer_id: string | null;
+}
+
+export interface AdminInviteCodeDetail extends AdminInviteCode {
+  referrer_user_id: string | null;
+  referrer_username: string | null;
+  referrer_display_name: string | null;
+  redemptions: AdminInviteCodeRedemption[];
 }
 
 export interface AdminStory {

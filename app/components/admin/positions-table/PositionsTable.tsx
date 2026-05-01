@@ -191,6 +191,50 @@ const columns = [
       return `$${(Number(shares) * Number(avg_entry_price)).toFixed(2)}`;
     },
   }),
+  columnHelper.accessor("cur_price", {
+    header: "Cur Price",
+    size: 65,
+    enableSorting: false,
+    cell: (info) => {
+      const val = info.getValue();
+      if (val == null) return "\u2014";
+      return `$${Number(val).toFixed(2)}`;
+    },
+  }),
+  columnHelper.accessor("current_value", {
+    header: "Value",
+    size: 70,
+    cell: (info) => {
+      const val = info.getValue();
+      if (val == null) return "\u2014";
+      return `$${Number(val).toFixed(2)}`;
+    },
+  }),
+  columnHelper.accessor("cash_pnl", {
+    header: "PnL",
+    size: 100,
+    cell: (info) => {
+      const cash = info.getValue();
+      const pct = info.row.original.percent_pnl;
+      if (cash == null) return "\u2014";
+      const cashNum = Number(cash);
+      const sign = cashNum >= 0 ? "+" : "-";
+      const cashStr = `${sign}$${Math.abs(cashNum).toFixed(2)}`;
+      const pctStr = pct != null ? ` (${cashNum >= 0 ? "+" : ""}${(Number(pct) * 100).toFixed(1)}%)` : "";
+      return (
+        <span
+          className={
+            cashNum >= 0
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400"
+          }
+        >
+          {cashStr}
+          <span className="text-muted-foreground">{pctStr}</span>
+        </span>
+      );
+    },
+  }),
 ];
 
 const skeletonWidths: Record<string, string> = {
@@ -203,6 +247,9 @@ const skeletonWidths: Record<string, string> = {
   shares: "h-4 w-16",
   avg_entry_price: "h-4 w-16",
   cost: "h-4 w-16",
+  cur_price: "h-4 w-16",
+  current_value: "h-4 w-16",
+  cash_pnl: "h-4 w-20",
   opened_at: "h-4 w-20",
   closed_at: "h-4 w-20",
   created_at: "h-4 w-20",

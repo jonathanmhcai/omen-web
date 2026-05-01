@@ -9,8 +9,10 @@ import Link from "next/link";
 import { useAdminUser } from "../../../hooks/admin/useAdminUser";
 import { useAdminPositions } from "../../../hooks/admin/useAdminPositions";
 import { useAdminActivity } from "../../../hooks/admin/useAdminActivity";
+import { useAdminTransfers } from "../../../hooks/admin/useAdminTransfers";
 import PositionsTable from "../../../components/admin/positions-table/PositionsTable";
 import ActivityTable from "../../../components/admin/activity-table/ActivityTable";
+import TransfersTable from "../../../components/admin/dashboard/TransfersTable";
 import { formatExactDate } from "../../../lib/utils";
 
 function CopyValue({ label, value }: { label: string; value: string }) {
@@ -85,6 +87,24 @@ export default function UserDetailPage() {
     filters: { user_id: id ?? "" },
     limit: 15,
   });
+  const [transfersSorting, setTransfersSorting] = useState<SortingState>([
+    { id: "block_timestamp", desc: true },
+  ]);
+  const {
+    transfers,
+    loading: transfersLoading,
+    error: transfersError,
+    page: transfersPage,
+    hasMore: transfersHasMore,
+    total: transfersTotal,
+    nextPage: transfersNextPage,
+    prevPage: transfersPrevPage,
+    firstPage: transfersFirstPage,
+  } = useAdminTransfers({
+    sorting: transfersSorting,
+    filters: { user_id: id ?? "" },
+    limit: 15,
+  });
 
   if (loading) {
     return (
@@ -149,7 +169,18 @@ export default function UserDetailPage() {
         <Field label="Last Seen">
           {user.last_seen_at ? formatExactDate(user.last_seen_at) : "\u2014"}
         </Field>
-        <Field label="Invite Code">{user.invite_code ?? "\u2014"}</Field>
+        <Field label="Invite Code">
+          {user.invite_code && user.invite_code_id ? (
+            <Link
+              href={`/admin/invite-codes/${user.invite_code_id}`}
+              className="font-mono hover:underline"
+            >
+              {user.invite_code}
+            </Link>
+          ) : (
+            user.invite_code ?? "\u2014"
+          )}
+        </Field>
         <Field label="Push Notifications">
           {user.has_push_token ? (
             <span className="flex gap-3 flex-wrap">
@@ -215,6 +246,20 @@ export default function UserDetailPage() {
         onFirstPage={activityFirstPage}
         sorting={activitySorting}
         onSortingChange={setActivitySorting}
+      />
+      <h3 className="mb-3 mt-8 text-base font-semibold">Transfers</h3>
+      <TransfersTable
+        transfers={transfers}
+        loading={transfersLoading}
+        error={transfersError}
+        page={transfersPage}
+        hasMore={transfersHasMore}
+        total={transfersTotal}
+        onNextPage={transfersNextPage}
+        onPrevPage={transfersPrevPage}
+        onFirstPage={transfersFirstPage}
+        sorting={transfersSorting}
+        onSortingChange={setTransfersSorting}
       />
     </div>
   );

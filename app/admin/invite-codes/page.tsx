@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type SortingState } from "@tanstack/react-table";
 import InviteCodesTable from "../../components/admin/invite-codes-table/InviteCodesTable";
 import { useAdminInviteCodes } from "../../hooks/admin/useAdminInviteCodes";
@@ -9,6 +9,15 @@ export default function InviteCodesPage() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created_at", desc: true },
   ]);
+  const [localSearch, setLocalSearch] = useState("");
+  const [search, setSearch] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    debounceRef.current = setTimeout(() => setSearch(localSearch), 150);
+    return () => clearTimeout(debounceRef.current);
+  }, [localSearch]);
+
   const {
     codes,
     loading,
@@ -20,7 +29,7 @@ export default function InviteCodesPage() {
     prevPage,
     firstPage,
     refresh,
-  } = useAdminInviteCodes({ sorting });
+  } = useAdminInviteCodes({ sorting, search: search || undefined });
 
   return (
     <InviteCodesTable
@@ -36,6 +45,8 @@ export default function InviteCodesPage() {
       sorting={sorting}
       onSortingChange={setSorting}
       onCreated={refresh}
+      searchQuery={localSearch}
+      onSearchChange={setLocalSearch}
     />
   );
 }

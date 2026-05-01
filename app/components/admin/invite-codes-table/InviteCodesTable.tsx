@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createColumnHelper, type SortingState } from "@tanstack/react-table";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { Copy, MoreHorizontal, Plus } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 import DataTable from "../data-table/DataTable";
 import Pagination from "../data-table/Pagination";
 import { AdminInviteCode } from "../../../lib/types";
@@ -55,17 +56,29 @@ const columns = [
     enableSorting: false,
     cell: (info) => {
       const code = info.getValue();
+      const id = info.row.original.id;
       return (
-        <button
-          className="cursor-pointer font-mono hover:underline"
-          onClick={() => {
-            navigator.clipboard.writeText(code);
-            toast("Code copied to clipboard");
-          }}
-          title={code}
-        >
-          {code}
-        </button>
+        <span className="inline-flex items-center gap-1.5">
+          <Link
+            href={`/admin/invite-codes/${id}`}
+            className="font-mono hover:underline"
+            title={code}
+          >
+            {code}
+          </Link>
+          <button
+            className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigator.clipboard.writeText(code);
+              toast("Code copied to clipboard");
+            }}
+            title="Copy code"
+            aria-label="Copy code"
+          >
+            <Copy className="h-3 w-3" />
+          </button>
+        </span>
       );
     },
   }),
@@ -244,6 +257,8 @@ interface InviteCodesTableProps {
   sorting: SortingState;
   onSortingChange: (sorting: SortingState) => void;
   onCreated?: () => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
 export default function InviteCodesTable({
@@ -259,7 +274,21 @@ export default function InviteCodesTable({
   sorting,
   onSortingChange,
   onCreated,
+  searchQuery,
+  onSearchChange,
 }: InviteCodesTableProps) {
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "/" && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== "INPUT") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const allColumns = useMemo(
     () => [
       ...columns,
@@ -345,6 +374,14 @@ export default function InviteCodesTable({
         <Plus className="h-4 w-4" />
         Create codes
       </Button>
+      <input
+        ref={searchRef}
+        type="text"
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="Search code or referrer email... (/)"
+        className="w-64 rounded-lg border border-black/[.08] px-3 py-1.5 text-sm placeholder:text-muted-foreground dark:border-white/[.145]"
+      />
       <Pagination
         page={page}
         hasMore={hasMore}
