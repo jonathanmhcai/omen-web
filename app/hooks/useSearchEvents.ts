@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { PolymarketEvent } from "../lib/types";
 
-export function useSearchEvents(query: string) {
+export function useSearchEvents(query: string, eventsStatus?: "active") {
   const [events, setEvents] = useState<PolymarketEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +25,7 @@ export function useSearchEvents(query: string) {
       search_profiles: "false",
       limit_per_type: "20",
     });
+    if (eventsStatus) params.set("events_status", eventsStatus);
 
     fetch(`/api/search?${params}`, {
       signal: controller.signal,
@@ -44,7 +45,7 @@ export function useSearchEvents(query: string) {
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [query]);
+  }, [query, eventsStatus]);
 
   return { events, loading, error };
 }
