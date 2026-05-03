@@ -120,12 +120,12 @@ function PositionRow({
               value={`${Math.round(position.avgPrice * 100)}¢`}
             />
             <DetailCell
-              label="CURRENT PRICE"
-              value={`${Math.round(position.curPrice * 100)}¢`}
-            />
-            <DetailCell
               label="SHARES"
               value={position.size.toFixed(2)}
+            />
+            <DetailCell
+              label="CURRENT PRICE"
+              value={`${Math.round(position.curPrice * 100)}¢`}
             />
             <DetailCell
               label="END DATE"

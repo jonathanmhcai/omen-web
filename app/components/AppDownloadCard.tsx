@@ -39,11 +39,8 @@ export default function AppDownloadCard() {
           </div>
         </div>
       </div>
-      <a
-        href={APP_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Open Omen on the App Store"
+      <div
+        aria-label="Scan to open Omen on the App Store"
         className="relative rounded-2xl bg-white p-1.5"
       >
         <QRCode
@@ -67,7 +64,7 @@ export default function AppDownloadCard() {
             <img src="/omen-icon.png" alt="" className="block h-[46px] w-[46px]" />
           </span>
         </span>
-      </a>
+      </div>
     </div>
   );
 }
