@@ -58,6 +58,7 @@ export interface StoryMarket {
 export interface Story {
   id: string;
   headline: string;
+  created_at: string;
   promoted_at: string;
   latest_media_at: string;
   media_count: number;

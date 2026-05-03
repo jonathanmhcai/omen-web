@@ -492,7 +492,13 @@ function StoryItem({ story }: { story: Story }) {
         />
       )}
       <div className="flex flex-col gap-4 p-4">
-        <h2 className="text-lg font-semibold">{story.headline}</h2>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold">{story.headline}</h2>
+          <p className="text-xs text-muted-foreground">
+            Created {formatTimeAgoShort(story.created_at)} ago · Updated{" "}
+            {formatTimeAgoShort(story.latest_media_at)} ago
+          </p>
+        </div>
 
         {story.tweets.length > 0 && (
           <CollapsibleSources
