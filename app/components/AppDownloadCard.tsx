@@ -44,7 +44,7 @@ export default function AppDownloadCard() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Open Omen on the App Store"
-        className="rounded-2xl bg-white p-1.5"
+        className="relative rounded-2xl bg-white p-1.5"
       >
         <QRCode
           value={APP_STORE_URL}
@@ -54,13 +54,19 @@ export default function AppDownloadCard() {
           qrStyle="dots"
           eyeRadius={6}
           ecLevel="H"
-          logoImage="/omen-icon.png"
-          logoWidth={44}
-          logoHeight={44}
-          logoPadding={4}
-          logoPaddingStyle="square"
-          removeQrCodeBehindLogo
         />
+        {/* Render the center icon as a sibling <img> rather than via
+            QRCode's logoImage. The library composites logoImage onto
+            the canvas async, so on each remount (each page nav rebuilds
+            AppShell) the icon blinked out for a frame. ecLevel "H"
+            tolerates ~30% obstruction, so we don't need
+            removeQrCodeBehindLogo to keep scans working. */}
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <span className="bg-white p-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/omen-icon.png" alt="" className="block h-[46px] w-[46px]" />
+          </span>
+        </span>
       </a>
     </div>
   );
