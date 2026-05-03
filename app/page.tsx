@@ -248,6 +248,11 @@ function formatTimeAgoShort(iso: string): string {
   return `${Math.floor(days / 7)}w`;
 }
 
+function formatRelativeAgo(iso: string): string {
+  const short = formatTimeAgoShort(iso);
+  return short === "now" ? "just now" : `${short} ago`;
+}
+
 const SPARKLINE_OPTS = { interval: "1d" as const, fidelity: 60 };
 const SPARKLINE_WIDTH = 80;
 const SPARKLINE_HEIGHT = 24;
@@ -495,8 +500,8 @@ function StoryItem({ story }: { story: Story }) {
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold">{story.headline}</h2>
           <p className="text-xs text-muted-foreground">
-            Created {formatTimeAgoShort(story.created_at)} ago · Updated{" "}
-            {formatTimeAgoShort(story.latest_media_at)} ago
+            Created {formatRelativeAgo(story.created_at)} · Updated{" "}
+            {formatRelativeAgo(story.latest_media_at)}
           </p>
         </div>
 
