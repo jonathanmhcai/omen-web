@@ -94,7 +94,7 @@ export default function Sidebar() {
               }}
               className={cn(
                 "flex items-center gap-3 rounded-full px-4 py-2.5 text-lg outline-none transition-colors hover:bg-foreground/5 focus-visible:ring-2 focus-visible:ring-ring",
-                active ? "font-bold" : "font-normal"
+                active ? "font-bold" : "font-medium"
               )}
             >
               {item.href === "/profile" && mounted ? (
