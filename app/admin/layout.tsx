@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { Button } from "@/components/ui/button";
 import { useAuthUser } from "../hooks/useAuthUser";
-import { Loader } from "lucide-react";
+import { ArrowLeft, Loader } from "lucide-react";
 import Link from "next/link";
 import Header from "../components/Header";
 
@@ -100,6 +100,13 @@ export default function AdminLayout({
                 {tab.label}
               </Link>
             ))}
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Return to app
+            </Link>
           </div>
         </Header>
         <div className="px-6 py-4">{children}</div>
