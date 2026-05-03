@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthUser } from "./hooks/useAuthUser";
 import {
@@ -300,9 +306,9 @@ function pickSparklineOutcome(
   return yes ?? outcomes[0];
 }
 
-function formatCents(p: number | null): string {
+function formatPricePercent(p: number | null): string {
   if (p == null) return "—";
-  return `${Math.round(p * 100)}¢`;
+  return `${Math.round(p * 100)}%`;
 }
 
 function formatPercentSigned(num: number): string {
@@ -310,6 +316,12 @@ function formatPercentSigned(num: number): string {
   if (num > 0 && num < 1) return "+<1%";
   if (num > -1 && num < 0) return "-<1%";
   return `${num >= 0 ? "+" : ""}${num.toFixed()}%`;
+}
+
+function formatPointsMagnitude(num: number): string {
+  const rounded = Math.round(Math.abs(num));
+  if (rounded === 0 && num !== 0) return "<1%";
+  return `${rounded}%`;
 }
 
 function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
@@ -329,17 +341,23 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
   });
   const points: TimeseriesPoint[] = data?.history ?? [];
 
-  const priceLabel = formatCents(outcome?.price ?? null);
+  const priceLabel = formatPricePercent(outcome?.price ?? null);
 
-  // Option (b): % is computed over the displayed window — first point of
-  // the timeseries → current — so spark, % and volume describe the same
+  // Diff is computed over the displayed window — first point of the
+  // timeseries → current — so spark, diff and volume describe the same
   // span. (The `matched_at` marker is still drawn within that window.)
   const baseline = points[0]?.p ?? null;
   const change =
-    outcome?.price != null && baseline != null && baseline > 0
-      ? ((outcome.price - baseline) / baseline) * 100
+    outcome?.price != null && baseline != null
+      ? (outcome.price - baseline) * 100
       : null;
-  const changeLabel = change != null ? formatPercentSigned(change) : null;
+  const changeLabel = change != null ? formatPointsMagnitude(change) : null;
+  const ChangeArrow =
+    change == null || change === 0
+      ? ArrowRight
+      : change > 0
+        ? ArrowUpRight
+        : ArrowDownRight;
   const changeColorClass =
     change == null
       ? "text-muted-foreground"
@@ -364,7 +382,13 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
           <div className="flex items-baseline gap-1.5">
             <span className="text-xl font-bold leading-none">{priceLabel}</span>
             {changeLabel && (
-              <span className={cn("text-sm font-semibold", changeColorClass)}>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 text-sm font-semibold",
+                  changeColorClass
+                )}
+              >
+                <ChangeArrow className="size-3.5" />
                 {changeLabel}
               </span>
             )}
