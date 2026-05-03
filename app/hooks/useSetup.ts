@@ -10,7 +10,6 @@ import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
 const SERVER_WALLET_SIGNER_ID = "rb5o0khtxqqrrq3fclrnmnex";
-const DEFAULT_INVITE_CODE = "SITUATIONMONITOR";
 
 export function useSetup() {
   const { wallets } = useWallets();
@@ -19,7 +18,7 @@ export function useSetup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const setup = useCallback(async (inviteCode?: string) => {
+  const setup = useCallback(async (inviteCode: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -38,14 +37,14 @@ export function useSetup() {
         if (!msg.includes("Duplicate signer")) throw err;
       }
 
-      // 2. Call /me/setup with invite code
-      const res = await fetch(`${API_BASE}/me/setup`, {
+      // 2. Call /onboarding/web with invite code
+      const res = await fetch(`${API_BASE}/onboarding/web`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${sessionToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ inviteCode: inviteCode || DEFAULT_INVITE_CODE }),
+        body: JSON.stringify({ inviteCode }),
       });
 
       const data = await res.json().catch(() => ({}));

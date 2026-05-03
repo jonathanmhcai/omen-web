@@ -9,6 +9,10 @@ import { LogOut, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
+// DEV: flip to true to force-render the "Finishing setup…" loader for UI review.
+// Remove before merging.
+const MOCK_FINISHING_LOADER = false;
+
 export default function SetupModal() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -19,17 +23,25 @@ export default function SetupModal() {
   const { setup, loading: setupLoading, error: setupError } = useSetup();
 
   const [inviteCode, setInviteCode] = useState<string | null>(null);
-  const [showCodeInput, setShowCodeInput] = useState(!!refCode);
   const displayCode = inviteCode ?? refCode ?? "";
+
+  const inviteRedeemed = authUser?.has_redeemed_invite_code ?? false;
+  const provisioningIncomplete =
+    authUser != null &&
+    (!authUser.has_polymarket_credentials || !authUser.isAccountUpgraded);
 
   const needsSetup =
     ready &&
     authenticated &&
     !authLoading &&
     authUser != null &&
-    (!authUser.has_polymarket_credentials || !authUser.isAccountUpgraded);
+    (!inviteRedeemed || provisioningIncomplete);
 
-  async function handleSetup(code?: string) {
+  const showInviteForm = !MOCK_FINISHING_LOADER && needsSetup && !inviteRedeemed;
+  const showFinishingLoader =
+    MOCK_FINISHING_LOADER || (needsSetup && inviteRedeemed && provisioningIncomplete);
+
+  async function handleSetup(code: string) {
     try {
       const result = await setup(code);
       if (result?.bonusUsdc) {
@@ -44,7 +56,7 @@ export default function SetupModal() {
     }
   }
 
-  if (!needsSetup) return null;
+  if (!needsSetup && !MOCK_FINISHING_LOADER) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -70,10 +82,25 @@ export default function SetupModal() {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             <p className="text-sm text-muted-foreground">Setting up your account...</p>
           </div>
-        ) : showCodeInput ? (
+        ) : showFinishingLoader ? (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-muted-foreground">
-              Enter your invite code below.
+              Almost done, finish setting up your account.
+            </p>
+            <Button onClick={() => handleSetup("")}>Continue</Button>
+          </div>
+        ) : showInviteForm ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Omen is currently invite-only. If you don&apos;t have a code,{" "}
+              <a
+                href="https://forms.gle/yEqHts6Tr2YgunHx7"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground"
+              >
+                request one here.
+              </a>
             </p>
             <input
               type="text"
@@ -92,31 +119,10 @@ export default function SetupModal() {
               onClick={() => handleSetup(displayCode.trim())}
               disabled={!displayCode.trim()}
             >
-              Submit
-            </Button>
-            <button
-              onClick={() => {
-                setShowCodeInput(false);
-                setInviteCode(null);
-              }}
-              className="cursor-pointer text-sm text-muted-foreground hover:text-foreground"
-            >
-              Back
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground">
-              Do you have an invite code?
-            </p>
-            <Button onClick={() => setShowCodeInput(true)} variant="outline">
-              Yes, I have a code
-            </Button>
-            <Button onClick={() => handleSetup()}>
-              No, continue without one
+              Continue
             </Button>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
