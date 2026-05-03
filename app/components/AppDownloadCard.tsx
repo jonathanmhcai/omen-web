@@ -8,7 +8,7 @@ const APP_STORE_URL = "https://apps.apple.com/app/id6755767414";
 export default function AppDownloadCard() {
   return (
     <div className="flex flex-col items-center gap-4 rounded-xl border border-border bg-card p-4">
-      <div className="flex w-full items-center gap-3">
+      <div className="flex items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/app-preview.png"
