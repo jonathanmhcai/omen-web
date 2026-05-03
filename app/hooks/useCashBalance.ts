@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
-export function useUsdcBalance() {
+export function useCashBalance() {
   const [sessionToken] = useCookieString(SESSION_TOKEN_KEY);
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["usdcBalance"],
+    queryKey: ["cashBalance"],
     queryFn: async () => {
       const res = await fetch(`${API_BASE}/me/portfolio-value`, {
         headers: { Authorization: `Bearer ${sessionToken}` },

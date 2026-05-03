@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
-import { Home, Settings, Shield, User } from "lucide-react";
+import { Home, Settings, Shield, User, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useCookieString } from "../hooks/useCookieString";
+import { useCashBalance } from "../hooks/useCashBalance";
+import { useDepositAddresses } from "../hooks/useDepositAddresses";
 import { SESSION_TOKEN_KEY } from "../lib/constants";
+import DepositModal from "./DepositModal";
 
 const AVATAR_CACHE_KEY = "omen.profile-avatar-url";
 
@@ -116,6 +119,8 @@ export default function Sidebar() {
         })}
       </nav>
 
+      {mounted && likelyAuthed && <BalanceCard />}
+
       {ready && !authenticated && (
         <div className="mt-2 px-1">
           <Button onClick={login} className="w-full">
@@ -124,5 +129,57 @@ export default function Sidebar() {
         </div>
       )}
     </aside>
+  );
+}
+
+function BalanceCard() {
+  const { balance } = useCashBalance();
+  const { data: depositData } = useDepositAddresses();
+  const [showDeposit, setShowDeposit] = useState(false);
+
+  // Only show the skeleton if the fetch takes >300ms — avoids a flash
+  // when the cache is warm or the network responds quickly.
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  useEffect(() => {
+    if (balance != null) return;
+    const t = setTimeout(() => setShowSkeleton(true), 300);
+    return () => clearTimeout(t);
+  }, [balance]);
+
+  return (
+    <>
+      <div className="mt-2 mx-1 flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
+        <div className="flex flex-col gap-1">
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Wallet className="h-3.5 w-3.5" />
+            Cash balance
+          </span>
+          {balance != null ? (
+            <span className="text-xl font-semibold">${balance.toFixed(2)}</span>
+          ) : (
+            <div
+              className={cn(
+                "h-7 w-24 rounded",
+                showSkeleton && "animate-pulse bg-muted"
+              )}
+            />
+          )}
+        </div>
+        <Button
+          onClick={() => setShowDeposit(true)}
+          disabled={!depositData?.addresses}
+          className="w-full"
+        >
+          Deposit
+        </Button>
+      </div>
+
+      {showDeposit && depositData?.addresses && (
+        <DepositModal
+          addresses={depositData.addresses}
+          onClose={() => setShowDeposit(false)}
+        />
+      )}
+    </>
   );
 }

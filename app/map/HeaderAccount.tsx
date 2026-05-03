@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 import { useAuthUser } from "../hooks/useAuthUser";
-import { useUsdcBalance } from "../hooks/useUsdcBalance";
+import { useCashBalance } from "../hooks/useCashBalance";
 import { usePositions } from "../hooks/usePositions";
 import { useDepositAddresses } from "../hooks/useDepositAddresses";
 import { useMapPageContext } from "./MapPageContext";
@@ -24,7 +24,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 export default function HeaderAccount() {
   const { login, logout, authenticated, user: privyUser } = usePrivy();
   const { user, loading } = useAuthUser();
-  const { balance } = useUsdcBalance();
+  const { balance } = useCashBalance();
   const positions = usePositions();
   const { data: depositData } = useDepositAddresses();
   const ctx = useMapPageContext();

@@ -9,7 +9,7 @@ import { useCreateOrder } from "../hooks/useCreateOrder";
 import { usePositions, PolymarketPosition } from "../hooks/usePositions";
 import { useMarket } from "../hooks/useMarket";
 import { useAuthUser } from "../hooks/useAuthUser";
-import { useUsdcBalance } from "../hooks/useUsdcBalance";
+import { useCashBalance } from "../hooks/useCashBalance";
 
 function parseJSON<T>(str: string, fallback: T): T {
   try {
@@ -209,7 +209,7 @@ export default function MarketPanel({
   const { data: market, loading: marketLoading, error: marketError } = useMarket(conditionId);
   const { data: positionsData } = usePositions();
   const positions = positionsData?.positions ?? [];
-  const { balance } = useUsdcBalance();
+  const { balance } = useCashBalance();
 
   if (marketLoading) {
     return (

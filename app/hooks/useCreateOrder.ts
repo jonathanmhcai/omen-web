@@ -45,7 +45,7 @@ export function useCreateOrder(conditionId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["positions"] });
-      queryClient.invalidateQueries({ queryKey: ["usdcBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["cashBalance"] });
       if (conditionId) {
         queryClient.invalidateQueries({ queryKey: ["market", conditionId] });
       }

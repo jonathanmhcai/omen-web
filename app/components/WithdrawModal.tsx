@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useUsdcBalance } from "../hooks/useUsdcBalance";
+import { useCashBalance } from "../hooks/useCashBalance";
 import { useWithdrawWithCoinbase } from "../hooks/useWithdrawWithCoinbase";
 import { useSendUsdce } from "../hooks/useSendUsdce";
 import ModalShell from "./ModalShell";
@@ -14,7 +14,7 @@ interface WithdrawModalProps {
 }
 
 export default function WithdrawModal({ onClose }: WithdrawModalProps) {
-  const { balance } = useUsdcBalance();
+  const { balance } = useCashBalance();
   const coinbaseWithdraw = useWithdrawWithCoinbase();
   const cryptoWithdraw = useSendUsdce();
   const [amount, setAmount] = useState(0);
