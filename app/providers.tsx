@@ -31,7 +31,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
           clientId={process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID!}
           config={{
-            loginMethods: ["email", "google", "apple"],
+            loginMethods: ["google", "apple", "email"],
             embeddedWallets: {
               ethereum: {
                 createOnLogin: "users-without-wallets",

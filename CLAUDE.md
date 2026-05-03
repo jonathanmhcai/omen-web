@@ -1,55 +1,46 @@
 # omen-web
 
-Next.js web app. Today's primary use is the **internal admin dashboard
-(`/admin`) for monitoring product health**. User-facing surfaces are
-limited: `/wallet` lets a user export their private key, and the
-Mapbox map view is WIP behind a coming-soon gate.
+Next.js web app — the web client for omen, a tradable news feed for
+prediction market traders. Mirrors the mobile app's primary surface
+(the signals feed at `/`), plus per-user pages. Auth via Privy; backed
+by `omen-server`.
 
-Hits the same `omen-server` API as the mobile app.
+`/admin` is the internal dashboard for monitoring product health and
+remains admin-gated.
 
-## Product context
+## Layout
 
-Omen is a tradable news feed for prediction market traders — clusters
-breaking news into stories and links each story to the Polymarket
-markets it could move, with directional context. The pitch: Bloomberg
-Terminal energy, news-as-signal not price-as-signal.
+Three-column app shell (`app/components/AppShell.tsx`):
 
-The web client's current center of gravity is internal: the admin
-dashboard is the day-to-day window into how the product is performing.
-User-facing features (the map) are deferred until the core product
-loop is ready.
+- **Left**: persistent nav (`Sidebar.tsx`) — wordmark, nav items, log
+  in / account widget
+- **Center**: the page (`max-w-xl`)
+- **Right**: optional widgets — search, positions, app download —
+  rendered today only on `/`
+
+The right slot reserves its width even when empty so the left
+sidebar's horizontal position is stable across pages.
+
+## Conventions
+
+- `useAuthUser` is the omen session (separate from Privy's user). Nav
+  items marked `requiresAuth: true` open the Privy modal when clicked
+  unauthed; per-user routes redirect to `/` when unauthed.
+- The `/stories` server endpoint is public (`optionalAuth`), so the
+  homepage feed renders for anonymous visitors too.
+- Polymarket data: market events use `market.event_slug` for outbound
+  links (`polymarket.com/event/{event_slug}`); the market's own slug
+  only matches the event for single-market events.
 
 ## Where truth lives
 
-- **Admin dashboard**: `app/admin/` — sub-routes for `activity`,
-  `events`, `invite-codes`, `positions`, `users`. Layout in
-  `app/admin/layout.tsx`. This is the active surface.
-- **Wallet (key export)**: `app/wallet/page.tsx`.
-- **Coming-soon gate**: `app/ComingSoon.tsx` (renders for users
-  hitting the user-facing routes pre-launch).
-- **Map (WIP)**: `app/map/`. Key files: `geo.ts`, `page.tsx`,
-  `EventSidebar.tsx`, `HoverTooltip.tsx`, `layers.ts`. Backed by
-  GeoJSON in `app/lib/`:
-  - `country-boundaries.json` (`ISO_A2` property)
-  - `us-state-boundaries.json` (`STUSPS` property)
-  - `us-state-coordinates.json`
-  - `matchLocation()` in `app/map/geo.ts` handles country + state
-    matching with DC fallback.
 - **API contract**: `../omen-server/`. Schema in
   `../omen-server/prisma/schema.prisma`.
-
-## Conventions worth knowing upfront
-
-- **Map is gated, admin is not.** When making changes, default to
-  treating `/admin` as the live surface and `/map` as work-in-progress.
-- Location slugs (used by the map): countries use the raw slug (e.g.
-  `united-states`), states use `us-` prefix (e.g. `us-texas`).
-- Polymarket events filtered by tag in the map view.
 
 ## Sister repos
 
 Under `~/Documents/git/`:
 
+- `omen/` — React Native + Expo mobile app
 - `omen-server/` — Node + Postgres backend
-- `omen/` — React Native + Expo mobile app (primary user-facing client)
 - `omen-website/` — marketing site

@@ -53,6 +53,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preload" as="image" href="/omen-icon.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

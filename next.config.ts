@@ -8,11 +8,6 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
-      {
-        source: "/",
-        destination: "https://omen.trading",
-        permanent: false,
-      },
     ];
   },
 };

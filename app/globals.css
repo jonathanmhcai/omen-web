@@ -121,6 +121,13 @@
     scrollbar-color: var(--muted-foreground) transparent;
     scrollbar-width: thin;
   }
+  html {
+    scrollbar-gutter: stable;
+  }
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
   body {
     @apply bg-background text-foreground;
   }
