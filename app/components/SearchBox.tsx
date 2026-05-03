@@ -8,11 +8,11 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useSearchEvents } from "../hooks/useSearchEvents";
 
-const RECENT_SEARCHES_KEY = "omen_recent_searches";
+const RECENT_SEARCHES_KEY = "omen_recent_searches_v2";
 const MAX_RECENT = 5;
 
 interface RecentEntry {
-  id: number;
+  slug: string;
   title: string;
   image?: string;
 }
@@ -44,7 +44,7 @@ export default function SearchBox() {
 
   const items = useMemo<RecentEntry[]>(() => {
     if (hasQuery) {
-      return events.map((e) => ({ id: e.id, title: e.title, image: e.image }));
+      return events.map((e) => ({ slug: e.slug, title: e.title, image: e.image }));
     }
     return recentSearches ?? [];
   }, [hasQuery, events, recentSearches]);
@@ -84,7 +84,7 @@ export default function SearchBox() {
     (entry: RecentEntry) => {
       setRecentSearches((prev) => {
         const list = prev ?? [];
-        const filtered = list.filter((e) => e.id !== entry.id);
+        const filtered = list.filter((e) => e.slug !== entry.slug);
         return [entry, ...filtered].slice(0, MAX_RECENT);
       });
     },
@@ -97,7 +97,7 @@ export default function SearchBox() {
       setOpen(false);
       setInput("");
       setDebouncedQuery("");
-      router.push(`/event/${entry.id}`);
+      router.push(`/event/${entry.slug}`);
     },
     [recordRecent, router]
   );
@@ -138,7 +138,7 @@ export default function SearchBox() {
   const renderRows = (list: RecentEntry[], keyPrefix: string) =>
     list.map((item, i) => (
       <ResultRow
-        key={`${keyPrefix}-${item.id}`}
+        key={`${keyPrefix}-${item.slug}`}
         refCallback={(el) => {
           itemRefs.current[i] = el;
         }}
@@ -241,7 +241,7 @@ function ResultRow({
   return (
     <Link
       ref={refCallback}
-      href={`/event/${entry.id}`}
+      href={`/event/${entry.slug}`}
       onMouseEnter={onMouseEnter}
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey) return;

@@ -8,14 +8,14 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  params: Promise<{ event_id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function EventPage({ params }: PageProps) {
-  const { event_id } = await params;
+  const { slug } = await params;
   return (
     <AppShell rightSidebar={<RightSidebar />}>
-      <EventDetail eventId={event_id} />
+      <EventDetail slug={slug} />
     </AppShell>
   );
 }

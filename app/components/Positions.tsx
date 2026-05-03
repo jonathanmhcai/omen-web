@@ -135,7 +135,7 @@ function PositionRow({
             />
           </div>
           <Button asChild variant="secondary" className="mt-3 w-full">
-            <Link href={`/event/${position.eventId}`}>View event</Link>
+            <Link href={`/event/${position.eventSlug}`}>View event</Link>
           </Button>
         </div>
       )}

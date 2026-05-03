@@ -5,14 +5,17 @@ const UPSTREAM_TIMEOUT_MS = 10_000;
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const { id } = await params;
+  const { slug } = await params;
   try {
-    const res = await fetch(`${POLYMARKET_API_BASE}/events/${id}`, {
-      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-      next: { revalidate: 15 },
-    });
+    const res = await fetch(
+      `${POLYMARKET_API_BASE}/events/slug/${encodeURIComponent(slug)}`,
+      {
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+        next: { revalidate: 15 },
+      }
+    );
     if (!res.ok) {
       return NextResponse.json(
         { error: `Polymarket API error: ${res.status}` },

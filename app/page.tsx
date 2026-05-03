@@ -373,7 +373,7 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
 
   return (
     <Link
-      href={`/event/${market.event_polymarket_id}`}
+      href={`/event/${market.event_slug}`}
       className="-mx-2 flex flex-col gap-1.5 rounded-md px-2 py-2 transition-colors hover:bg-muted"
     >
       <p className="text-sm font-medium">{title}</p>

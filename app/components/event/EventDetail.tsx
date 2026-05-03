@@ -16,8 +16,8 @@ const TABS: Tab[] = [
   { key: "about", label: "About" },
 ];
 
-export function EventDetail({ eventId }: { eventId: string }) {
-  const { data: event, isLoading, error } = useEvent(eventId);
+export function EventDetail({ slug }: { slug: string }) {
+  const { data: event, isLoading, error } = useEvent(slug);
   const [activeTab, setActiveTab] = useState<TabKey>("markets");
 
   if (isLoading && !event) return <EventDetailSkeleton />;
