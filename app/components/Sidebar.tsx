@@ -16,6 +16,12 @@ import DepositModal from "./DepositModal";
 
 const AVATAR_CACHE_KEY = "omen.profile-avatar-url";
 
+// Module-scoped so it persists across Sidebar remounts. Each page wraps
+// its own AppShell, so client-side navigation tears down and rebuilds
+// the Sidebar — without this, the `mounted` gate below would re-arm on
+// every nav and the BalanceCard / avatar would blink out for one paint.
+let hasHydrated = false;
+
 const NAV = [
   { href: "/", label: "Home", icon: Home, requiresAuth: false, adminOnly: false },
   { href: "/profile", label: "Profile", icon: User, requiresAuth: true, adminOnly: false },
@@ -40,15 +46,20 @@ export default function Sidebar() {
   // (cookies, localStorage, Privy hydration) until after hydration
   // completes. Without this gate, `useCookieString` returns different
   // values on the server vs the first client paint, causing a structural
-  // hydration mismatch.
-  const [mounted, setMounted] = useState(false);
+  // hydration mismatch. After hydration completes once, subsequent
+  // mounts (e.g. page nav) initialize as already-mounted so the
+  // BalanceCard paints immediately from React Query's cache.
+  const [mounted, setMounted] = useState(hasHydrated);
 
   // Persist the avatar URL across reloads so the profile slot paints
   // from cache instead of waiting for `/me` to refetch.
   const [cachedAvatarUrl, setCachedAvatarUrl] = useState<string | null>(null);
   useEffect(() => {
     setCachedAvatarUrl(localStorage.getItem(AVATAR_CACHE_KEY));
-    setMounted(true);
+    if (!hasHydrated) {
+      hasHydrated = true;
+      setMounted(true);
+    }
   }, []);
   useEffect(() => {
     if (authUser?.avatar_url) {
