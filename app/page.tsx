@@ -19,9 +19,11 @@ import {
   timeseriesQueryOptions,
 } from "./hooks/useTimeseries";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { MarketSparkline } from "./components/MarketSparkline";
 import AppShell from "./components/AppShell";
 import RightSidebar from "./components/RightSidebar";
+import { formatShortDollars } from "./lib/format";
 
 export default function Page() {
   const { ready, authenticated } = usePrivy();
@@ -279,12 +281,6 @@ function formatPercentSigned(num: number): string {
   return `${num >= 0 ? "+" : ""}${num.toFixed()}%`;
 }
 
-function formatVolume(n: number): string {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${Math.round(n / 1_000)}K`;
-  return `$${Math.round(n)}`;
-}
-
 function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
   const outcome = pickSparklineOutcome(market.outcomes);
   const tokenId = outcome?.token_id ?? "";
@@ -320,11 +316,9 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
   );
 
   return (
-    <a
-      href={`https://polymarket.com/event/${market.event_slug}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex flex-col gap-1.5 py-2 transition-opacity hover:opacity-80"
+    <Link
+      href={`/event/${market.event_polymarket_id}`}
+      className="-mx-2 flex flex-col gap-1.5 rounded-md px-2 py-2 transition-colors hover:bg-muted"
     >
       <p className="text-sm font-medium">{title}</p>
       <div className="flex items-center justify-between gap-3">
@@ -344,7 +338,7 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
           </div>
           {market.volume_24hr != null && market.volume_24hr > 0 && (
             <span className="text-xs text-muted-foreground">
-              {formatVolume(market.volume_24hr)} 24h vol
+              {formatShortDollars(market.volume_24hr)} 24h vol
             </span>
           )}
         </div>
@@ -360,7 +354,7 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
           markerColor={MUTED_COLOR}
         />
       </div>
-    </a>
+    </Link>
   );
 }
 

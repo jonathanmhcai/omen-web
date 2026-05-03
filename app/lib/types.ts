@@ -44,6 +44,7 @@ export interface PolymarketMarket {
   negRisk: boolean;
   endDate?: string;
   image?: string;
+  icon?: string;
   description?: string;
 }
 
@@ -51,7 +52,9 @@ export interface PolymarketEvent {
   id: number;
   title: string;
   subtitle: string;
+  description?: string;
   image: string;
+  icon?: string;
   startDate: string;
   endDate: string;
   creationDate: string;
