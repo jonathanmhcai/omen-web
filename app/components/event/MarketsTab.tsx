@@ -11,7 +11,7 @@ import {
 } from "../../lib/market";
 import { formatShortDollars } from "../../lib/format";
 
-const COLLAPSED_COUNT = 4;
+const COLLAPSED_COUNT = 10;
 
 export function MarketsTab({ event }: { event: PolymarketEvent }) {
   const [expanded, setExpanded] = useState(false);
