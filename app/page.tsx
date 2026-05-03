@@ -14,6 +14,7 @@ import {
   useStories,
 } from "./hooks/useStories";
 import {
+  TimeseriesInterval,
   TimeseriesPoint,
   TimeseriesResponse,
   timeseriesQueryOptions,
@@ -255,9 +256,39 @@ function formatRelativeAgo(iso: string): string {
   return short === "now" ? "just now" : `${short} ago`;
 }
 
-const SPARKLINE_OPTS = { interval: "1d" as const, fidelity: 60 };
 const SPARKLINE_WIDTH = 80;
 const SPARKLINE_HEIGHT = 24;
+
+// A sparkline window sized so `matched_at` always falls inside it.
+// The same window drives the spark, the % change baseline (option (b):
+// first point of the timeseries), and the volume bucket — so all three
+// numbers describe the same span.
+type SparkWindow = {
+  interval: TimeseriesInterval;
+  fidelity: number;
+  /** Short label suffixed to the % and volume display. */
+  label: string;
+  getVolume: (m: StoryMarket) => number | null;
+};
+
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+const WEEK_MS = 7 * DAY_MS;
+const MONTH_MS = 30 * DAY_MS;
+
+function pickSparkWindow(matchedAt: string): SparkWindow {
+  const age = Date.now() - new Date(matchedAt).getTime();
+  if (age < DAY_MS) {
+    return { interval: "1d", fidelity: 60, label: "24h", getVolume: (m) => m.volume_24hr };
+  }
+  if (age < WEEK_MS) {
+    return { interval: "1w", fidelity: 360, label: "1w", getVolume: (m) => m.volume_1wk };
+  }
+  if (age < MONTH_MS) {
+    return { interval: "1m", fidelity: 1440, label: "1mo", getVolume: (m) => m.volume_1mo };
+  }
+  return { interval: "max", fidelity: 1440, label: "all", getVolume: (m) => m.volume_total };
+}
 const SUCCESS_COLOR = "#22c55e";
 const ERROR_COLOR = "#ef4444";
 const MUTED_COLOR = "#94a3b8";
@@ -287,19 +318,26 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
   const isYes = outcome?.outcome?.toLowerCase() === "yes";
   const outcomeLabel = !isYes && outcome?.outcome ? outcome.outcome : null;
 
+  const window = pickSparkWindow(market.matched_at);
+
   const { data, isLoading } = useQuery<TimeseriesResponse>({
-    ...timeseriesQueryOptions(tokenId, SPARKLINE_OPTS),
+    ...timeseriesQueryOptions(tokenId, {
+      interval: window.interval,
+      fidelity: window.fidelity,
+    }),
     enabled: !!tokenId,
   });
   const points: TimeseriesPoint[] = data?.history ?? [];
 
   const priceLabel = formatCents(outcome?.price ?? null);
 
+  // Option (b): % is computed over the displayed window — first point of
+  // the timeseries → current — so spark, % and volume describe the same
+  // span. (The `matched_at` marker is still drawn within that window.)
+  const baseline = points[0]?.p ?? null;
   const change =
-    outcome?.price != null &&
-    market.price_at_match != null &&
-    market.price_at_match > 0
-      ? ((outcome.price - market.price_at_match) / market.price_at_match) * 100
+    outcome?.price != null && baseline != null && baseline > 0
+      ? ((outcome.price - baseline) / baseline) * 100
       : null;
   const changeLabel = change != null ? formatPercentSigned(change) : null;
   const changeColorClass =
@@ -336,11 +374,15 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
               </span>
             )}
           </div>
-          {market.volume_24hr != null && market.volume_24hr > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {formatShortDollars(market.volume_24hr)} 24h vol
-            </span>
-          )}
+          {(() => {
+            const vol = window.getVolume(market);
+            if (vol == null || vol <= 0) return null;
+            return (
+              <span className="text-xs text-muted-foreground">
+                {formatShortDollars(vol)} {window.label} vol
+              </span>
+            );
+          })()}
         </div>
         <MarketSparkline
           points={points}

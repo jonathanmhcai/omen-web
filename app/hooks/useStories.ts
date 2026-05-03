@@ -43,6 +43,10 @@ export interface StoryMarket {
   question: string;
   end_date: string | null;
   volume_24hr: number | null;
+  volume_1wk: number | null;
+  volume_1mo: number | null;
+  /** Lifetime volume (`polymarket_markets.volume_num`). */
+  volume_total: number | null;
   best_bid: number | null;
   best_ask: number | null;
   last_trade_price: number | null;

@@ -38,7 +38,8 @@ export function MarketSparkline({
 
     const first = points[0].p;
     const last = points[points.length - 1].p;
-    const goingUp = last >= first;
+    const direction: "up" | "down" | "flat" =
+      last > first ? "up" : last < first ? "down" : "flat";
 
     let minP = points[0].p;
     let maxP = points[0].p;
@@ -74,7 +75,8 @@ export function MarketSparkline({
 
     return {
       pathD: d,
-      color: goingUp ? upColor : downColor,
+      color:
+        direction === "up" ? upColor : direction === "down" ? downColor : flatColor,
       endX: finalX,
       endY: finalY,
       isFlat: false,
