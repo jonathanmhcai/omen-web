@@ -358,7 +358,12 @@ function CollapsibleSources({
           ))}
         </div>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((v) => !v);
+          }}
+        >
           <div className="flex">
             {visibleAuthors.slice(0, 4).map((t, i) => (
               <ExternalAuthorAvatar
