@@ -18,100 +18,32 @@ export interface UseTimeseriesOptions {
   fidelity?: number;
 }
 
-type BatchRequestItem = {
-  market: string;
-  interval?: TimeseriesInterval;
-  fidelity?: number;
-  startTs?: number;
-  endTs?: number;
-};
-
-type Pending = {
-  key: string;
-  request: BatchRequestItem;
-  resolve: (r: TimeseriesResponse) => void;
-  reject: (e: Error) => void;
-};
-
-let queue: Pending[] = [];
-let flushTimer: ReturnType<typeof setTimeout> | null = null;
-
-function serializeKey(item: BatchRequestItem): string {
-  return JSON.stringify([
-    item.market,
-    item.interval ?? null,
-    item.fidelity ?? null,
-    item.startTs ?? null,
-    item.endTs ?? null,
-  ]);
-}
-
-async function flushBatch() {
-  flushTimer = null;
-  const pending = queue;
-  queue = [];
-
-  const byKey = new Map<
-    string,
-    { item: BatchRequestItem; waiters: Pending[] }
-  >();
-  for (const p of pending) {
-    const existing = byKey.get(p.key);
-    if (existing) existing.waiters.push(p);
-    else byKey.set(p.key, { item: p.request, waiters: [p] });
-  }
-  const groups = Array.from(byKey.values());
-
-  try {
-    const res = await fetch("/api/timeseries/batch", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ requests: groups.map((g) => g.item) }),
-    });
-    if (!res.ok) {
-      throw new Error(`batch request failed: ${res.status}`);
-    }
-    const json = (await res.json()) as {
-      results: ({ history: TimeseriesPoint[] } | { error: string })[];
-    };
-    if (!Array.isArray(json.results) || json.results.length !== groups.length) {
-      throw new Error("batch response shape mismatch");
-    }
-    json.results.forEach((result, i) => {
-      const waiters = groups[i].waiters;
-      if ("error" in result) {
-        const err = new Error(result.error);
-        for (const w of waiters) w.reject(err);
-      } else {
-        for (const w of waiters) w.resolve(result);
-      }
-    });
-  } catch (err) {
-    const e = err instanceof Error ? err : new Error("batch request failed");
-    for (const g of groups) for (const w of g.waiters) w.reject(e);
-  }
-}
-
-export function fetchTimeseries(
+export async function fetchTimeseries(
   tokenId: string,
   options: UseTimeseriesOptions = {}
 ): Promise<TimeseriesResponse> {
-  const request: BatchRequestItem = { market: tokenId };
-  if (options.interval) {
-    request.interval = options.interval;
-  } else {
-    if (options.startTs !== undefined) request.startTs = options.startTs;
-    if (options.endTs !== undefined) request.endTs = options.endTs;
-  }
-  if (options.fidelity !== undefined) request.fidelity = options.fidelity;
+  const params = new URLSearchParams({ market: tokenId });
 
-  const key = serializeKey(request);
-  return new Promise((resolve, reject) => {
-    queue.push({ key, request, resolve, reject });
-    if (flushTimer === null) {
-      flushTimer = setTimeout(flushBatch, 0);
+  if (options.interval) {
+    params.set("interval", options.interval);
+  } else {
+    if (options.startTs !== undefined) {
+      params.set("startTs", options.startTs.toString());
     }
-  });
+    if (options.endTs !== undefined) {
+      params.set("endTs", options.endTs.toString());
+    }
+  }
+
+  if (options.fidelity !== undefined) {
+    params.set("fidelity", options.fidelity.toString());
+  }
+
+  const res = await fetch(`/api/timeseries?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch price history for token ${tokenId}: ${res.status}`);
+  }
+  return res.json();
 }
 
 export function timeseriesQueryOptions(
@@ -121,5 +53,6 @@ export function timeseriesQueryOptions(
   return {
     queryKey: ["timeseries", tokenId, options] as const,
     queryFn: () => fetchTimeseries(tokenId, options),
+    staleTime: (options.fidelity ?? 60) * 1000,
   };
 }
