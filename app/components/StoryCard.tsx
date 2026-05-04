@@ -167,15 +167,15 @@ const MONTH_MS = 30 * DAY_MS;
 function pickSparkWindow(matchedAt: string): SparkWindow {
   const age = Date.now() - new Date(matchedAt).getTime();
   if (age < DAY_MS) {
-    return { interval: "1d", fidelity: 60, label: "24h", getVolume: (m) => m.volume_24hr };
+    return { interval: "1d", fidelity: 30, label: "24h", getVolume: (m) => m.volume_24hr };
   }
   if (age < WEEK_MS) {
-    return { interval: "1w", fidelity: 360, label: "1w", getVolume: (m) => m.volume_1wk };
+    return { interval: "1w", fidelity: 60, label: "1w", getVolume: (m) => m.volume_1wk };
   }
   if (age < MONTH_MS) {
-    return { interval: "1m", fidelity: 1440, label: "1mo", getVolume: (m) => m.volume_1mo };
+    return { interval: "1m", fidelity: 120, label: "1mo", getVolume: (m) => m.volume_1mo };
   }
-  return { interval: "max", fidelity: 1440, label: "all", getVolume: (m) => m.volume_total };
+  return { interval: "max", fidelity: 120, label: "all", getVolume: (m) => m.volume_total };
 }
 const SUCCESS_COLOR = "#22c55e";
 const ERROR_COLOR = "#ef4444";

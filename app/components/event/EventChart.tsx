@@ -35,15 +35,14 @@ function getFidelityForInterval(interval: TimeseriesInterval): number {
   switch (interval) {
     case "1m":
     case "1h":
-      return 1;
     case "6h":
-      return 5;
+      return 1;
     case "1d":
-      return 60;
+      return 15;
     case "1w":
-      return 360;
+      return 30;
     case "max":
-      return 1440;
+      return 60;
   }
 }
 
