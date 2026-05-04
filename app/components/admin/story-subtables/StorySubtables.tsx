@@ -85,8 +85,35 @@ function dateCell(value: string | null) {
   );
 }
 
+function entitiesCell(entities: string[]) {
+  if (!entities || entities.length === 0) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  const joined = entities.join(", ");
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="block w-full truncate">{joined}</span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-md">{joined}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 const tweetColumnHelper = createColumnHelper<AdminStoryTweet>();
 const tweetColumns = [
+  tweetColumnHelper.accessor("similarity", {
+    header: "Sim",
+    size: 60,
+    cell: (info) => formatSim(info.getValue()),
+  }),
+  tweetColumnHelper.display({
+    id: "entities",
+    header: "Entities",
+    size: 200,
+    enableSorting: false,
+    cell: (info) => entitiesCell(info.row.original.entities),
+  }),
   tweetColumnHelper.accessor("author_handle", {
     header: "Handle",
     size: 120,
@@ -111,14 +138,9 @@ const tweetColumns = [
     size: 110,
     cell: (info) => dateCell(info.getValue()),
   }),
-  tweetColumnHelper.accessor("similarity", {
-    header: "Sim",
-    size: 60,
-    cell: (info) => formatSim(info.getValue()),
-  }),
   tweetColumnHelper.accessor("body", {
     header: "Body",
-    size: 700,
+    size: 540,
     enableSorting: false,
     cell: (info) => {
       const body = info.getValue();
@@ -131,6 +153,7 @@ const tweetSkeleton: Record<string, string> = {
   posted_at: "h-4 w-20",
   similarity: "h-4 w-10",
   body: "h-4 w-96",
+  entities: "h-4 w-32",
 };
 
 const eventColumnHelper = createColumnHelper<AdminStoryEvent>();
@@ -139,6 +162,30 @@ const eventColumns = [
     header: "Sim",
     size: 70,
     cell: (info) => formatSim(info.getValue()),
+  }),
+  eventColumnHelper.accessor("bm25_score", {
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            BM25
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Postgres FTS `ts_rank_cd` at last match. Empty when this row was
+          admitted via ANN-only rescue (lexical query missed it).
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 70,
+    cell: (info) => formatSim(info.getValue()),
+  }),
+  eventColumnHelper.display({
+    id: "entities",
+    header: "Entities",
+    size: 200,
+    enableSorting: false,
+    cell: (info) => entitiesCell(info.row.original.entities),
   }),
   eventColumnHelper.accessor("title", {
     header: "Title",
@@ -186,6 +233,8 @@ const eventColumns = [
 ];
 const eventSkeleton: Record<string, string> = {
   similarity: "h-4 w-10",
+  bm25_score: "h-4 w-10",
+  entities: "h-4 w-32",
   title: "h-4 w-72",
   status: "h-4 w-12",
   end_date: "h-4 w-20",
@@ -194,10 +243,64 @@ const eventSkeleton: Record<string, string> = {
 
 const marketColumnHelper = createColumnHelper<AdminStoryMarket>();
 const marketColumns = [
+  marketColumnHelper.accessor("surfaced", {
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Live
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Green = this market would appear on the public `/stories` feed
+          for this story right now (parent story active, market + parent
+          event live, within the top-N by match_score). Gray = filtered
+          out by the same algo readers see.
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 50,
+    cell: (info) => {
+      const surfaced = info.getValue();
+      const cls = surfaced
+        ? "bg-green-500"
+        : "bg-zinc-300 dark:bg-zinc-700";
+      return (
+        <span
+          aria-label={surfaced ? "surfaced" : "not surfaced"}
+          className={`inline-block h-2 w-2 rounded-full ${cls}`}
+        />
+      );
+    },
+  }),
   marketColumnHelper.accessor("similarity", {
     header: "Sim",
     size: 70,
     cell: (info) => formatSim(info.getValue()),
+  }),
+  marketColumnHelper.accessor("bm25_score", {
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            BM25
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Postgres FTS `ts_rank_cd` at last match. Empty when this row was
+          admitted via ANN-only rescue (lexical query missed it).
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 70,
+    cell: (info) => formatSim(info.getValue()),
+  }),
+  marketColumnHelper.display({
+    id: "entities",
+    header: "Entities",
+    size: 200,
+    enableSorting: false,
+    cell: (info) => entitiesCell(info.row.original.entities),
   }),
   marketColumnHelper.accessor("question", {
     header: "Question",
@@ -340,7 +443,10 @@ const marketColumns = [
   }),
 ];
 const marketSkeleton: Record<string, string> = {
+  surfaced: "h-2 w-2 rounded-full",
   similarity: "h-4 w-10",
+  bm25_score: "h-4 w-10",
+  entities: "h-4 w-32",
   question: "h-4 w-64",
   parent_event_title: "h-4 w-40",
   status: "h-4 w-12",

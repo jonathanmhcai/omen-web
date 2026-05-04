@@ -212,6 +212,7 @@ export interface AdminStoryTweet {
   posted_at: string | null;
   body: string;
   joined_at: string;
+  entities: string[];
 }
 
 export interface AdminStoryEvent {
@@ -221,6 +222,8 @@ export interface AdminStoryEvent {
   slug: string;
   title: string | null;
   similarity: number;
+  /** Postgres FTS `ts_rank_cd` at most recent match. Null on ANN-only rescue. */
+  bm25_score: number | null;
   end_date: string | null;
   closed: boolean | null;
   archived: boolean | null;
@@ -232,6 +235,7 @@ export interface AdminStoryEvent {
    *  the snapshot column was added. */
   volume_24hr_at_match: string | null;
   matched_at: string;
+  entities: string[];
 }
 
 export interface AdminStoryMarket {
@@ -243,6 +247,8 @@ export interface AdminStoryMarket {
   parent_event_title: string | null;
   parent_event_slug: string | null;
   similarity: number;
+  /** Postgres FTS `ts_rank_cd` at most recent match. Null on ANN-only rescue. */
+  bm25_score: number | null;
   end_date: string | null;
   closed: boolean | null;
   archived: boolean | null;
@@ -257,6 +263,14 @@ export interface AdminStoryMarket {
   ask_at_match: string | null;
   volume_24hr_at_match: string | null;
   matched_at: string;
+  entities: string[];
+  /** Whether this market would surface on the public `/stories` feed for
+   *  this story (parent story active + liveness pass + within the cap by
+   *  match_score). Mirrors what readers actually see. */
+  surfaced: boolean;
+  /** Writer's RRF-fused ANN+BM25+entity score. Null for legacy rows
+   *  before the column existed. */
+  match_score: number | null;
 }
 
 export interface AdminStoryDetail {
