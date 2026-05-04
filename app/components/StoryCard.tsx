@@ -440,7 +440,7 @@ export function StoryCard({
       onClick={pressable ? () => router.push(`/story/${story.id}`) : undefined}
       className={cn(
         "flex flex-col rounded-xl border border-border bg-card overflow-hidden",
-        pressable && "cursor-pointer transition-colors hover:bg-accent/30"
+        pressable && "cursor-pointer"
       )}
     >
       {story.hero_image && (
