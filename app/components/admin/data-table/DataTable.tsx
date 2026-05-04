@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -23,6 +23,14 @@ interface DataTableProps<T> {
   manualSorting?: boolean;
   skeletonWidths?: Record<string, string>;
   toolbar?: React.ReactNode;
+  // Expandable rows: pass all four together. Clicking a row (away from
+  // anchors / buttons) calls onRowClick; when a row's id matches
+  // expandedRowId, renderExpandedRow's output is shown in an embedded
+  // row directly beneath it.
+  getRowId?: (row: T) => string;
+  expandedRowId?: string | null;
+  onRowClick?: (row: T) => void;
+  renderExpandedRow?: (row: T) => React.ReactNode;
 }
 
 const SKELETON_ROWS = 15;
@@ -50,6 +58,10 @@ export default function DataTable<T>({
   manualSorting = false,
   skeletonWidths,
   toolbar,
+  getRowId,
+  expandedRowId,
+  onRowClick,
+  renderExpandedRow,
 }: DataTableProps<T>) {
   const [internalSorting, setInternalSorting] = useState<SortingState>(defaultSorting);
   const sorting = controlledSorting ?? internalSorting;
@@ -134,27 +146,60 @@ export default function DataTable<T>({
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-black/[.04] last:border-0 dark:border-white/[.06]"
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    const isTitle = cell.column.id === "title";
-                    let className = "px-4 py-2";
-                    if (isTitle) {
-                      className = "truncate px-4 py-2 font-medium";
-                    } else if (cell.column.id !== "image") {
-                      className = "whitespace-nowrap px-4 py-2";
-                    }
-                    return (
-                      <td key={cell.id} className={className}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const rowId = getRowId?.(row.original);
+                const isExpanded =
+                  rowId != null && expandedRowId === rowId;
+                const clickable = onRowClick != null;
+                return (
+                  <Fragment key={row.id}>
+                    <tr
+                      className={`border-b border-black/[.04] last:border-0 dark:border-white/[.06]${clickable ? " cursor-pointer hover:bg-black/[.02] dark:hover:bg-white/[.03]" : ""}${isExpanded ? " bg-black/[.02] dark:bg-white/[.03]" : ""}`}
+                      onClick={
+                        clickable
+                          ? (e) => {
+                              // Skip toggle when the click landed on an
+                              // interactive child (links, buttons,
+                              // checkboxes) so the headline link still
+                              // navigates and the seed-author / external
+                              // links still open.
+                              if (
+                                (e.target as HTMLElement).closest(
+                                  "a, button, input, label",
+                                )
+                              ) {
+                                return;
+                              }
+                              onRowClick(row.original);
+                            }
+                          : undefined
+                      }
+                    >
+                      {row.getVisibleCells().map((cell) => {
+                        const isTitle = cell.column.id === "title";
+                        let className = "px-4 py-2";
+                        if (isTitle) {
+                          className = "truncate px-4 py-2 font-medium";
+                        } else if (cell.column.id !== "image") {
+                          className = "whitespace-nowrap px-4 py-2";
+                        }
+                        return (
+                          <td key={cell.id} className={className}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                    {isExpanded && renderExpandedRow && (
+                      <tr className="border-b border-black/[.08] bg-black/[.015] dark:border-white/[.10] dark:bg-white/[.02]">
+                        <td colSpan={row.getVisibleCells().length} className="px-4 py-4">
+                          {renderExpandedRow(row.original)}
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })
             )}
           </tbody>
         </table>

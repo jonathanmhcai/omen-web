@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createColumnHelper, type SortingState } from "@tanstack/react-table";
+import { Loader } from "lucide-react";
 import Link from "next/link";
 import DataTable from "../data-table/DataTable";
 import Pagination from "../data-table/Pagination";
+import StorySubtables from "../story-subtables/StorySubtables";
+import { useAdminStory } from "../../../hooks/admin/useAdminStory";
 import { AdminStory } from "../../../lib/types";
 import { formatFriendlyDate, formatExactDate } from "../../../lib/utils";
 import {
@@ -227,6 +230,34 @@ interface StoriesTableProps {
   onActiveOnlyChange: (v: boolean) => void;
 }
 
+function StoryExpansion({ storyId }: { storyId: string }) {
+  const { data, loading, error } = useAdminStory(storyId);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <Loader className="h-5 w-5 animate-spin duration-1000" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="text-sm text-red-500">Error: {error}</p>;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <StorySubtables
+      tweets={data.tweets}
+      events={data.events}
+      markets={data.markets}
+    />
+  );
+}
+
 export default function StoriesTable({
   stories,
   loading,
@@ -245,6 +276,7 @@ export default function StoriesTable({
   onActiveOnlyChange,
 }: StoriesTableProps) {
   const searchRef = useRef<HTMLInputElement>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -302,6 +334,12 @@ export default function StoriesTable({
       manualSorting={true}
       skeletonWidths={skeletonWidths}
       toolbar={toolbar}
+      getRowId={(s) => s.id}
+      expandedRowId={expandedId}
+      onRowClick={(s) =>
+        setExpandedId((prev) => (prev === s.id ? null : s.id))
+      }
+      renderExpandedRow={(s) => <StoryExpansion storyId={s.id} />}
     />
   );
 }
