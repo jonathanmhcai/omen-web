@@ -236,6 +236,8 @@ export interface AdminStoryEvent {
   volume_24hr_at_match: string | null;
   matched_at: string;
   entities: string[];
+  /** Writer's RRF-fused ANN+BM25+entity score. Null on legacy rows. */
+  match_score: number | null;
 }
 
 export interface AdminStoryMarket {

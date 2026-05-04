@@ -180,6 +180,24 @@ const eventColumns = [
     size: 70,
     cell: (info) => formatSim(info.getValue()),
   }),
+  eventColumnHelper.accessor("match_score", {
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Match
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Writer&apos;s RRF-fused score over ANN + BM25 + entity-overlap
+          (k=60). The within-story ordering key the public feed uses.
+          Higher = more likely to surface.
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 70,
+    cell: (info) => formatSim(info.getValue()),
+  }),
   eventColumnHelper.display({
     id: "entities",
     header: "Entities",
@@ -234,6 +252,7 @@ const eventColumns = [
 const eventSkeleton: Record<string, string> = {
   similarity: "h-4 w-10",
   bm25_score: "h-4 w-10",
+  match_score: "h-4 w-10",
   entities: "h-4 w-32",
   title: "h-4 w-72",
   status: "h-4 w-12",
@@ -289,6 +308,24 @@ const marketColumns = [
         <TooltipContent className="max-w-xs">
           Postgres FTS `ts_rank_cd` at last match. Empty when this row was
           admitted via ANN-only rescue (lexical query missed it).
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 70,
+    cell: (info) => formatSim(info.getValue()),
+  }),
+  marketColumnHelper.accessor("match_score", {
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Match
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          Writer&apos;s RRF-fused score over ANN + BM25 + entity-overlap
+          (k=60). The within-story ordering key the public feed uses to
+          pick which markets surface. Higher = more likely to surface.
         </TooltipContent>
       </Tooltip>
     ),
@@ -446,6 +483,7 @@ const marketSkeleton: Record<string, string> = {
   surfaced: "h-2 w-2 rounded-full",
   similarity: "h-4 w-10",
   bm25_score: "h-4 w-10",
+  match_score: "h-4 w-10",
   entities: "h-4 w-32",
   question: "h-4 w-64",
   parent_event_title: "h-4 w-40",
@@ -491,7 +529,7 @@ export default function StorySubtables({
           columns={eventColumns}
           loading={false}
           error={null}
-          defaultSorting={[{ id: "similarity", desc: true }]}
+          defaultSorting={[{ id: "match_score", desc: true }]}
           skeletonWidths={eventSkeleton}
         />
       </section>
@@ -505,7 +543,7 @@ export default function StorySubtables({
           columns={marketColumns}
           loading={false}
           error={null}
-          defaultSorting={[{ id: "similarity", desc: true }]}
+          defaultSorting={[{ id: "match_score", desc: true }]}
           skeletonWidths={marketSkeleton}
         />
       </section>
