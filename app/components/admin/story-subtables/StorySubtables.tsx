@@ -292,6 +292,80 @@ const marketColumns = [
       );
     },
   }),
+  marketColumnHelper.display({
+    id: "prediction",
+    header: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted underline-offset-2">
+            Pred
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          LLM directional call (↑/↓/—) and confidence. The public feed
+          only shows markets with direction ↑ or ↓; — and missing rows
+          are filtered out. Hover for relevance, reasoning, model.
+        </TooltipContent>
+      </Tooltip>
+    ),
+    size: 80,
+    enableSorting: false,
+    cell: (info) => {
+      const p = info.row.original.prediction;
+      if (!p) {
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-muted-foreground">—</span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              No prediction yet. The predictions worker hasn't fired for
+              this row's author-count threshold ([2, 5, 10]).
+            </TooltipContent>
+          </Tooltip>
+        );
+      }
+      const arrow =
+        p.direction === "up" ? "↑" : p.direction === "down" ? "↓" : "—";
+      const arrowCls =
+        p.direction === "up"
+          ? "text-green-600 dark:text-green-400"
+          : p.direction === "down"
+            ? "text-red-600 dark:text-red-400"
+            : "text-muted-foreground";
+      const conf = p.direction_confidence.toFixed(2);
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="whitespace-nowrap">
+              <span className={`font-medium ${arrowCls}`}>{arrow}</span>
+              <span className="ml-1 text-muted-foreground">{conf}</span>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-md space-y-1.5">
+            <div>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Relevance
+              </span>
+              <div>
+                {p.relevance} ({p.relevance_confidence.toFixed(2)})
+              </div>
+            </div>
+            <div>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Reasoning
+              </span>
+              <div>{p.reasoning}</div>
+            </div>
+            <div className="text-[10px] text-muted-foreground">
+              {p.model} · prompt {p.prompt_version} ·{" "}
+              {formatExactDate(p.evaluated_at)}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+  }),
   marketColumnHelper.accessor("similarity", {
     header: "Sim",
     size: 70,

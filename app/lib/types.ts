@@ -301,6 +301,22 @@ export interface AdminStoryMarket {
   /** Writer's RRF-fused ANN+BM25+entity score. Null for legacy rows
    *  before the column existed. */
   match_score: number | null;
+  /** LLM evaluation for this (story, market) pair. Null when the
+   *  predictions worker hasn't fired yet for the current author-count
+   *  threshold. The public feed only shows markets where direction is
+   *  'up' or 'down'; admin sees everything. */
+  prediction: AdminStoryMarketPrediction | null;
+}
+
+export interface AdminStoryMarketPrediction {
+  relevance: "relevant" | "unrelated" | "unclear";
+  relevance_confidence: number;
+  direction: "up" | "down" | "unclear";
+  direction_confidence: number;
+  reasoning: string;
+  model: string;
+  prompt_version: string;
+  evaluated_at: string;
 }
 
 export interface AdminStoryDetail {
