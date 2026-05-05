@@ -570,14 +570,24 @@ function ChartSVG({
         {paths.map((p, i) => {
           if (!p.d) return null;
           const hover = hoverInfos[i];
-          const renderD = hover?.d ?? p.d;
           const dotX = hover?.dotX ?? p.endX;
           const dotY = hover?.dotY ?? p.endY;
           const showPulse = introDone && !showCursorOverlay;
           return (
             <g key={p.key}>
+              {hover && (
+                <path
+                  d={p.d}
+                  stroke={p.color}
+                  strokeWidth={2}
+                  strokeOpacity={0.25}
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
               <path
-                d={renderD}
+                d={hover?.d ?? p.d}
                 stroke={p.color}
                 strokeWidth={2}
                 fill="none"
