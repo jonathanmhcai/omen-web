@@ -152,31 +152,12 @@ function formatRelativeAgo(iso: string): string {
 const SPARKLINE_WIDTH = 80;
 const SPARKLINE_HEIGHT = 24;
 
-type SparkWindow = {
-  interval: TimeseriesInterval;
-  fidelity: number;
-  label: string;
-  getVolume: (m: StoryMarket) => number | null;
-};
-
-const HOUR_MS = 60 * 60 * 1000;
-const DAY_MS = 24 * HOUR_MS;
-const WEEK_MS = 7 * DAY_MS;
-const MONTH_MS = 30 * DAY_MS;
-
-function pickSparkWindow(matchedAt: string): SparkWindow {
-  const age = Date.now() - new Date(matchedAt).getTime();
-  if (age < DAY_MS) {
-    return { interval: "1d", fidelity: 30, label: "24h", getVolume: (m) => m.volume_24hr };
-  }
-  if (age < WEEK_MS) {
-    return { interval: "1w", fidelity: 60, label: "1w", getVolume: (m) => m.volume_1wk };
-  }
-  if (age < MONTH_MS) {
-    return { interval: "1m", fidelity: 120, label: "1mo", getVolume: (m) => m.volume_1mo };
-  }
-  return { interval: "max", fidelity: 120, label: "all", getVolume: (m) => m.volume_total };
-}
+// Fixed 24-hour sparkline window. The same span drives the spark, the
+// % change baseline (first point of the timeseries), and the displayed
+// volume — and matches the server's surface order, which sorts markets
+// by `|one_day_price_change|` DESC.
+const SPARK_INTERVAL: TimeseriesInterval = "1d";
+const SPARK_FIDELITY = 30;
 const SUCCESS_COLOR = "#22c55e";
 const ERROR_COLOR = "#ef4444";
 const MUTED_COLOR = "#94a3b8";
@@ -209,12 +190,10 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
   const isYes = outcome?.outcome?.toLowerCase() === "yes";
   const outcomeLabel = !isYes && outcome?.outcome ? outcome.outcome : null;
 
-  const window = pickSparkWindow(market.matched_at);
-
   const { data, isLoading } = useQuery<TimeseriesResponse>({
     ...timeseriesQueryOptions(tokenId, {
-      interval: window.interval,
-      fidelity: window.fidelity,
+      interval: SPARK_INTERVAL,
+      fidelity: SPARK_FIDELITY,
     }),
     enabled: !!tokenId,
   });
@@ -276,11 +255,11 @@ function MarketRow({ market, title }: { market: StoryMarket; title: string }) {
             )}
           </div>
           {(() => {
-            const vol = window.getVolume(market);
+            const vol = market.volume_24hr;
             if (vol == null || vol <= 0) return null;
             return (
               <span className="text-xs text-muted-foreground">
-                {formatShortDollars(vol)} {window.label} vol
+                {formatShortDollars(vol)} 24h vol
               </span>
             );
           })()}
