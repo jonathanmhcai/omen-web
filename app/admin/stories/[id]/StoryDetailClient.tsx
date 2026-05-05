@@ -48,7 +48,9 @@ function StatusBadge({ status }: { status: AdminStoryStatus }) {
       ? `${base} bg-green-500/15 text-green-700 dark:text-green-400`
       : status === "active"
         ? `${base} bg-amber-500/15 text-amber-700 dark:text-amber-400`
-        : `${base} bg-zinc-500/15 text-zinc-600 dark:text-zinc-400`;
+        : status === "merged"
+          ? `${base} bg-violet-500/15 text-violet-700 dark:text-violet-400`
+          : `${base} bg-zinc-500/15 text-zinc-600 dark:text-zinc-400`;
   return <span className={className}>{status}</span>;
 }
 
@@ -98,6 +100,31 @@ export default function StoryDetailClient() {
         </div>
       </div>
 
+      {story.status === "merged" && story.merged_into_story_id && (
+        // Surface the redirect target prominently. The detail page itself
+        // intentionally still shows this row's frozen state (centroid,
+        // tweets, links) — useful for debugging "why did the worker pick
+        // that survivor?" — but the banner makes clear that user-facing
+        // traffic for this id resolves to the survivor on the public API.
+        <div className="mb-4 rounded-md border border-violet-500/30 bg-violet-500/5 px-3 py-2 text-sm">
+          <span className="mr-2 font-medium text-violet-700 dark:text-violet-400">
+            Merged
+          </span>
+          <span className="text-muted-foreground">
+            {story.merged_at
+              ? `on ${formatExactDate(story.merged_at)} `
+              : ""}
+            into{" "}
+          </span>
+          <Link
+            href={`/admin/stories/${story.merged_into_story_id}`}
+            className="font-mono text-xs hover:underline"
+          >
+            {story.merged_into_story_id}
+          </Link>
+        </div>
+      )}
+
       {showRawBelow && (
         <div className="mb-4 text-sm text-muted-foreground">
           <span className="mr-2 rounded bg-zinc-500/10 px-1 py-0.5 text-[10px] font-medium uppercase tracking-wide">
@@ -138,6 +165,21 @@ export default function StoryDetailClient() {
         </Field>
         <Field label="Published">
           {story.published_at ? formatExactDate(story.published_at) : "—"}
+        </Field>
+        <Field label="Merged">
+          {story.merged_at ? formatExactDate(story.merged_at) : "—"}
+        </Field>
+        <Field label="Merged into">
+          {story.merged_into_story_id ? (
+            <Link
+              href={`/admin/stories/${story.merged_into_story_id}`}
+              className="font-mono text-xs hover:underline"
+            >
+              {story.merged_into_story_id}
+            </Link>
+          ) : (
+            "—"
+          )}
         </Field>
         <Field label="LLM metadata generated">
           {story.metadata_generated_at

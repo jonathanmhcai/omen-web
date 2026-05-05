@@ -19,10 +19,13 @@ import {
 
 const columnHelper = createColumnHelper<AdminStory>();
 
-// Three story states reflect the lifecycle: candidate (gathering corroboration)
-// -> active (>=2 distinct authors, ready for LLM enrichment) -> published
-// (LLM metadata generated AND >=1 matched market; user-visible). Colors track
-// progress: muted -> amber (in-flight) -> green (terminal "good" state).
+// Story lifecycle: candidate (gathering corroboration) -> active (>=2
+// distinct authors, ready for LLM enrichment) -> published (LLM metadata
+// generated AND >=1 matched market; user-visible). 'merged' is a separate
+// terminal state any of the three can flip into when merge-stories-sweep
+// folds the row into a survivor — uses violet (matches the "closed-as-
+// duplicate" convention in tracker UIs) so it reads as a deliberate
+// resolution, not a failure or in-flight state.
 function statusBadge(status: AdminStory["status"]) {
   const base = "rounded-full px-2 py-0.5 text-xs font-medium";
   const className =
@@ -30,7 +33,9 @@ function statusBadge(status: AdminStory["status"]) {
       ? `${base} bg-green-500/15 text-green-700 dark:text-green-400`
       : status === "active"
         ? `${base} bg-amber-500/15 text-amber-700 dark:text-amber-400`
-        : `${base} bg-zinc-500/15 text-zinc-600 dark:text-zinc-400`;
+        : status === "merged"
+          ? `${base} bg-violet-500/15 text-violet-700 dark:text-violet-400`
+          : `${base} bg-zinc-500/15 text-zinc-600 dark:text-zinc-400`;
   return <span className={className}>{status}</span>;
 }
 
@@ -265,7 +270,7 @@ const skeletonWidths: Record<string, string> = {
   created_at: "h-4 w-20",
 };
 
-type StatusFilter = "all" | "candidate" | "active" | "published";
+type StatusFilter = "all" | "candidate" | "active" | "published" | "merged";
 
 interface StoriesTableProps {
   stories: AdminStory[];
@@ -372,6 +377,7 @@ export default function StoriesTable({
           <option value="candidate">Candidate</option>
           <option value="active">Active</option>
           <option value="published">Published</option>
+          <option value="merged">Merged</option>
         </select>
       </label>
       <Pagination

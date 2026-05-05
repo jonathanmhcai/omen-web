@@ -171,7 +171,11 @@ export interface AdminInviteCodeDetail extends AdminInviteCode {
   redemptions: AdminInviteCodeRedemption[];
 }
 
-export type AdminStoryStatus = "candidate" | "active" | "published";
+export type AdminStoryStatus =
+  | "candidate"
+  | "active"
+  | "published"
+  | "merged";
 
 export interface AdminStory {
   id: string;
@@ -198,6 +202,10 @@ export interface AdminStory {
   metadata_generated_at: string | null;
   /** Number of times generate-story-metadata has succeeded. Bounded to 3. */
   metadata_runs_count: number;
+  /** Set when status flips to 'merged'. Null otherwise. */
+  merged_at: string | null;
+  /** Survivor story for merged rows. Null when status != 'merged'. */
+  merged_into_story_id: string | null;
   created_at: string;
 }
 
@@ -214,6 +222,8 @@ export interface AdminStoryDetailStory {
   published_at: string | null;
   metadata_generated_at: string | null;
   metadata_runs_count: number;
+  merged_at: string | null;
+  merged_into_story_id: string | null;
   created_at: string;
   updated_at: string;
   centroid_model: string | null;

@@ -6,7 +6,12 @@ import StoriesTable from "../../components/admin/stories-table/StoriesTable";
 import { useAdminStories } from "../../hooks/admin/useAdminStories";
 import type { Filters } from "../../lib/admin-query";
 
-export type StoryStatusFilter = "all" | "candidate" | "active" | "published";
+export type StoryStatusFilter =
+  | "all"
+  | "candidate"
+  | "active"
+  | "published"
+  | "merged";
 
 export default function StoriesClient() {
   const [sorting, setSorting] = useState<SortingState>([
