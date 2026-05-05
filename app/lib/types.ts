@@ -171,10 +171,17 @@ export interface AdminInviteCodeDetail extends AdminInviteCode {
   redemptions: AdminInviteCodeRedemption[];
 }
 
+export type AdminStoryStatus = "candidate" | "active" | "published";
+
 export interface AdminStory {
   id: string;
-  status: "candidate" | "active";
+  status: AdminStoryStatus;
+  /** Tweet-derived headline frozen at story-promotion time. */
   headline: string;
+  /** LLM-generated headline. Null until generate-story-metadata runs. */
+  llm_headline: string | null;
+  /** LLM-generated bullets (1-3 entries). Empty array until first run. */
+  bullets: string[];
   seed_author_handle: string | null;
   media_count: number;
   distinct_author_count: number;
@@ -185,17 +192,28 @@ export interface AdminStory {
   avg_join_similarity: number | null;
   latest_media_at: string;
   promoted_at: string | null;
+  /** Set when status transitions active -> published. */
+  published_at: string | null;
+  /** Set when generate-story-metadata last completed successfully. */
+  metadata_generated_at: string | null;
+  /** Number of times generate-story-metadata has succeeded. Bounded to 3. */
+  metadata_runs_count: number;
   created_at: string;
 }
 
 export interface AdminStoryDetailStory {
   id: string;
-  status: "candidate" | "active";
+  status: AdminStoryStatus;
   headline: string;
+  llm_headline: string | null;
+  bullets: string[];
   media_count: number;
   distinct_author_count: number;
   latest_media_at: string;
   promoted_at: string | null;
+  published_at: string | null;
+  metadata_generated_at: string | null;
+  metadata_runs_count: number;
   created_at: string;
   updated_at: string;
   centroid_model: string | null;

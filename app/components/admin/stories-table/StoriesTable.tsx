@@ -19,11 +19,18 @@ import {
 
 const columnHelper = createColumnHelper<AdminStory>();
 
+// Three story states reflect the lifecycle: candidate (gathering corroboration)
+// -> active (>=2 distinct authors, ready for LLM enrichment) -> published
+// (LLM metadata generated AND >=1 matched market; user-visible). Colors track
+// progress: muted -> amber (in-flight) -> green (terminal "good" state).
 function statusBadge(status: AdminStory["status"]) {
+  const base = "rounded-full px-2 py-0.5 text-xs font-medium";
   const className =
-    status === "active"
-      ? "rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400"
-      : "rounded-full bg-zinc-500/15 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:text-zinc-400";
+    status === "published"
+      ? `${base} bg-green-500/15 text-green-700 dark:text-green-400`
+      : status === "active"
+        ? `${base} bg-amber-500/15 text-amber-700 dark:text-amber-400`
+        : `${base} bg-zinc-500/15 text-zinc-600 dark:text-zinc-400`;
   return <span className={className}>{status}</span>;
 }
 
@@ -110,18 +117,42 @@ const columns = [
     size: 720,
     enableSorting: false,
     cell: (info) => {
-      const { id, headline } = info.row.original;
+      const { id, headline, llm_headline } = info.row.original;
+      // Prefer LLM-generated headline; fall back to tweet-derived. The
+      // `raw` indicator surfaces unprocessed rows at a glance — admin
+      // can spot stories awaiting enrichment without opening the detail
+      // page. Tooltip stacks both so we can compare model output to seed.
+      const display = llm_headline ?? headline;
+      const isRaw = llm_headline === null;
       return (
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
               href={`/admin/stories/${id}`}
-              className="block w-full truncate hover:underline"
+              className="flex w-full items-center gap-2 hover:underline"
             >
-              {headline}
+              {isRaw && (
+                <span className="shrink-0 rounded bg-zinc-500/10 px-1 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  raw
+                </span>
+              )}
+              <span className="truncate">{display}</span>
             </Link>
           </TooltipTrigger>
-          <TooltipContent className="max-w-md">{headline}</TooltipContent>
+          <TooltipContent className="max-w-md space-y-1.5">
+            <div>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                {llm_headline ? "AI" : "AI (pending)"}
+              </span>
+              <div>{llm_headline ?? "—"}</div>
+            </div>
+            <div>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Raw
+              </span>
+              <div>{headline}</div>
+            </div>
+          </TooltipContent>
         </Tooltip>
       );
     },
@@ -234,6 +265,8 @@ const skeletonWidths: Record<string, string> = {
   created_at: "h-4 w-20",
 };
 
+type StatusFilter = "all" | "candidate" | "active" | "published";
+
 interface StoriesTableProps {
   stories: AdminStory[];
   loading: boolean;
@@ -248,8 +281,8 @@ interface StoriesTableProps {
   onSortingChange: (sorting: SortingState) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  activeOnly: boolean;
-  onActiveOnlyChange: (v: boolean) => void;
+  statusFilter: StatusFilter;
+  onStatusFilterChange: (v: StatusFilter) => void;
 }
 
 function StoryExpansion({ storyId }: { storyId: string }) {
@@ -294,8 +327,8 @@ export default function StoriesTable({
   onSortingChange,
   searchQuery,
   onSearchChange,
-  activeOnly,
-  onActiveOnlyChange,
+  statusFilter,
+  onStatusFilterChange,
 }: StoriesTableProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -327,12 +360,19 @@ export default function StoriesTable({
         className="w-56 rounded-lg border border-black/[.08] px-3 py-1.5 text-sm placeholder:text-muted-foreground dark:border-white/[.145]"
       />
       <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={activeOnly}
-          onChange={(e) => onActiveOnlyChange(e.target.checked)}
-        />
-        Active only
+        Status:
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            onStatusFilterChange(e.target.value as StatusFilter)
+          }
+          className="rounded-lg border border-black/[.08] bg-transparent px-2 py-1.5 text-sm dark:border-white/[.145]"
+        >
+          <option value="all">All</option>
+          <option value="candidate">Candidate</option>
+          <option value="active">Active</option>
+          <option value="published">Published</option>
+        </select>
       </label>
       <Pagination
         page={page}

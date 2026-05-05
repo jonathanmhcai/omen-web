@@ -6,13 +6,15 @@ import StoriesTable from "../../components/admin/stories-table/StoriesTable";
 import { useAdminStories } from "../../hooks/admin/useAdminStories";
 import type { Filters } from "../../lib/admin-query";
 
+export type StoryStatusFilter = "all" | "candidate" | "active" | "published";
+
 export default function StoriesClient() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "latest_media_at", desc: true },
   ]);
   const [localSearch, setLocalSearch] = useState("");
   const [search, setSearch] = useState("");
-  const [activeOnly, setActiveOnly] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StoryStatusFilter>("all");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -21,9 +23,9 @@ export default function StoriesClient() {
   }, [localSearch]);
 
   const filters: Filters | undefined = useMemo(() => {
-    if (!activeOnly) return undefined;
-    return { status: "active" };
-  }, [activeOnly]);
+    if (statusFilter === "all") return undefined;
+    return { status: statusFilter };
+  }, [statusFilter]);
 
   const {
     stories,
@@ -57,8 +59,8 @@ export default function StoriesClient() {
       onSortingChange={setSorting}
       searchQuery={localSearch}
       onSearchChange={setLocalSearch}
-      activeOnly={activeOnly}
-      onActiveOnlyChange={setActiveOnly}
+      statusFilter={statusFilter}
+      onStatusFilterChange={setStatusFilter}
     />
   );
 }
