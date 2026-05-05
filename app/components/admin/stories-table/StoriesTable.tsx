@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createColumnHelper, type SortingState } from "@tanstack/react-table";
 import { Loader } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import DataTable from "../data-table/DataTable";
 import Pagination from "../data-table/Pagination";
 import StorySubtables from "../story-subtables/StorySubtables";
@@ -44,6 +45,26 @@ function dateCell(value: string | null) {
 }
 
 const columns = [
+  columnHelper.accessor("id", {
+    header: "ID",
+    size: 60,
+    enableSorting: false,
+    cell: (info) => {
+      const id = info.getValue();
+      return (
+        <button
+          className="cursor-pointer font-mono hover:underline"
+          onClick={() => {
+            navigator.clipboard.writeText(id);
+            toast("ID copied to clipboard");
+          }}
+          title={id}
+        >
+          {id.slice(0, 5)}
+        </button>
+      );
+    },
+  }),
   columnHelper.accessor("latest_media_at", {
     header: "Latest",
     size: 60,
@@ -200,6 +221,7 @@ const columns = [
 ];
 
 const skeletonWidths: Record<string, string> = {
+  id: "h-4 w-10",
   status: "h-4 w-16",
   seed_author_handle: "h-4 w-20",
   headline: "h-4 w-64",
