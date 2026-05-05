@@ -429,21 +429,29 @@ const marketColumns = [
         matchN != null &&
         currN != null &&
         Number.isFinite(matchN) &&
-        Number.isFinite(currN) &&
-        matchN > 0 // percentage undefined at match=0
+        Number.isFinite(currN)
       ) {
-        const diffPct = Math.round(((currN - matchN) / matchN) * 100);
-        if (diffPct === 0) {
-          diffEl = <span className="ml-1 text-muted-foreground">0%</span>;
+        const diffCents = (currN - matchN) * 100;
+        const absCents = Math.abs(diffCents);
+        // Match formatCents precision: sub-1¢ moves keep a decimal so
+        // long-tail markets don't collapse to "0¢".
+        const diffStr =
+          absCents > 0 && absCents < 1
+            ? `${diffCents.toFixed(1)}¢`
+            : `${Math.round(diffCents)}¢`;
+        const rounded =
+          absCents > 0 && absCents < 1 ? diffCents : Math.round(diffCents);
+        if (rounded === 0) {
+          diffEl = <span className="ml-1 text-muted-foreground">0¢</span>;
         } else {
           const cls =
-            diffPct > 0
+            rounded > 0
               ? "text-green-600 dark:text-green-400"
               : "text-red-600 dark:text-red-400";
           diffEl = (
             <span className={`ml-1 ${cls}`}>
-              {diffPct > 0 ? "+" : ""}
-              {diffPct}%
+              {rounded > 0 ? "+" : ""}
+              {diffStr}
             </span>
           );
         }
