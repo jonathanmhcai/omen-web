@@ -228,6 +228,8 @@ export interface AdminStoryDetailStory {
   updated_at: string;
   centroid_model: string | null;
   centroid_embedded_at: string | null;
+  searched_image_url: string | null;
+  searched_image_attempted_at: string | null;
 }
 
 export interface AdminStoryTweet {

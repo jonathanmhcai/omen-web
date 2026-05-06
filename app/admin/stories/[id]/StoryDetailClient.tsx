@@ -189,6 +189,35 @@ export default function StoryDetailClient() {
         <Field label="LLM runs">
           {story.metadata_runs_count} / 3
         </Field>
+        <Field label="Searched image">
+          {story.searched_image_url ? (
+            <span className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={story.searched_image_url}
+                alt="searched hero"
+                className="h-12 w-12 rounded object-cover"
+              />
+              <a
+                href={story.searched_image_url}
+                target="_blank"
+                rel="noreferrer"
+                className="break-all font-mono text-xs hover:underline"
+              >
+                {story.searched_image_url}
+              </a>
+            </span>
+          ) : story.searched_image_attempted_at ? (
+            <span className="text-muted-foreground">no image found</span>
+          ) : (
+            "—"
+          )}
+        </Field>
+        <Field label="Searched image attempted">
+          {story.searched_image_attempted_at
+            ? formatExactDate(story.searched_image_attempted_at)
+            : "—"}
+        </Field>
         <Field label="Centroid model">{story.centroid_model ?? "—"}</Field>
         <Field label="Centroid embedded">
           {story.centroid_embedded_at
