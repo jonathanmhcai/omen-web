@@ -9,6 +9,13 @@ export interface FeedTag {
   /** polymarket_tags.slug, or null for the unfiltered "All" tab. */
   slug: string | null;
   /**
+   * Polymarket gamma tag id (`polymarket_tags.polymarket_id`). Null
+   * when the tab has no slug ("All") or when the slug isn't yet
+   * indexed. Surfaces that hit gamma directly (e.g. mobile search)
+   * filter tabs without a polymarketId.
+   */
+  polymarketId: string | null;
+  /**
    * Slugs whose stories are filtered OUT of this tab. Set on the server
    * to keep tabs orthogonal — e.g. Politics excludes Iran so the same
    * geopolitics story doesn't appear in both. Optional; absent → no
