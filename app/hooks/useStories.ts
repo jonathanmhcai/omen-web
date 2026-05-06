@@ -51,10 +51,8 @@ export interface StoryMarket {
   best_ask: number | null;
   last_trade_price: number | null;
   one_day_price_change: number | null;
-  price_at_match: number | null;
   matched_at: string;
   outcomes: StoryMarketOutcome[];
-  similarity: number;
   event_polymarket_id: string;
   event_slug: string;
 }
