@@ -79,15 +79,30 @@ interface StoriesResponse {
 
 const PAGE_SIZE = 20;
 
-export function useStories() {
+export function useStories(tagSlug?: string, excludeSlugs?: readonly string[]) {
   const [sessionToken] = useCookieString(SESSION_TOKEN_KEY);
+  // Stable cache key segment for the exclusion list — sorted+joined so
+  // [a,b] and [b,a] hit the same cache entry. Empty/absent → null.
+  const excludeKey =
+    excludeSlugs && excludeSlugs.length > 0
+      ? [...excludeSlugs].sort().join(",")
+      : null;
 
   const query = useInfiniteQuery<StoriesResponse>({
-    queryKey: ["stories", sessionToken ? "auth" : "anon"],
+    queryKey: [
+      "stories",
+      sessionToken ? "auth" : "anon",
+      tagSlug ?? null,
+      excludeKey,
+    ],
     queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams();
       params.set("limit", String(PAGE_SIZE));
       if (pageParam) params.set("cursor", pageParam as string);
+      if (tagSlug) params.set("filter_by_tag_slug", tagSlug);
+      if (excludeSlugs) {
+        for (const slug of excludeSlugs) params.append("exclude_tag_slug", slug);
+      }
       const headers: Record<string, string> = {};
       if (sessionToken) headers.Authorization = `Bearer ${sessionToken}`;
       const res = await fetch(`${API_BASE}/stories?${params}`, { headers });
