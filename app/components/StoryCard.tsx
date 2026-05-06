@@ -301,8 +301,8 @@ function CollapsibleSources({
   }, [tweets]);
 
   const overflow = Math.max(0, distinctAuthorCount - visibleAuthors.length);
-  const namesText = visibleAuthors
-    .map((t) => t.author_display_name || t.author_handle)
+  const handlesText = visibleAuthors
+    .map((t) => `@${t.author_handle}`)
     .join(", ");
 
   return (
@@ -316,15 +316,32 @@ function CollapsibleSources({
         className="flex items-center gap-2 py-1 text-left transition-opacity hover:opacity-80"
         aria-expanded={expanded}
       >
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Sources
-        </span>
-        <span className="flex h-[18px] min-w-5 items-center justify-center rounded-full bg-muted px-1.5 text-xs font-semibold text-muted-foreground">
-          {distinctAuthorCount}
-        </span>
+        <div className="flex shrink-0">
+          {visibleAuthors.slice(0, 4).map((t, i) => (
+            <ExternalAuthorAvatar
+              key={t.author_handle}
+              avatarUrl={t.author_avatar_url}
+              handle={t.author_handle}
+              displayName={t.author_display_name}
+              verifiedType={t.author_verified_type}
+              size={24}
+              className={cn("ring-2 ring-card", i > 0 && "-ml-2")}
+            />
+          ))}
+        </div>
+        {expanded ? (
+          <span className="text-sm text-muted-foreground">
+            {distinctAuthorCount} {distinctAuthorCount === 1 ? "source" : "sources"}
+          </span>
+        ) : (
+          <p className="flex-1 truncate text-sm text-muted-foreground">
+            {handlesText}
+            {overflow > 0 ? `, +${overflow} more` : ""}
+          </p>
+        )}
         <ChevronDown
           className={cn(
-            "ml-auto h-[18px] w-[18px] text-muted-foreground transition-transform duration-200",
+            "ml-auto h-[18px] w-[18px] shrink-0 text-muted-foreground transition-transform duration-200",
             expanded && "rotate-180"
           )}
         />
@@ -336,36 +353,7 @@ function CollapsibleSources({
             <TweetRow key={t.tweet_id} tweet={t} />
           ))}
         </div>
-      ) : (
-        <div className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80"
-          onClick={(e) => {
-            e.stopPropagation();
-            setExpanded((v) => !v);
-          }}
-        >
-          <div className="flex">
-            {visibleAuthors.slice(0, 4).map((t, i) => (
-              <ExternalAuthorAvatar
-                key={t.author_handle}
-                avatarUrl={t.author_avatar_url}
-                handle={t.author_handle}
-                displayName={t.author_display_name}
-                verifiedType={t.author_verified_type}
-                size={24}
-                className={cn("ring-2 ring-card", i > 0 && "-ml-2")}
-              />
-            ))}
-          </div>
-          <p className="flex-1 truncate text-sm italic text-muted-foreground">
-            {namesText}
-          </p>
-          {overflow > 0 && (
-            <span className="shrink-0 text-sm italic text-muted-foreground">
-              +{overflow} more
-            </span>
-          )}
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -452,15 +440,10 @@ export function StoryCard({
         )}
 
         {story.markets.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 py-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Related markets
-              </span>
-              <span className="flex h-[18px] min-w-5 items-center justify-center rounded-full bg-muted px-1.5 text-xs font-semibold text-muted-foreground">
-                {story.markets.length}
-              </span>
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Related markets
+            </span>
             <div className="flex flex-col gap-2">
               {story.markets.map((m) => (
                 <MarketRow key={m.id} market={m} title={m.question} />
