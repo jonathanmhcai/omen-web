@@ -16,7 +16,6 @@ export interface UserProfile {
   is_following: boolean;
   is_alert_subscribed: boolean;
   usdc_balance: number;
-  pnl: { realized: number };
   createdAt: string;
 }
 

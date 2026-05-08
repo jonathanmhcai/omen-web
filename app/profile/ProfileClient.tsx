@@ -3,11 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
-import { Calendar, ArrowLeftRight, TrendingDown, TrendingUp } from "lucide-react";
+import { Calendar, ArrowLeftRight } from "lucide-react";
 import AppShell from "../components/AppShell";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { UserProfile, useUserProfile } from "../hooks/useUserProfile";
-import { cn } from "@/lib/utils";
 
 export default function ProfileClient() {
   const router = useRouter();
@@ -38,9 +37,6 @@ export default function ProfileClient() {
 }
 
 function ProfileHeader({ profile }: { profile: UserProfile }) {
-  const realized = profile.pnl.realized;
-  const PnlIcon = realized >= 0 ? TrendingUp : TrendingDown;
-
   return (
     <div className="flex flex-col gap-3">
       <Avatar
@@ -94,17 +90,6 @@ function ProfileHeader({ profile }: { profile: UserProfile }) {
               <ArrowLeftRight className="h-3 w-3" />
               {profile.markets_traded}{" "}
               {profile.markets_traded === 1 ? "market" : "markets"}
-            </span>
-          )}
-          {realized !== 0 && (
-            <span
-              className={cn(
-                "flex items-center gap-1",
-                realized >= 0 ? "text-green-500" : "text-red-500"
-              )}
-            >
-              <PnlIcon className="h-3 w-3" />
-              {realized >= 0 ? "+" : "-"}${Math.abs(realized).toFixed(2)}
             </span>
           )}
         </div>
