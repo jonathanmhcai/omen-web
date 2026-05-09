@@ -79,6 +79,7 @@ export interface AdminUser {
   created_at: string;
   emails: string[];
   wallet_address: string | null;
+  deposit_wallet_address: string | null;
   last_seen_at: string;
   usdc_balance: string;
   /** Live USDC.e balance. Populated only by the user-detail endpoint. */

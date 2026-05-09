@@ -135,6 +135,27 @@ const columns = [
       );
     },
   }),
+  columnHelper.accessor("deposit_wallet_address", {
+    header: "Deposit wallet",
+    size: 140,
+    enableSorting: false,
+    cell: (info) => {
+      const addr = info.getValue();
+      if (!addr) return "\u2014";
+      return (
+        <button
+          className="cursor-pointer hover:underline"
+          onClick={() => {
+            navigator.clipboard.writeText(addr);
+            toast("Deposit wallet address copied to clipboard");
+          }}
+          title={addr}
+        >
+          {addr.slice(0, 6)}...{addr.slice(-4)}
+        </button>
+      );
+    },
+  }),
   columnHelper.accessor("usdc_balance", {
     header: "USDC",
     size: 90,
@@ -195,6 +216,7 @@ const skeletonWidths: Record<string, string> = {
   user: "h-4 w-24",
   email: "h-4 w-24",
   wallet_address: "h-4 w-24",
+  deposit_wallet_address: "h-4 w-24",
   usdc_balance: "h-4 w-16",
   invite_code: "h-4 w-20",
   created_at: "h-4 w-20",

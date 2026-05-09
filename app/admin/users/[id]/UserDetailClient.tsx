@@ -155,6 +155,16 @@ export default function UserDetailClient() {
             "\u2014"
           )}
         </Field>
+        <Field label="Deposit wallet">
+          {user.deposit_wallet_address ? (
+            <CopyValue
+              label={user.deposit_wallet_address}
+              value={user.deposit_wallet_address}
+            />
+          ) : (
+            "\u2014"
+          )}
+        </Field>
         <Field label="USDC.e Balance">
           {user.usdce_balance != null
             ? `$${parseFloat(user.usdce_balance).toFixed(2)}`
