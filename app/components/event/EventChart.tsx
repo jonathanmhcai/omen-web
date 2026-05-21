@@ -9,14 +9,20 @@ import {
   TimeseriesResponse,
   timeseriesQueryOptions,
 } from "../../hooks/useTimeseries";
+import { useEventTweets } from "../../hooks/useEventTweets";
 import { PolymarketEvent } from "../../lib/types";
 import { getMarketsSortedByYesProbability } from "../../lib/market";
+import { TweetMarkers } from "./TweetMarkers";
 
 const SERIES_COLORS = ["#2563eb", "#dc2626", "#16a34a", "#ea580c"];
-const CHART_HEIGHT = 260;
+// Container height = data band + tweet-marker band + x-axis label row.
+// PADDING_BOTTOM reserves the bottom strip for markers (22px markers + a
+// small gap above the axis labels). Keeping innerH the same as before
+// the marker band was added — data area is unchanged.
+const CHART_HEIGHT = 288;
 const PADDING_X = 8;
 const PADDING_TOP = 20;
-const PADDING_BOTTOM = 24;
+const PADDING_BOTTOM = 52;
 const Y_AXIS_WIDTH = 36;
 const TOP_SERIES_LIMIT = 4;
 const INTRO_DURATION_MS = 800;
@@ -168,6 +174,8 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
 
   const isLoading = seriesQueries.some((q) => q.isLoading);
 
+  const { tweets } = useEventTweets(String(event.id));
+
   const bounds = useMemo(() => getChartBounds(width, CHART_HEIGHT), [width]);
   const { paths, tMin, tMax } = useChartGeometry(series, bounds, width);
 
@@ -275,6 +283,22 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
             showCursorOverlay={showCursorOverlay}
             onMouseMove={onMouseMove}
             onMouseLeave={onMouseLeave}
+          />
+        )}
+        {/* Tweet markers overlay — positioned absolutely on top of the
+         *  SVG. Pointer-events: none on the wrapper so non-marker
+         *  areas still hit the chart's hover handler; markers
+         *  themselves re-enable pointer events for their tooltip. */}
+        {width > 0 && tweets.length > 0 && tMax > tMin && (
+          <TweetMarkers
+            tweets={tweets}
+            innerLeft={bounds.innerLeft}
+            innerW={bounds.innerW}
+            tMin={tMin}
+            tMax={tMax}
+            interval={selectedInterval}
+            intervalOptions={INTERVAL_OPTIONS}
+            onIntervalChange={setSelectedInterval}
           />
         )}
       </div>
