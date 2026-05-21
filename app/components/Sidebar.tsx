@@ -4,15 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
-import { Home, Settings, Shield, User, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useCookieString } from "../hooks/useCookieString";
-import { useCashBalance } from "../hooks/useCashBalance";
-import { useDepositAddresses } from "../hooks/useDepositAddresses";
+import { NAV } from "../lib/nav";
 import { SESSION_TOKEN_KEY } from "../lib/constants";
-import DepositModal from "./DepositModal";
+import BalanceCard from "./BalanceCard";
 
 const AVATAR_CACHE_KEY = "omen.profile-avatar-url";
 
@@ -21,13 +19,6 @@ const AVATAR_CACHE_KEY = "omen.profile-avatar-url";
 // the Sidebar — without this, the `mounted` gate below would re-arm on
 // every nav and the BalanceCard / avatar would blink out for one paint.
 let hasHydrated = false;
-
-const NAV = [
-  { href: "/", label: "Home", icon: Home, requiresAuth: false, adminOnly: false },
-  { href: "/profile", label: "Profile", icon: User, requiresAuth: true, adminOnly: false },
-  { href: "/admin", label: "Admin", icon: Shield, requiresAuth: true, adminOnly: true },
-  { href: "/settings", label: "Settings", icon: Settings, requiresAuth: true, adminOnly: false },
-] as const;
 
 export default function Sidebar() {
   const { ready, authenticated, login } = usePrivy();
@@ -77,7 +68,7 @@ export default function Sidebar() {
     authUser?.avatar_url ?? (likelyAuthed ? cachedAvatarUrl : null);
 
   return (
-    <aside className="sticky top-0 flex h-screen w-72 shrink-0 flex-col gap-2 px-4 py-6">
+    <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-2 px-4 py-6 lg:flex">
       <Link
         href="/"
         className="self-start px-3 pb-2 text-2xl font-semibold leading-none"
@@ -130,7 +121,11 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {mounted && likelyAuthed && <BalanceCard />}
+      {mounted && likelyAuthed && (
+        <div className="mt-2 mx-1">
+          <BalanceCard />
+        </div>
+      )}
 
       {ready && !authenticated && (
         <div className="mt-2 px-1">
@@ -140,57 +135,5 @@ export default function Sidebar() {
         </div>
       )}
     </aside>
-  );
-}
-
-function BalanceCard() {
-  const { balance } = useCashBalance();
-  const { data: depositData } = useDepositAddresses();
-  const [showDeposit, setShowDeposit] = useState(false);
-
-  // Only show the skeleton if the fetch takes >300ms — avoids a flash
-  // when the cache is warm or the network responds quickly.
-  const [showSkeleton, setShowSkeleton] = useState(false);
-  useEffect(() => {
-    if (balance != null) return;
-    const t = setTimeout(() => setShowSkeleton(true), 300);
-    return () => clearTimeout(t);
-  }, [balance]);
-
-  return (
-    <>
-      <div className="mt-2 mx-1 flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
-        <div className="flex flex-col gap-1">
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Wallet className="h-3.5 w-3.5" />
-            Cash balance
-          </span>
-          {balance != null ? (
-            <span className="text-xl font-semibold">${balance.toFixed(2)}</span>
-          ) : (
-            <div
-              className={cn(
-                "h-7 w-24 rounded",
-                showSkeleton && "animate-pulse bg-muted"
-              )}
-            />
-          )}
-        </div>
-        <Button
-          onClick={() => setShowDeposit(true)}
-          disabled={!depositData?.addresses}
-          className="w-full"
-        >
-          Deposit
-        </Button>
-      </div>
-
-      {showDeposit && depositData?.addresses && (
-        <DepositModal
-          addresses={depositData.addresses}
-          onClose={() => setShowDeposit(false)}
-        />
-      )}
-    </>
   );
 }

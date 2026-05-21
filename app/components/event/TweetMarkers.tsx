@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { TimeseriesInterval } from "../../hooks/useTimeseries";
 import { EventTweet } from "../../hooks/useEventTweets";
 import type { TweetAuthorVerifiedType } from "../../hooks/useStories";
@@ -192,8 +192,13 @@ function ClusterMarker({ cluster }: { cluster: Cluster }) {
   const count = cluster.tweets.length;
 
   return (
-    <Tooltip open={open} onOpenChange={setOpen}>
-      <TooltipTrigger asChild>
+    // Popover (rather than Tooltip) so tap-to-toggle works reliably on
+    // touch — Tooltip's internal hover handling races with manual click
+    // toggles on iOS Safari, leaving the first tap closed. Hover-to-open
+    // on desktop is re-added below via pointer-type-gated handlers so
+    // mouse users still get the original tooltip feel.
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <button
           type="button"
           className="pointer-events-auto absolute block focus:outline-none"
@@ -203,7 +208,12 @@ function ClusterMarker({ cluster }: { cluster: Cluster }) {
             width: MARKER_SIZE,
             height: MARKER_SIZE,
           }}
-          onClick={() => setOpen((v) => !v)}
+          onPointerEnter={(e) => {
+            if (e.pointerType !== "touch") setOpen(true);
+          }}
+          onPointerLeave={(e) => {
+            if (e.pointerType !== "touch") setOpen(false);
+          }}
           aria-label={
             count === 1
               ? `Tweet from @${repr.author_handle}`
@@ -225,19 +235,30 @@ function ClusterMarker({ cluster }: { cluster: Cluster }) {
             </span>
           ) : null}
         </button>
-      </TooltipTrigger>
-      <TooltipContent
+      </PopoverTrigger>
+      <PopoverContent
         side="bottom"
+        align="center"
         sideOffset={6}
-        className="max-w-sm bg-popover text-popover-foreground border border-border p-0 text-left"
+        // Mirror tooltip styling — borderless container, content owns
+        // its own row separators. Override Popover's default w-72.
+        className="w-auto max-w-sm border border-border p-0 text-left"
+        // Mouse users should be able to slide from the marker into the
+        // popover without it closing — opt into hover-bridge behavior.
+        onPointerEnter={(e) => {
+          if (e.pointerType !== "touch") setOpen(true);
+        }}
+        onPointerLeave={(e) => {
+          if (e.pointerType !== "touch") setOpen(false);
+        }}
       >
         <div className="flex max-h-80 flex-col divide-y divide-border overflow-y-auto">
           {cluster.tweets.map((t) => (
             <TweetCardRow key={t.tweet_id} tweet={t} />
           ))}
         </div>
-      </TooltipContent>
-    </Tooltip>
+      </PopoverContent>
+    </Popover>
   );
 }
 

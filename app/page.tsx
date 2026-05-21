@@ -9,6 +9,7 @@ import { useFeedTags, type FeedTag } from "./hooks/useFeedTags";
 import { useStories } from "./hooks/useStories";
 import AppShell from "./components/AppShell";
 import RightSidebar from "./components/RightSidebar";
+import SearchBox from "./components/SearchBox";
 import { StoryCard, StoryCardSkeleton } from "./components/StoryCard";
 
 export default function Page() {
@@ -53,6 +54,13 @@ export default function Page() {
 
   return (
     <AppShell rightSidebar={<RightSidebar />}>
+      {/* Mobile-only SearchBox at the top of main. SearchBox is hidden
+       *  in RightSidebar at this breakpoint (see RightSidebar.tsx) —
+       *  rendered here so it's discoverable above the feed rather than
+       *  buried at the bottom of the page on small screens. */}
+      <div className="mb-4 lg:hidden">
+        <SearchBox />
+      </div>
       {tabs ? (
         <FeedTabs
           tabs={tabs}
@@ -89,18 +97,20 @@ export default function Page() {
  */
 function FeedTabsSkeleton() {
   return (
-    <div className="sticky top-0 z-10 -mx-4 mb-4 bg-[#f1f5f9] px-4 dark:bg-background">
+    <div className="sticky top-12 z-10 -mx-4 mb-4 bg-[#f1f5f9] px-4 lg:top-0 dark:bg-background">
       <div className="relative">
-        <div className="flex gap-6 py-3">
-          {[64, 56, 48, 60, 44].map((w, i) => (
-            <div
-              key={i}
-              className="h-4 animate-pulse rounded bg-muted"
-              style={{ width: w }}
-            />
-          ))}
+        <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max gap-6 py-3">
+            {[64, 56, 48, 60, 44].map((w, i) => (
+              <div
+                key={i}
+                className="h-4 shrink-0 animate-pulse rounded bg-muted"
+                style={{ width: w }}
+              />
+            ))}
+          </div>
         </div>
-        <div className="absolute inset-x-0 bottom-0 h-px bg-border" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-border" />
       </div>
     </div>
   );
@@ -145,46 +155,51 @@ function FeedTabs({
   }, [selectedIndex, tabs.length]);
 
   return (
-    <div className="sticky top-0 z-10 -mx-4 mb-4 bg-[#f1f5f9] px-4 dark:bg-background">
-      {/* Padding lives on the outer wrapper so this `relative` box has no
-          padding of its own — the buttons' `offsetLeft` (measured from
-          the content edge) and the indicator's `translateX(0)` baseline
-          (the padding edge of its containing block) then share an origin.
-          With padding here, those origins drift apart by the padding
-          amount and the indicator slides right of the active label. */}
+    <div className="sticky top-12 z-10 -mx-4 mb-4 bg-[#f1f5f9] px-4 lg:top-0 dark:bg-background">
+      {/* Outer `relative` hosts the full-width bottom hairline that
+       *  stays anchored to the visible row width regardless of scroll. */}
       <div className="relative">
-        <div className="flex gap-6">
-          {tabs.map((tab, index) => (
-            <button
-              key={tab.key}
-              ref={(el) => {
-                tabRefs.current[index] = el;
-              }}
-              type="button"
-              onClick={() => onSelect(index)}
-              className={cn(
-                "py-3 text-base leading-none transition-colors focus-visible:outline-none",
-                selectedIndex === index
-                  ? "font-semibold text-foreground"
-                  : "font-normal text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Inner scroller is also `relative` so the indicator (absolute
+         *  inside it) shares an offsetParent with the buttons — the
+         *  indicator's `translateX(offsetLeft)` then lines up with the
+         *  active button. Both buttons and indicator scroll together
+         *  inside this container so they stay aligned during a horizontal
+         *  scroll. `w-max` on the inner row lets the row size to its
+         *  content so children can overflow + scroll. */}
+        <div className="relative overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max gap-6">
+            {tabs.map((tab, index) => (
+              <button
+                key={tab.key}
+                ref={(el) => {
+                  tabRefs.current[index] = el;
+                }}
+                type="button"
+                onClick={() => onSelect(index)}
+                className={cn(
+                  "shrink-0 py-3 text-base leading-none transition-colors focus-visible:outline-none",
+                  selectedIndex === index
+                    ? "font-semibold text-foreground"
+                    : "font-normal text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute bottom-0 h-0.5 bg-foreground transition-[transform,width] duration-200 ease-out",
+              indicator ? "opacity-100" : "opacity-0"
+            )}
+            style={{
+              transform: `translateX(${indicator?.x ?? 0}px)`,
+              width: indicator?.width ?? 0,
+            }}
+          />
         </div>
-        <div
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute bottom-0 h-0.5 bg-foreground transition-[transform,width] duration-200 ease-out",
-            indicator ? "opacity-100" : "opacity-0"
-          )}
-          style={{
-            transform: `translateX(${indicator?.x ?? 0}px)`,
-            width: indicator?.width ?? 0,
-          }}
-        />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-border" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-border" />
       </div>
     </div>
   );
@@ -205,7 +220,11 @@ function ScrollToTopButton() {
       aria-label="Scroll to top"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       className={cn(
-        "fixed bottom-6 left-[calc(50%+17rem)] z-50 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-opacity hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        // Mobile: pinned to the right edge (the desktop offset
+        // calc(50% + 17rem) would land it off-screen below `lg:`).
+        // Desktop: offset to just outside the centered max-w-xl column,
+        // matching the gap between main and the right sidebar.
+        "fixed bottom-6 right-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-opacity hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:left-[calc(50%+17rem)] lg:right-auto",
         visible ? "opacity-100" : "pointer-events-none opacity-0"
       )}
     >
