@@ -259,7 +259,12 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <Legend series={series} displayedPrices={displayedPrices} />
+      <div className="flex items-end gap-3">
+        <div className="min-w-0 flex-1">
+          <Legend series={series} displayedPrices={displayedPrices} />
+        </div>
+        <PolymarketWordmark eventSlug={event.slug} />
+      </div>
       <div
         ref={containerRef}
         className="relative w-full"
@@ -737,6 +742,44 @@ function labelAnchor(x: number, left: number, right: number): "start" | "middle"
   if (x - left < 60) return "start";
   if (right - x < 60) return "end";
   return "middle";
+}
+
+/**
+ * Polymarket attribution wordmark linking to the source event on
+ * polymarket.com. Two rendered <img>s with dark-mode class toggles so
+ * we don't need a theme hook (Tailwind's `dark:` variant is the
+ * single source of truth in this app — see AppShell.tsx).
+ *
+ * Lowered opacity in both themes — mirrors mobile, where the wordmark
+ * is attribution, not a primary action.
+ */
+function PolymarketWordmark({ eventSlug }: { eventSlug: string }) {
+  return (
+    <a
+      href={`https://polymarket.com/event/${eventSlug}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="shrink-0 transition-opacity hover:opacity-100"
+      aria-label="View on Polymarket"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/providers/polymarket-black.png"
+        alt="Polymarket"
+        width={90}
+        height={18}
+        className="block h-[18px] w-[90px] object-contain opacity-40 dark:hidden"
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/providers/polymarket-white.png"
+        alt="Polymarket"
+        width={90}
+        height={18}
+        className="hidden h-[18px] w-[90px] object-contain opacity-20 dark:block"
+      />
+    </a>
+  );
 }
 
 function Legend({
