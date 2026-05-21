@@ -9,11 +9,13 @@ import { EventChart } from "./EventChart";
 import { EventDescription } from "./EventDescription";
 import { EventTabs, Tab } from "./EventTabs";
 import { MarketsTab } from "./MarketsTab";
+import { EventStoriesTab } from "./EventStoriesTab";
 import { AboutTab } from "./AboutTab";
 
-type TabKey = "markets" | "about";
+type TabKey = "markets" | "stories" | "about";
 const TABS: Tab[] = [
   { key: "markets", label: "Markets" },
+  { key: "stories", label: "Stories" },
   { key: "about", label: "About" },
 ];
 
@@ -63,6 +65,8 @@ export function EventDetail({ slug }: { slug: string }) {
         />
         {activeTab === "markets" ? (
           <MarketsTab event={event} />
+        ) : activeTab === "stories" ? (
+          <EventStoriesTab polymarketEventId={String(event.id)} />
         ) : (
           <AboutTab event={event} />
         )}

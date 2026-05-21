@@ -401,9 +401,16 @@ function TweetRow({ tweet }: { tweet: StoryTweet }) {
 export function StoryCard({
   story,
   pressable = false,
+  showMarkets = true,
 }: {
   story: Story;
   pressable?: boolean;
+  /**
+   * When false, the related-markets block is suppressed. Used on the
+   * event-detail Stories tab, where the parent page already frames the
+   * event/markets and the endpoint omits markets from the payload.
+   */
+  showMarkets?: boolean;
 }) {
   const router = useRouter();
 
@@ -439,7 +446,7 @@ export function StoryCard({
           />
         )}
 
-        {story.markets.length > 0 && (
+        {showMarkets && story.markets.length > 0 && (
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Related markets
