@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEvent } from "../../hooks/useEvent";
 import { EventHeader } from "./EventHeader";
 import { EventChart } from "./EventChart";
+import { EventDescription } from "./EventDescription";
 import { EventTabs, Tab } from "./EventTabs";
 import { MarketsTab } from "./MarketsTab";
 import { AboutTab } from "./AboutTab";
@@ -53,6 +54,7 @@ export function EventDetail({ slug }: { slug: string }) {
       </Link>
       <EventHeader event={event} />
       <EventChart event={event} />
+      {event.description && <EventDescription text={event.description} />}
       <div className="flex flex-col gap-4">
         <EventTabs
           tabs={TABS}

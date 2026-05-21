@@ -16,3 +16,16 @@ export function formatDollars(n: number): string {
     maximumFractionDigits: 0,
   });
 }
+
+/** "Jan 5, 2026" — date-only (no time) for event metadata rows. Empty
+ *  string when the input isn't parseable so callers can fall back. */
+export function formatDateOnly(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const ms = Date.parse(iso);
+  if (Number.isNaN(ms)) return "";
+  return new Date(ms).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
