@@ -65,57 +65,75 @@ export default function MobileNav() {
 
         {/* `modal={false}` keeps Radix from locking body scroll + adding
          *  scrollbar-compensation padding while open — defaults caused a
-         *  visible width shift of the page underneath on mobile. */}
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label="Open menu"
-              className="rounded-md p-2 text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+         *  visible width shift of the page underneath on mobile.
+         *
+         *  Gated behind `mounted` so the Radix subtree (and its useId-
+         *  generated trigger id) only renders after hydration. Upstream
+         *  client-only providers (Privy) wrap the tree with extra layers
+         *  on the client that aren't present during SSR, which shifts
+         *  useId's tree path and produces a different id than the
+         *  server rendered. Rendering a static placeholder for SSR/first
+         *  paint sidesteps the mismatch entirely. */}
+        {mounted ? (
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Open menu"
+                className="rounded-md p-2 text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              sideOffset={8}
+              className="w-56 p-1"
             >
-              <Menu className="h-5 w-5" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            sideOffset={8}
-            className="w-56 p-1"
+              {NAV.filter(
+                (item) => !item.adminOnly || authUser?.isAdmin
+              ).map((item) => {
+                const Icon = item.icon;
+                const active =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(item.href);
+                return (
+                  <DropdownMenuItem
+                    key={item.href}
+                    className={cn(
+                      "rounded-md px-2.5 py-1.5 text-sm",
+                      active && "bg-accent font-semibold"
+                    )}
+                    onSelect={(e) => {
+                      // Privy login triggers a modal; gate before we
+                      // navigate away. Otherwise let router.push handle it
+                      // — DropdownMenuItem closes on its own after
+                      // onSelect.
+                      if (item.requiresAuth && ready && !authenticated) {
+                        e.preventDefault();
+                        login();
+                        return;
+                      }
+                      router.push(item.href);
+                    }}
+                  >
+                    <Icon className="h-4 w-4 shrink-0 opacity-70" />
+                    <span>{item.label}</span>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <button
+            type="button"
+            aria-label="Open menu"
+            className="rounded-md p-2 text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {NAV.filter(
-              (item) => !item.adminOnly || authUser?.isAdmin
-            ).map((item) => {
-              const Icon = item.icon;
-              const active =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
-              return (
-                <DropdownMenuItem
-                  key={item.href}
-                  className={cn(
-                    "rounded-md px-2.5 py-1.5 text-sm",
-                    active && "bg-accent font-semibold"
-                  )}
-                  onSelect={(e) => {
-                    // Privy login triggers a modal; gate before we
-                    // navigate away. Otherwise let router.push handle it
-                    // — DropdownMenuItem closes on its own after
-                    // onSelect.
-                    if (item.requiresAuth && ready && !authenticated) {
-                      e.preventDefault();
-                      login();
-                      return;
-                    }
-                    router.push(item.href);
-                  }}
-                >
-                  <Icon className="h-4 w-4 shrink-0 opacity-70" />
-                  <span>{item.label}</span>
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </header>
   );
