@@ -21,14 +21,17 @@ export default function RightSidebar() {
       <div className="hidden lg:block">
         <SearchBox />
       </div>
-      {/* Hidden on mobile: the install-app prompt is laid out for the
-       *  desktop right column and would look out of place stacked
-       *  full-width below the feed. */}
+      {/* Two shapes: QR-driven card on desktop (scan with phone),
+       *  compact tappable row on mobile (clicking goes straight to
+       *  the App Store since the user is already on a phone). */}
       <div className="hidden lg:block">
         <AppDownloadCard />
       </div>
+      <div className="lg:hidden">
+        <AppDownloadCard compact />
+      </div>
       <Positions />
-      <p className="flex gap-2 px-3 text-xs text-muted-foreground">
+      <p className="flex gap-2 text-xs text-muted-foreground lg:px-3">
         <a href="mailto:support@omen.trading" className="hover:underline">
           Support
         </a>
