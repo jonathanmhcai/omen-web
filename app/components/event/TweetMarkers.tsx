@@ -50,6 +50,10 @@ const CLUSTER_GAP_PX = 20;
 // don't overlap the lines; this value places them inside that strip,
 // just above the x-axis label row.
 const MARKER_BOTTOM = 22;
+// How close (px) the chart cursor must come to a cluster's x to open
+// its popover during a scrub/hover. Matches mobile's SCRUB_HIT_PX so
+// the feel is identical across platforms.
+const SCRUB_HIT_PX = 18;
 
 interface Cluster {
   id: string;
@@ -68,6 +72,14 @@ interface TweetMarkersProps {
   tMin: number;
   /** Domain max (unix seconds). */
   tMax: number;
+  /**
+   * Current cursor x (pixel-space, same origin as `innerLeft`). When
+   * non-null and within `SCRUB_HIT_PX` of a cluster's x, that cluster's
+   * popover opens — drives the hover-on-laptop / scrub-on-mobile peek
+   * to match the mobile app. `null` when the pointer is outside the
+   * chart bounds or (on touch) released.
+   */
+  cursorX: number | null;
   /** Currently selected interval — needed for the off-window badge. */
   interval: TimeseriesInterval;
   /** Interval options in widening order. */
@@ -79,11 +91,18 @@ interface TweetMarkersProps {
 /**
  * Author-avatar markers on the chart's time axis at each tweet's
  * post time. Rendered as an HTML overlay (absolute-positioned inside
- * the chart container) on top of the SVG — each marker is a Radix
- * Tooltip trigger whose content shows the cluster's tweets. The
- * overlay container is `pointer-events: none`; only the markers
- * themselves capture pointer events, so chart hover (cursor line +
- * legend percentages) still works when the cursor is between markers.
+ * the chart container) on top of the SVG.
+ *
+ * Open/close of a cluster's popover is driven by the chart's
+ * `cursorX` — hover on desktop, touch-drag on mobile — exactly like
+ * the mobile app's scrub-peek. Whichever cluster is within
+ * `SCRUB_HIT_PX` of the cursor (closest wins on ties) gets its
+ * popover opened. Move cursor away → popover closes. This way the
+ * pop-up "lines up vertically" with the chart cursor.
+ *
+ * Per-marker hover is also preserved as a hover-bridge on the popover
+ * content itself, so mouse users can slide off the chart onto the
+ * popover (to click through to a tweet) without it auto-closing.
  *
  * Tweets older than the visible domain collapse into a single
  * left-edge badge whose count + chevron mirrors the mobile UI;
@@ -95,6 +114,7 @@ export function TweetMarkers({
   innerW,
   tMin,
   tMax,
+  cursorX,
   interval,
   intervalOptions,
   onIntervalChange,
@@ -144,12 +164,44 @@ export function TweetMarkers({
       ? intervalOptions[curIdx + 1]
       : undefined;
 
+  // Nearest cluster within SCRUB_HIT_PX of the cursor, by absolute
+  // x-distance. Closest wins on ties — same semantics as mobile's
+  // useAnimatedReaction. Returns null when the cursor is too far from
+  // every cluster, off the chart, or (on touch) released.
+  const scrubActiveId = useMemo(() => {
+    if (cursorX == null) return null;
+    let bestId: string | null = null;
+    let bestDist = SCRUB_HIT_PX + 1;
+    for (const c of clusters) {
+      const d = Math.abs(c.xPx - cursorX);
+      if (d < bestDist) {
+        bestDist = d;
+        bestId = c.id;
+      }
+    }
+    return bestId;
+  }, [cursorX, clusters]);
+
+  // Pin = explicit "keep this cluster's popover open" intent (set by
+  // tapping/clicking a marker directly). Scrub is suppressed while a
+  // cluster is pinned so the popover stays anchored to the user's
+  // choice; this gives mobile users a path to tap a tweet inside the
+  // popover that would otherwise close the instant their finger lifts.
+  const [pinnedClusterId, setPinnedClusterId] = useState<string | null>(null);
+  const effectiveScrubActiveId = pinnedClusterId ? null : scrubActiveId;
+
   if (tweets.length === 0) return null;
 
   return (
     <div className="pointer-events-none absolute inset-0">
       {clusters.map((cluster) => (
-        <ClusterMarker key={cluster.id} cluster={cluster} />
+        <ClusterMarker
+          key={cluster.id}
+          cluster={cluster}
+          scrubActive={cluster.id === effectiveScrubActiveId}
+          pinned={cluster.id === pinnedClusterId}
+          onPinChange={setPinnedClusterId}
+        />
       ))}
 
       {offWindow.length > 0 ? (
@@ -186,18 +238,41 @@ export function TweetMarkers({
   );
 }
 
-function ClusterMarker({ cluster }: { cluster: Cluster }) {
-  const [open, setOpen] = useState(false);
+function ClusterMarker({
+  cluster,
+  scrubActive,
+  pinned,
+  onPinChange,
+}: {
+  cluster: Cluster;
+  scrubActive: boolean;
+  pinned: boolean;
+  onPinChange: (id: string | null) => void;
+}) {
+  // Hover-bridge lock: when the mouse moves off the chart and onto the
+  // popover content, `scrubActive` flips to false but we keep the
+  // popover open so the user can click through to a tweet. Only mouse
+  // users get this — touch already had the cursor cleared on release,
+  // so we don't accidentally pin the peek open after a finger lift.
+  const [hoverLocked, setHoverLocked] = useState(false);
+  const open = scrubActive || pinned || hoverLocked;
   const repr = cluster.tweets[0];
   const count = cluster.tweets.length;
 
   return (
-    // Popover (rather than Tooltip) so tap-to-toggle works reliably on
-    // touch — Tooltip's internal hover handling races with manual click
-    // toggles on iOS Safari, leaving the first tap closed. Hover-to-open
-    // on desktop is re-added below via pointer-type-gated handlers so
-    // mouse users still get the original tooltip feel.
-    <Popover open={open} onOpenChange={setOpen}>
+    // Open is derived from three sources (scrub / pin / hover-lock).
+    // Radix's onOpenChange only fires for its OWN close paths — Escape
+    // key or pointerdown outside content — which we honor by clearing
+    // pin + hover-lock; scrub clears itself when the cursor moves.
+    <Popover
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) {
+          if (pinned) onPinChange(null);
+          setHoverLocked(false);
+        }
+      }}
+    >
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -208,12 +283,15 @@ function ClusterMarker({ cluster }: { cluster: Cluster }) {
             width: MARKER_SIZE,
             height: MARKER_SIZE,
           }}
-          onPointerEnter={(e) => {
-            if (e.pointerType !== "touch") setOpen(true);
-          }}
-          onPointerLeave={(e) => {
-            if (e.pointerType !== "touch") setOpen(false);
-          }}
+          // Tap-to-pin: clicking a marker locks its popover open so the
+          // user can tap a tweet inside without it auto-closing on
+          // pointer release. Tapping the same marker again unpins; the
+          // pin transfers naturally when a different marker is tapped
+          // (Radix fires the previous popover's onOpenChange when its
+          // outside-click detector sees the new tap on a different
+          // trigger, clearing the old pin before this onClick sets the
+          // new one).
+          onClick={() => onPinChange(pinned ? null : cluster.id)}
           aria-label={
             count === 1
               ? `Tweet from @${repr.author_handle}`
@@ -222,15 +300,11 @@ function ClusterMarker({ cluster }: { cluster: Cluster }) {
         >
           {/* Inner wrapper owns the rounded clip so the count badge can
            *  stick out past the avatar without being clipped. */}
-          <span
-            className="block h-full w-full overflow-hidden rounded-full border-[1.5px] border-background bg-muted ring-0 focus-visible:ring-2 focus-visible:ring-ring"
-          >
+          <span className="block h-full w-full overflow-hidden rounded-full border-[1.5px] border-background bg-muted ring-0 focus-visible:ring-2 focus-visible:ring-ring">
             <AvatarImage tweet={repr} size={MARKER_SIZE} />
           </span>
           {count > 1 ? (
-            <span
-              className="absolute -top-1 -right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full border border-background bg-foreground px-1 text-[9px] font-bold leading-none text-background"
-            >
+            <span className="absolute -top-1 -right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full border border-background bg-foreground px-1 text-[9px] font-bold leading-none text-background">
               {count > 9 ? "9+" : count}
             </span>
           ) : null}
@@ -243,13 +317,15 @@ function ClusterMarker({ cluster }: { cluster: Cluster }) {
         // Mirror tooltip styling — borderless container, content owns
         // its own row separators. Override Popover's default w-72.
         className="w-auto max-w-sm border border-border p-0 text-left"
-        // Mouse users should be able to slide from the marker into the
-        // popover without it closing — opt into hover-bridge behavior.
+        // Mouse users should be able to slide from the chart onto the
+        // popover without it closing — pin it open while the pointer is
+        // over the content. Touch is excluded so a tap-then-lift on a
+        // marker doesn't accidentally lock it open.
         onPointerEnter={(e) => {
-          if (e.pointerType !== "touch") setOpen(true);
+          if (e.pointerType !== "touch") setHoverLocked(true);
         }}
         onPointerLeave={(e) => {
-          if (e.pointerType !== "touch") setOpen(false);
+          if (e.pointerType !== "touch") setHoverLocked(false);
         }}
       >
         <div className="flex max-h-80 flex-col divide-y divide-border overflow-y-auto">

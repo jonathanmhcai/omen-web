@@ -207,7 +207,13 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
 
   const { innerLeft, innerRight } = bounds;
 
-  function onMouseMove(e: React.MouseEvent<SVGSVGElement>) {
+  // Pointer events (rather than mouse-only) unify desktop hover and
+  // mobile touch-drag — touchmove inside the chart's bounds drives
+  // cursorX the same way mouse hover does, matching the mobile app's
+  // scrub-peek behavior on the same chart. Handler is attached to the
+  // chart container (svg parent) so taps on tweet markers — siblings of
+  // the svg, not children — also bubble up and update cursorX.
+  function updateCursorFromEvent(e: React.PointerEvent<HTMLDivElement>) {
     const rect = svgRef.current?.getBoundingClientRect();
     if (!rect) return;
     const x = e.clientX - rect.left;
@@ -217,7 +223,7 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
       setCursorX(x < innerLeft || x > innerRight ? null : x);
     });
   }
-  function onMouseLeave() {
+  function clearCursor() {
     if (rafRef.current != null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -267,8 +273,23 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
       </div>
       <div
         ref={containerRef}
-        className="relative w-full"
+        // `touch-action: pan-y` keeps the page scrollable when the
+        // user drags vertically on the chart, while horizontal drag
+        // gets captured here for scrub. Pointer handlers live on this
+        // wrapper (not the inner svg) so tweet-marker taps — sibling
+        // of the svg — also bubble up and drive cursorX.
+        className="relative w-full touch-pan-y"
         style={{ height: CHART_HEIGHT }}
+        onPointerMove={updateCursorFromEvent}
+        onPointerDown={updateCursorFromEvent}
+        onPointerLeave={clearCursor}
+        onPointerCancel={clearCursor}
+        onPointerUp={(e) => {
+          // Desktop hover survives a button release — only touch
+          // should clear on lift, mirroring mobile's "scrub ends when
+          // finger lifts" behavior.
+          if (e.pointerType === "touch") clearCursor();
+        }}
       >
         {width > 0 && (
           <ChartSVG
@@ -286,14 +307,13 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
             introDone={introDone}
             cursorX={cursorX}
             showCursorOverlay={showCursorOverlay}
-            onMouseMove={onMouseMove}
-            onMouseLeave={onMouseLeave}
           />
         )}
         {/* Tweet markers overlay — positioned absolutely on top of the
          *  SVG. Pointer-events: none on the wrapper so non-marker
-         *  areas still hit the chart's hover handler; markers
-         *  themselves re-enable pointer events for their tooltip. */}
+         *  areas still hit the chart's pointer handler; markers
+         *  themselves re-enable pointer events as popover anchors but
+         *  the popover open/close is driven by the shared cursorX. */}
         {width > 0 && tweets.length > 0 && tMax > tMin && (
           <TweetMarkers
             tweets={tweets}
@@ -301,6 +321,7 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
             innerW={bounds.innerW}
             tMin={tMin}
             tMax={tMax}
+            cursorX={cursorX}
             interval={selectedInterval}
             intervalOptions={INTERVAL_OPTIONS}
             onIntervalChange={setSelectedInterval}
@@ -466,8 +487,6 @@ function ChartSVG({
   introDone,
   cursorX,
   showCursorOverlay,
-  onMouseMove,
-  onMouseLeave,
 }: {
   svgRef: React.RefObject<SVGSVGElement | null>;
   eventId: string;
@@ -483,8 +502,6 @@ function ChartSVG({
   introDone: boolean;
   cursorX: number | null;
   showCursorOverlay: boolean;
-  onMouseMove: (e: React.MouseEvent<SVGSVGElement>) => void;
-  onMouseLeave: () => void;
 }) {
   const { innerLeft, innerRight, innerTop, innerBottom, innerH } = bounds;
 
@@ -508,8 +525,6 @@ function ChartSVG({
       width={width}
       height={height}
       className="block"
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeave}
     >
       <defs>
         <clipPath id={clipId}>
@@ -790,11 +805,14 @@ function Legend({
   displayedPrices: number[];
 }) {
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+    // Always stack outcomes vertically (mirrors mobile's column
+    // legend). Each row inside still flows horizontally: dot · label
+    // · percentage. `gap-y-1.5` controls inter-row spacing.
+    <div className="flex flex-col gap-y-1.5">
       {series.map((s, i) => {
         const price = displayedPrices[i] ?? s.currentPrice;
         return (
-          <div key={s.key} className="flex items-center gap-1.5 min-w-0">
+          <div key={s.key} className="flex min-w-0 items-center gap-1.5">
             <span
               className="h-2 w-2 shrink-0 rounded-full"
               style={{ backgroundColor: s.color }}
