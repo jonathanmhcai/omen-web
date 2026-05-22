@@ -402,6 +402,8 @@ export function StoryCard({
   story,
   pressable = false,
   showMarkets = true,
+  showBullets = false,
+  expandSources = false,
 }: {
   story: Story;
   pressable?: boolean;
@@ -411,6 +413,20 @@ export function StoryCard({
    * event/markets and the endpoint omits markets from the payload.
    */
   showMarkets?: boolean;
+  /**
+   * When true, renders the LLM-generated summary bullets between the
+   * headline and the tweet sources. Used on the story-detail page to
+   * match the mobile client's "SUMMARY" section; suppressed in the
+   * homepage feed so cards stay scannable.
+   */
+  showBullets?: boolean;
+  /**
+   * When true, renders the tweet sources as a fully-expanded labeled
+   * list ("Sources" header + every tweet) instead of the collapsible
+   * avatar-strip preview used on the feed. Mirrors the mobile
+   * client's story-detail SOURCES section.
+   */
+  expandSources?: boolean;
 }) {
   const router = useRouter();
 
@@ -439,12 +455,40 @@ export function StoryCard({
           </p>
         </div>
 
-        {story.tweets.length > 0 && (
-          <CollapsibleSources
-            tweets={story.tweets}
-            distinctAuthorCount={story.distinct_author_count}
-          />
+        {showBullets && story.bullets.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Summary
+            </span>
+            <ul className="flex flex-col gap-2">
+              {story.bullets.map((b, i) => (
+                <li key={i} className="flex gap-2 text-sm leading-snug">
+                  <span aria-hidden className="select-none">•</span>
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
+
+        {story.tweets.length > 0 &&
+          (expandSources ? (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Sources
+              </span>
+              <div className="flex flex-col gap-2">
+                {story.tweets.map((t) => (
+                  <TweetRow key={t.tweet_id} tweet={t} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <CollapsibleSources
+              tweets={story.tweets}
+              distinctAuthorCount={story.distinct_author_count}
+            />
+          ))}
 
         {showMarkets && story.markets.length > 0 && (
           <div className="flex flex-col gap-1.5">

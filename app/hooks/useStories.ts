@@ -66,6 +66,8 @@ export interface Story {
   media_count: number;
   distinct_author_count: number;
   hero_image: TweetMedia | null;
+  /** LLM-generated bullets (1-3 entries). Empty array until first run. */
+  bullets: string[];
   tweets: StoryTweet[];
   markets: StoryMarket[];
 }

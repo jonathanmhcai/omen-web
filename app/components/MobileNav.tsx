@@ -10,7 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -24,13 +23,13 @@ import DepositModal from "./DepositModal";
 
 /**
  * Sticky top header for screens below `lg:` (1024px) — replaces the
- * left Sidebar on mobile. Row layout: Omen wordmark · (right side)
- * authed balance + Deposit · ☰ menu.
+ * left Sidebar on mobile. Row layout: Omen wordmark · (right cluster)
+ * balance + Deposit when authed / Log In when not · ☰ menu.
  *
  * The ☰ opens a compact DropdownMenu with the same nav items as the
- * desktop sidebar. Cash balance + Deposit moved out of the dropdown
- * and onto the header itself so authed users can see + act on their
- * balance without opening the menu.
+ * desktop sidebar. Balance + Deposit (and the Log In CTA when unauthed)
+ * live in the header rather than the menu so the primary action is one
+ * tap away.
  *
  * Hidden at `lg:` and above; the desktop Sidebar takes over there.
  */
@@ -58,6 +57,11 @@ export default function MobileNav() {
 
       <div className="ml-auto flex items-center gap-2">
         {mounted && likelyAuthed && <HeaderBalance />}
+        {mounted && ready && !authenticated && (
+          <Button size="sm" onClick={login}>
+            Log In
+          </Button>
+        )}
 
         {/* `modal={false}` keeps Radix from locking body scroll + adding
          *  scrollbar-compensation padding while open — defaults caused a
@@ -110,17 +114,6 @@ export default function MobileNav() {
                 </DropdownMenuItem>
               );
             })}
-
-            {mounted && ready && !authenticated && (
-              <>
-                <DropdownMenuSeparator />
-                <div className="p-1.5">
-                  <Button onClick={login} className="w-full" size="sm">
-                    Log In
-                  </Button>
-                </div>
-              </>
-            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

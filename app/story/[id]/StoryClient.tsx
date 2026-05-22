@@ -26,7 +26,7 @@ export default function StoryClient() {
       </button>
 
       {story ? (
-        <StoryCard story={story} />
+        <StoryCard story={story} showBullets expandSources />
       ) : isLoading ? (
         <StoryCardSkeleton />
       ) : isError ? (
