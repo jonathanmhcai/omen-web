@@ -71,6 +71,13 @@ export interface PolymarketEvent {
   seriesSlug?: string;
 }
 
+export interface AdminUserAccount {
+  kind: string;
+  wallet_address: string | null;
+  deposit_wallet_address: string | null;
+  funder_address: string | null;
+}
+
 export interface AdminUser {
   id: string;
   privy_user_id: string;
@@ -78,8 +85,11 @@ export interface AdminUser {
   display_name: string | null;
   created_at: string;
   emails: string[];
+  /** Managed account's wallet/deposit addresses (primary identity). */
   wallet_address: string | null;
   deposit_wallet_address: string | null;
+  /** All Polymarket accounts, managed first. Drives the funding-wallet column. */
+  accounts: AdminUserAccount[];
   last_seen_at: string;
   usdc_balance: string;
   /** Live USDC.e balance. Populated only by the user-detail endpoint. */

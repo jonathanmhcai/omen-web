@@ -156,6 +156,47 @@ const columns = [
       );
     },
   }),
+  columnHelper.display({
+    id: "funding_wallets",
+    header: "Funding wallet",
+    size: 150,
+    enableSorting: false,
+    cell: (info) => {
+      const accounts = info.row.original.accounts ?? [];
+      const funders = accounts.filter((a) => a.funder_address);
+      if (funders.length === 0) return "—";
+      return (
+        <div className="flex flex-col gap-0.5">
+          {funders.map((a, i) => {
+            const addr = a.funder_address as string;
+            const imported = a.kind !== "managed";
+            return (
+              <button
+                key={i}
+                className="flex cursor-pointer items-center gap-1 hover:underline"
+                onClick={() => {
+                  navigator.clipboard.writeText(addr);
+                  toast("Funding wallet address copied to clipboard");
+                }}
+                title={`${imported ? "Imported" : "Managed"} — ${addr}`}
+              >
+                <span
+                  className={
+                    imported ? "text-amber-500" : "text-muted-foreground"
+                  }
+                >
+                  {imported ? "I" : "M"}
+                </span>
+                <span>
+                  {addr.slice(0, 6)}...{addr.slice(-4)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      );
+    },
+  }),
   columnHelper.accessor("usdc_balance", {
     header: "USDC",
     size: 90,
@@ -217,6 +258,7 @@ const skeletonWidths: Record<string, string> = {
   email: "h-4 w-24",
   wallet_address: "h-4 w-24",
   deposit_wallet_address: "h-4 w-24",
+  funding_wallets: "h-4 w-24",
   usdc_balance: "h-4 w-16",
   invite_code: "h-4 w-20",
   created_at: "h-4 w-20",
