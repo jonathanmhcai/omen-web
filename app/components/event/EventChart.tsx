@@ -135,7 +135,7 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
     return getMarketsSortedByYesProbability(event.markets).slice(0, TOP_SERIES_LIMIT);
   }, [event.markets]);
 
-  const [selectedInterval, setSelectedInterval] = useState<TimeseriesInterval>("1d");
+  const [selectedInterval, setSelectedInterval] = useState<TimeseriesInterval>("1w");
 
   const seriesQueries = useQueries({
     queries: topMarkets.map(({ tokenIds, yesIndex }) => ({
