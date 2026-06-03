@@ -11,6 +11,7 @@ import {
 } from "../../hooks/useTimeseries";
 import { useEventTweets } from "../../hooks/useEventTweets";
 import { PolymarketEvent } from "../../lib/types";
+import { formatDollars } from "../../lib/format";
 import { getMarketsSortedByYesProbability } from "../../lib/market";
 import { TweetMarkers } from "./TweetMarkers";
 
@@ -328,7 +329,14 @@ export function EventChart({ event }: { event: PolymarketEvent }) {
           />
         )}
       </div>
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        {event.volume > 0 ? (
+          <span className="px-1.5 text-xs font-medium text-muted-foreground">
+            {formatDollars(event.volume)} Vol.
+          </span>
+        ) : (
+          <span />
+        )}
         <IntervalSelector
           selected={selectedInterval}
           onChange={(i) => {
