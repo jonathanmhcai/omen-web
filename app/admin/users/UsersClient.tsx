@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { type SortingState } from "@tanstack/react-table";
 import UsersTable from "../../components/admin/users-table/UsersTable";
 import { useAdminUsers } from "../../hooks/admin/useAdminUsers";
+import type { Filters } from "../../lib/admin-query";
 
 export default function UsersClient() {
   const [sorting, setSorting] = useState<SortingState>([
@@ -11,12 +12,18 @@ export default function UsersClient() {
   ]);
   const [localSearch, setLocalSearch] = useState("");
   const [search, setSearch] = useState("");
+  const [redeemedOnly, setRedeemedOnly] = useState(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     debounceRef.current = setTimeout(() => setSearch(localSearch), 150);
     return () => clearTimeout(debounceRef.current);
   }, [localSearch]);
+
+  const filters: Filters | undefined = useMemo(() => {
+    if (!redeemedOnly) return undefined;
+    return { redeemed_invite: true };
+  }, [redeemedOnly]);
 
   const {
     users,
@@ -28,7 +35,7 @@ export default function UsersClient() {
     nextPage,
     prevPage,
     firstPage,
-  } = useAdminUsers({ sorting, search: search || undefined, limit: 15 });
+  } = useAdminUsers({ sorting, filters, search: search || undefined, limit: 15 });
 
   return (
     <UsersTable
@@ -45,6 +52,8 @@ export default function UsersClient() {
       onSortingChange={setSorting}
       searchQuery={localSearch}
       onSearchChange={setLocalSearch}
+      redeemedOnly={redeemedOnly}
+      onRedeemedOnlyChange={setRedeemedOnly}
     />
   );
 }

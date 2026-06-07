@@ -281,6 +281,8 @@ interface UsersTableProps {
   onSortingChange: (sorting: SortingState) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  redeemedOnly: boolean;
+  onRedeemedOnlyChange: (value: boolean) => void;
 }
 
 export default function UsersTable({
@@ -297,6 +299,8 @@ export default function UsersTable({
   onSortingChange,
   searchQuery,
   onSearchChange,
+  redeemedOnly,
+  onRedeemedOnlyChange,
 }: UsersTableProps) {
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -321,6 +325,14 @@ export default function UsersTable({
         placeholder="Search users... (/)"
         className="w-56 rounded-lg border border-black/[.08] px-3 py-1.5 text-sm placeholder:text-muted-foreground dark:border-white/[.145]"
       />
+      <label className="flex items-center gap-2 whitespace-nowrap text-sm">
+        <input
+          type="checkbox"
+          checked={redeemedOnly}
+          onChange={(e) => onRedeemedOnlyChange(e.target.checked)}
+        />
+        Redeemed invite
+      </label>
       <Pagination
         page={page}
         hasMore={hasMore}
