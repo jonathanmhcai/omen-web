@@ -20,7 +20,8 @@ interface WalletBalances {
 
 interface BonusWalletResponse {
   serverWallet: WalletBalances;
-  depositWallet: WalletBalances;
+  depositAddress: { evm: string; svm: string; btc: string };
+  depositNote: string;
 }
 
 function shortAddr(addr: string): string {
@@ -142,19 +143,10 @@ export default function BonusWalletInfo() {
               </div>
 
               <div className="border-t border-black/[.06] pt-2 dark:border-white/[.08]">
-                <AddressRow label="Polymarket deposit address" addr={data.depositWallet.address} />
-                {(Number(data.depositWallet.pusd) > 0 ||
-                  Number(data.depositWallet.usdce) > 0) && (
-                  <div className="mt-1 flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">In transit</span>
-                    <span className="tabular-nums">
-                      {fmtAmount(data.depositWallet.pusd)} pUSD
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        {fmtAmount(data.depositWallet.usdce)} USDC.e
-                      </span>
-                    </span>
-                  </div>
-                )}
+                <AddressRow
+                  label="Polymarket deposit address (EVM)"
+                  addr={data.depositAddress.evm}
+                />
               </div>
             </>
           )}
