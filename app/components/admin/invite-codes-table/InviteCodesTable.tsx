@@ -5,6 +5,7 @@ import { createColumnHelper, type SortingState } from "@tanstack/react-table";
 import { Copy, MoreHorizontal, Plus } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import BonusWalletInfo from "./BonusWalletInfo";
 import DataTable from "../data-table/DataTable";
 import Pagination from "../data-table/Pagination";
 import { AdminInviteCode } from "../../../lib/types";
@@ -382,14 +383,17 @@ export default function InviteCodesTable({
         placeholder="Search code or referrer email... (/)"
         className="w-64 rounded-lg border border-black/[.08] px-3 py-1.5 text-sm placeholder:text-muted-foreground dark:border-white/[.145]"
       />
-      <Pagination
-        page={page}
-        hasMore={hasMore}
-        total={total}
-        onFirstPage={onFirstPage}
-        onPrevPage={onPrevPage}
-        onNextPage={onNextPage}
-      />
+      <div className="ml-auto flex items-center gap-3">
+        <BonusWalletInfo />
+        <Pagination
+          page={page}
+          hasMore={hasMore}
+          total={total}
+          onFirstPage={onFirstPage}
+          onPrevPage={onPrevPage}
+          onNextPage={onNextPage}
+        />
+      </div>
     </div>
   );
 
