@@ -393,12 +393,46 @@ export interface AdminStats {
   window: AdminStatsWindow;
   totalCustodiedUsd: string;
   totalCustodiedUsdPrior: string | null;
-  netInflowUsd: string;
-  netInflowUsdPrior: string | null;
+  /** Settled fiat deposits in window (onramp only). */
+  depositsUsd: string;
+  depositsUsdPrior: string | null;
   tradeVolumeUsd: string;
   tradeVolumeUsdPrior: string | null;
+  /** Shares traded — matches how Polymarket reports volume. */
+  tradeVolumeShares: string;
+  tradeVolumeSharesPrior: string | null;
   activeTraders: number;
   activeTradersPrior: number | null;
   newFirstTimeTraders: number;
   newFirstTimeTradersPrior: number | null;
+}
+
+export type AdminVolumeGrain = "hour" | "day" | "week";
+
+export interface AdminVolumeSeriesPoint {
+  /** Bucket start, ISO 8601 (UTC). */
+  bucket: string;
+  /** Dollar notional traded (size × price). */
+  volumeUsd: string;
+  /** Shares traded — matches how Polymarket reports "volume". */
+  shares: string;
+}
+
+export interface AdminVolumeSeries {
+  window: AdminStatsWindow;
+  grain: AdminVolumeGrain;
+  points: AdminVolumeSeriesPoint[];
+}
+
+export interface AdminDepositsSeriesPoint {
+  /** Bucket start, naive local-wall-clock (in the requested tz). */
+  bucket: string;
+  /** Settled fiat deposits in the bucket. */
+  depositsUsd: string;
+}
+
+export interface AdminDepositsSeries {
+  window: AdminStatsWindow;
+  grain: AdminVolumeGrain;
+  points: AdminDepositsSeriesPoint[];
 }

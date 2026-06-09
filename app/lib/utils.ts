@@ -64,3 +64,12 @@ export function formatNumber(value: number): string {
   if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
   return `$${value.toFixed(0)}`;
 }
+
+// Compact share count, e.g. 35389 \u2192 "35.4K". Polymarket reports volume
+// this way (shares each counted at $1), so it reads larger than notional.
+export function formatShares(value: number): string {
+  if (value == null) return "\u2014";
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+  return value.toFixed(0);
+}
