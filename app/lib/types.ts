@@ -345,6 +345,8 @@ export interface AdminDeposit {
   username: string | null;
   display_name: string | null;
   provider: string;
+  /** Coinbase payment method (APPLE_PAY / ACH_BANK_ACCOUNT / …); null otherwise. */
+  payment_method: string | null;
   amount_usd: string;
   currency: string;
   status: string;
