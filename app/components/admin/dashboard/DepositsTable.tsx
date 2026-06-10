@@ -80,31 +80,11 @@ const columns = [
     size: 120,
     cell: (info) => {
       const provider = info.getValue();
-      const pm = info.row.original.payment_method;
-      // Surface Apple Pay distinctly; show other Coinbase methods (ACH /
-      // card) as a subtle qualifier so the row isn't ambiguous.
-      const isApplePay = pm === "APPLE_PAY";
-      const qualifier = isApplePay
-        ? "Apple Pay"
-        : pm
-          ? pm.toLowerCase().replace(/_/g, " ")
-          : null;
-      return (
-        <span className="flex items-center gap-1.5">
-          <span className="capitalize">{provider}</span>
-          {qualifier && (
-            <span
-              className={`rounded px-1 py-0.5 text-[10px] font-medium ${
-                isApplePay
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "text-zinc-400 dark:text-zinc-500"
-              }`}
-            >
-              {qualifier}
-            </span>
-          )}
-        </span>
-      );
+      const label =
+        info.row.original.payment_method === "APPLE_PAY"
+          ? `${provider} (Apple Pay)`
+          : provider;
+      return <span className="capitalize">{label}</span>;
     },
   }),
   columnHelper.accessor("amount_usd", {
