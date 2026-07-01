@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import SiteChrome from "./components/SiteChrome";
 
@@ -12,23 +13,47 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <Link
             href="/traders"
-            className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="group inline-flex flex-col items-center gap-2"
           >
-            Traders
+            <Image
+              src="/traders-illustration.png"
+              alt="Traders"
+              width={112}
+              height={112}
+              priority
+              className="transition-transform duration-300 ease-out group-hover:-translate-y-1.5 group-hover:scale-110"
+            />
+            <span className="text-sm font-medium">Traders</span>
           </Link>
           <Link
             href="/stories"
-            className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="group inline-flex flex-col items-center gap-2"
           >
-            News
+            <Image
+              src="/news-illustration.png"
+              alt="News"
+              width={112}
+              height={112}
+              priority
+              className="transition-transform duration-300 ease-out group-hover:-translate-y-1.5 group-hover:scale-110"
+            />
+            <span className="text-sm font-medium">News</span>
           </Link>
           <Link
             href="https://omen.trading/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="group inline-flex flex-col items-center gap-2"
           >
-            Mobile app
+            <Image
+              src="/mobile-illustration.png"
+              alt="Mobile app"
+              width={112}
+              height={112}
+              priority
+              className="transition-transform duration-300 ease-out group-hover:-translate-y-1.5 group-hover:scale-110"
+            />
+            <span className="text-sm font-medium">Mobile app</span>
           </Link>
         </div>
       </main>
