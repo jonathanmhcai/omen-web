@@ -96,7 +96,7 @@ export default function AdminShell({
               </Link>
             ))}
             <Link
-              href="/"
+              href="/stories"
               className="flex items-center gap-1.5 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />

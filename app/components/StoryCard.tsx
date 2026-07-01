@@ -432,7 +432,7 @@ export function StoryCard({
 
   return (
     <article
-      onClick={pressable ? () => router.push(`/story/${story.id}`) : undefined}
+      onClick={pressable ? () => router.push(`/stories/${story.id}`) : undefined}
       className={cn(
         "flex flex-col rounded-xl border border-border bg-card overflow-hidden",
         pressable && "cursor-pointer"

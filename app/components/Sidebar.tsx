@@ -79,10 +79,7 @@ export default function Sidebar() {
       <nav className="flex flex-col gap-1">
         {NAV.filter((item) => !item.adminOnly || authUser?.isAdmin).map((item) => {
           const Icon = item.icon;
-          const active =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+          const active = pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}

@@ -50,7 +50,7 @@ export default function SetupModal() {
         });
       }
       await refetch();
-      router.push("/");
+      router.push("/stories");
     } catch {
       // Error is already set in useSetup
     }

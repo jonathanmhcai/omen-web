@@ -29,7 +29,7 @@ export default function SettingsClient() {
 
   useEffect(() => {
     if (ready && !authenticated) {
-      router.replace("/");
+      router.replace("/stories");
     }
   }, [ready, authenticated, router]);
   const [darkMode, setDarkMode] = useState(false);
@@ -75,7 +75,7 @@ export default function SettingsClient() {
     }
     await logout().catch(() => {});
     queryClient.clear();
-    router.replace("/");
+    router.replace("/stories");
     toast.success("Account deleted");
   }, [sessionToken, logout, queryClient, router]);
 

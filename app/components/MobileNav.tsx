@@ -94,10 +94,7 @@ export default function MobileNav() {
                 (item) => !item.adminOnly || authUser?.isAdmin
               ).map((item) => {
                 const Icon = item.icon;
-                const active =
-                  item.href === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(item.href);
+                const active = pathname.startsWith(item.href);
                 return (
                   <DropdownMenuItem
                     key={item.href}
