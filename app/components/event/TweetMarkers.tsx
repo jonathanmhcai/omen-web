@@ -314,6 +314,9 @@ function ClusterMarker({
         side="bottom"
         align="center"
         sideOffset={6}
+        // Always open downward — don't flip up when there's not enough room
+        // below (the popover may run past the viewport; that's acceptable).
+        avoidCollisions={false}
         // Mirror tooltip styling — borderless container, content owns
         // its own row separators. Override Popover's default w-72.
         className="w-auto max-w-sm border border-border p-0 text-left"
@@ -393,9 +396,28 @@ function TweetCardRow({ tweet }: { tweet: EventTweet }) {
           </span>
           <span className="ml-auto shrink-0 text-muted-foreground">{time}</span>
         </div>
-        <p className="text-xs leading-snug whitespace-pre-wrap line-clamp-4">
+        <p className="text-xs leading-snug whitespace-pre-wrap line-clamp-[10]">
           {tweet.body}
         </p>
+        {tweet.media.length > 0 && (
+          <div
+            className={cn(
+              "mt-1 grid gap-1",
+              tweet.media.length === 1 ? "grid-cols-1" : "grid-cols-2"
+            )}
+          >
+            {tweet.media.slice(0, 4).map((m, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={m.url}
+                alt=""
+                loading="lazy"
+                className="max-h-48 w-full rounded-md object-cover"
+              />
+            ))}
+          </div>
+        )}
       </div>
     </a>
   );
