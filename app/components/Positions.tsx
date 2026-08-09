@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PolymarketPosition, usePositions } from "../hooks/usePositions";
+import { useTradingEnabled } from "../hooks/useTradingEnabled";
 
 // Module-level store: persists across page navigations that unmount the
 // RightSidebar tree (each page renders its own AppShell, so component state
@@ -30,7 +31,15 @@ function useExpandedAsset() {
   );
 }
 
+// Hidden entirely for unredeemed users, gated OUTSIDE the inner
+// component so the positions fetch never runs for them.
 export default function Positions() {
+  const tradingEnabled = useTradingEnabled();
+  if (!tradingEnabled) return null;
+  return <PositionsInner />;
+}
+
+function PositionsInner() {
   const { data } = usePositions();
   const expandedAsset = useExpandedAsset();
 

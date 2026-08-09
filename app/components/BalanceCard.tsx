@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCashBalance } from "../hooks/useCashBalance";
 import { useDepositAddresses } from "../hooks/useDepositAddresses";
+import { useTradingEnabled } from "../hooks/useTradingEnabled";
 import DepositModal from "./DepositModal";
 
 /**
@@ -14,8 +15,18 @@ import DepositModal from "./DepositModal";
  * its top row (see `MobileNav#HeaderBalance`) — that surface needs
  * less chrome than the sidebar card. Skeleton appears after a 300ms
  * delay so a warm cache / fast network doesn't flash a loading state.
+ *
+ * Hidden entirely for unredeemed users, gated OUTSIDE the inner
+ * component so its hooks (balance polling, deposit-address fetch)
+ * never run for them.
  */
 export default function BalanceCard() {
+  const tradingEnabled = useTradingEnabled();
+  if (!tradingEnabled) return null;
+  return <BalanceCardInner />;
+}
+
+function BalanceCardInner() {
   const { balance } = useCashBalance();
   const { data: depositData } = useDepositAddresses();
   const [showDeposit, setShowDeposit] = useState(false);

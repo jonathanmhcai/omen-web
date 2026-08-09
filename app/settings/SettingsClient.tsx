@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import AppShell from "../components/AppShell";
 import { useCookieString } from "../hooks/useCookieString";
+import { useTradingEnabled } from "../hooks/useTradingEnabled";
 import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 
 export default function SettingsClient() {
@@ -26,6 +27,9 @@ export default function SettingsClient() {
   const queryClient = useQueryClient();
   const { ready, authenticated, user, logout, exportWallet } = usePrivy();
   const [sessionToken] = useCookieString(SESSION_TOKEN_KEY);
+  // Key export is a wallet surface — hidden until invite redemption,
+  // like balance/deposit/positions.
+  const tradingEnabled = useTradingEnabled();
 
   useEffect(() => {
     if (ready && !authenticated) {
@@ -158,7 +162,7 @@ export default function SettingsClient() {
             Danger zone
           </h2>
           <div className="overflow-hidden rounded-xl border border-border bg-card">
-            {user?.wallet && (
+            {user?.wallet && tradingEnabled && (
               <div className="flex items-center justify-between gap-4 px-4 py-3">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm">Export private key</span>
@@ -175,7 +179,7 @@ export default function SettingsClient() {
               onClick={() => setDeleteOpen(true)}
               className={cn(
                 "flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-accent",
-                user?.wallet && "border-t border-border"
+                user?.wallet && tradingEnabled && "border-t border-border"
               )}
             >
               <div className="flex flex-col gap-0.5">

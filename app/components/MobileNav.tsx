@@ -17,6 +17,7 @@ import { useAuthUser } from "../hooks/useAuthUser";
 import { useCashBalance } from "../hooks/useCashBalance";
 import { useCookieString } from "../hooks/useCookieString";
 import { useDepositAddresses } from "../hooks/useDepositAddresses";
+import { useTradingEnabled } from "../hooks/useTradingEnabled";
 import { NAV } from "../lib/nav";
 import { SESSION_TOKEN_KEY } from "../lib/constants";
 import DepositModal from "./DepositModal";
@@ -141,8 +142,18 @@ export default function MobileNav() {
  * for authed users. The amount is a single line of tabular numerals so
  * it doesn't reflow as it ticks; the Deposit button matches the size
  * of the ☰ trigger so the right cluster reads as one row.
+ *
+ * Hidden entirely for unredeemed users, gated OUTSIDE the inner
+ * component so its hooks (balance polling, deposit-address fetch)
+ * never run for them.
  */
 function HeaderBalance() {
+  const tradingEnabled = useTradingEnabled();
+  if (!tradingEnabled) return null;
+  return <HeaderBalanceInner />;
+}
+
+function HeaderBalanceInner() {
   const { balance } = useCashBalance();
   const { data: depositData } = useDepositAddresses();
   const [showDeposit, setShowDeposit] = useState(false);

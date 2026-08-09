@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
+import { useTradingEnabled } from "./useTradingEnabled";
 
 export interface SupportedAsset {
   chainId: string;
@@ -27,6 +28,10 @@ export interface DepositAddressesResponse {
 
 export function useDepositAddresses() {
   const [sessionToken] = useCookieString(SESSION_TOKEN_KEY);
+  // The endpoint ALLOCATES bridge intake addresses server-side on first
+  // call — it must never fire for unredeemed users. Gated here (not at
+  // call sites) so no future component can leak the allocation.
+  const tradingEnabled = useTradingEnabled();
 
   return useQuery<DepositAddressesResponse>({
     queryKey: ["deposit-addresses"],
@@ -40,6 +45,6 @@ export function useDepositAddresses() {
       }
       return res.json();
     },
-    enabled: !!sessionToken,
+    enabled: !!sessionToken && tradingEnabled,
   });
 }

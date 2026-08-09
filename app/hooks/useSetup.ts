@@ -1,5 +1,13 @@
 "use client";
 
+// UNUSED since 2026-08 (only caller is the unmounted SetupModal) — kept
+// for future web trading onboarding. This is the only place in the web
+// codebase that knows the Privy session-signer delegation: the server
+// wallet's signer ID, the "Duplicate signer" error-swallow, and the
+// ordering constraint (delegate BEFORE /onboarding/web so the server
+// can sign Polymarket creds). Re-verify against the server before
+// rewiring.
+
 import { useCallback, useState } from "react";
 import {
   useWallets,

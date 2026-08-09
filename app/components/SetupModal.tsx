@@ -1,5 +1,13 @@
 "use client";
 
+// UNMOUNTED since 2026-08 — web is browse/newsletter-only before invite
+// redemption; the global setup wall was removed from providers.tsx.
+// Kept (with useSetup) for future web trading onboarding: this carries
+// the "finishing setup" recovery state (redeemed but provisioning
+// incomplete → idempotent /onboarding/web retry with an empty code) and
+// the ?ref= invite-link prefill. Re-verify against /me and
+// /onboarding/web before rewiring — the contract may have drifted.
+
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";

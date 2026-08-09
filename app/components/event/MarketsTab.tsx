@@ -10,11 +10,13 @@ import {
   MarketWithYes,
 } from "../../lib/market";
 import { formatShortDollars } from "../../lib/format";
+import TradingUnavailableModal from "../TradingUnavailableModal";
 
 const COLLAPSED_COUNT = 10;
 
 export function MarketsTab({ event }: { event: PolymarketEvent }) {
   const [expanded, setExpanded] = useState(false);
+  const [showTradingGate, setShowTradingGate] = useState(false);
 
   const sortedMarkets = useMemo(() => {
     if (!event.markets?.length) return [];
@@ -47,9 +49,18 @@ export function MarketsTab({ event }: { event: PolymarketEvent }) {
     <div>
       <div className="flex flex-col gap-4">
         {visible.map((m) => (
-          <MarketRow key={m.market.id} m={m} showImage={showImages} />
+          <MarketRow
+            key={m.market.id}
+            m={m}
+            showImage={showImages}
+            onOutcomeClick={() => setShowTradingGate(true)}
+          />
         ))}
       </div>
+      <TradingUnavailableModal
+        open={showTradingGate}
+        onClose={() => setShowTradingGate(false)}
+      />
       {hasMore && (
         <button
           type="button"
@@ -68,7 +79,15 @@ export function MarketsTab({ event }: { event: PolymarketEvent }) {
   );
 }
 
-function MarketRow({ m, showImage }: { m: MarketWithYes; showImage: boolean }) {
+function MarketRow({
+  m,
+  showImage,
+  onOutcomeClick,
+}: {
+  m: MarketWithYes;
+  showImage: boolean;
+  onOutcomeClick: () => void;
+}) {
   const { market, outcomes, prices } = m;
   const imageUri = market.image || market.icon;
 
@@ -100,15 +119,17 @@ function MarketRow({ m, showImage }: { m: MarketWithYes; showImage: boolean }) {
         {outcomes.map((label, i) => {
           const pct = Math.round((prices[i] ?? 0) * 100);
           return (
-            <span
+            <button
               key={`${label}-${i}`}
-              className={`flex h-10 min-w-[88px] items-center justify-center gap-1.5 rounded-lg px-3 ${outcomeBgClass(
+              type="button"
+              onClick={onOutcomeClick}
+              className={`flex h-10 min-w-[88px] cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 transition-opacity hover:opacity-80 ${outcomeBgClass(
                 label
               )}`}
             >
               <span className="text-sm font-semibold">{label}</span>
               <span className="text-[15px] font-bold tabular-nums">{pct}%</span>
-            </span>
+            </button>
           );
         })}
       </div>
