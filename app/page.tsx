@@ -13,7 +13,7 @@ const ENTRIES = [
     external: false,
     icon: "/traders-illustration.png",
     title: "Traders",
-    subtitle: "Directory of top Polymarket traders",
+    subtitle: "Directory of top Polymarket creators",
   },
   {
     href: "/stories",
