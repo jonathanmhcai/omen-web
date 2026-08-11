@@ -25,6 +25,7 @@ type Trader = {
   substack: string | null;
   youtube: string | null;
   description: string | null;
+  descriptionGeneratedAt: string | null;
   categories: string[];
   xVerifiedType: "blue" | "business" | "government" | null;
 };
@@ -50,6 +51,18 @@ function hostLabel(url: string): string {
   } catch {
     return url.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
   }
+}
+
+/** "2026-06-30" → "Jun 30, 2026"; falls back to the raw string. */
+function generatedDateLabel(iso: string): string {
+  const ms = Date.parse(`${iso}T00:00:00Z`);
+  if (!Number.isFinite(ms)) return iso;
+  return new Date(ms).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 /** YouTube channel label — the @handle when present, else the clean host. */
@@ -158,6 +171,11 @@ export default async function TraderPage({
           <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5" />
             AI-generated
+            {trader.descriptionGeneratedAt && (
+              <span className="font-normal">
+                · {generatedDateLabel(trader.descriptionGeneratedAt)}
+              </span>
+            )}
           </div>
           <p className="text-sm leading-relaxed text-foreground">{trader.description}</p>
         </div>
