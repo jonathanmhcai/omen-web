@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { useEvent } from "../../hooks/useEvent";
 import { EventHeader } from "./EventHeader";
 import { EventChart } from "./EventChart";
@@ -27,7 +26,7 @@ export function EventDetail({ slug }: { slug: string }) {
 
   if (error || !event) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card p-6 py-24 text-center">
         <p className="text-lg font-semibold text-foreground">
           {error ? "Error loading event" : "Event not found"}
         </p>
@@ -35,25 +34,17 @@ export function EventDetail({ slug }: { slug: string }) {
           <p className="text-sm text-muted-foreground">{error.message}</p>
         )}
         <Link
-          href="/stories"
+          href="/"
           className="mt-2 inline-flex items-center gap-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to feed
+          Go to daily brief
         </Link>
       </div>
     );
   }
 
   return (
-    <article className="flex flex-col gap-5">
-      <Link
-        href="/stories"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back
-      </Link>
+    <article className="flex flex-col gap-5 rounded-xl border border-border bg-card p-4">
       <EventHeader event={event} />
       <EventChart event={event} />
       {event.description && <EventDescription text={event.description} />}
@@ -77,8 +68,7 @@ export function EventDetail({ slug }: { slug: string }) {
 
 function EventDetailSkeleton() {
   return (
-    <div className="flex animate-pulse flex-col gap-5">
-      <div className="h-4 w-16 rounded bg-muted" />
+    <div className="flex animate-pulse flex-col gap-5 rounded-xl border border-border bg-card p-4">
       <div className="flex gap-3 border-b border-border pb-3">
         <div className="flex flex-1 flex-col gap-2">
           <div className="h-3 w-24 rounded bg-muted" />

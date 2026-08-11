@@ -1,13 +1,16 @@
 import Link from "next/link";
-import { API_BASE } from "../lib/constants";
-import { traderLabel } from "../lib/trader";
-import TraderSearch from "../components/TraderSearch";
-import SiteChrome from "../components/SiteChrome";
+import { API_BASE } from "../../lib/constants";
+import { traderLabel } from "../../lib/trader";
+import TraderSearch from "../TraderSearch";
+import SiteChrome from "../SiteChrome";
 
 /**
- * Trader directory — a search bar plus a 6-column grid of pfp + username,
- * fed by the server's enriched `/traders` endpoint. Each tile links to the
- * trader's profile at `/traders/<name>`.
+ * DEPRECATED — the former `/traders` directory index, unrouted since the
+ * daily brief took over the app's front door (2026-08-11). Trader profile
+ * pages (`/traders/[name]`) are still live. Not imported anywhere.
+ *
+ * A search bar plus a 6-column grid of pfp + username, fed by the server's
+ * enriched `/traders` endpoint.
  */
 
 type Trader = {

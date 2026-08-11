@@ -1,5 +1,4 @@
 import { Sparkles } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { API_BASE } from "../../lib/constants";
 import { traderLabel } from "../../lib/trader";
@@ -87,10 +86,6 @@ export default async function TraderPage({
   return (
     <SiteChrome>
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-start gap-6 px-6 pb-28 pt-4 text-left">
-        <Link href="/traders" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Back to directory
-        </Link>
-
       {trader.profileImage ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img

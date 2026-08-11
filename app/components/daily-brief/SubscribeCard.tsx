@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { authenticateWithPrivy, useAuthUser } from "../hooks/useAuthUser";
-import { useCookieString } from "../hooks/useCookieString";
-import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
-import { User } from "../lib/types";
-import { capture } from "../lib/analytics";
+import { authenticateWithPrivy, useAuthUser } from "../../hooks/useAuthUser";
+import { useCookieString } from "../../hooks/useCookieString";
+import { API_BASE, SESSION_TOKEN_KEY } from "../../lib/constants";
+import { User } from "../../lib/types";
+import { capture } from "../../lib/analytics";
 import SubscriptionStatus from "./SubscriptionStatus";
 
 /**

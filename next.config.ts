@@ -22,6 +22,26 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
+      // The daily brief moved to `/`. Sent emails and the unsubscribe page
+      // link to the old path; Next forwards the `?user=` query for free.
+      {
+        source: "/daily-brief",
+        destination: "/",
+        permanent: false,
+      },
+      // Former public index routes, deprecated 2026-08-11 (bookmarks and
+      // inbound links still point at them). Exact-path sources only —
+      // /stories/[id] and /traders/[name] stay live.
+      {
+        source: "/stories",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/traders",
+        destination: "/",
+        permanent: false,
+      },
     ];
   },
 };

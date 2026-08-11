@@ -16,7 +16,7 @@ export default function ProfileClient() {
 
   useEffect(() => {
     if (ready && !authenticated) {
-      router.replace("/stories");
+      router.replace("/");
     }
   }, [ready, authenticated, router]);
 

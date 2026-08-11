@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
-import { useAuthUser } from "../hooks/useAuthUser";
+import { useAuthUser } from "../../hooks/useAuthUser";
 
 /**
  * Current subscription state, named: "Subscribed to X" (or paused).
  * Renders nothing for anonymous users or users with no target. Used on
- * the /daily-brief landing and as SubscribeCard's already-subscribed
+ * the daily-brief landing (`/`) and as SubscribeCard's already-subscribed
  * state, so the two can't drift.
  */
 export default function SubscriptionStatus() {
@@ -19,7 +19,7 @@ export default function SubscriptionStatus() {
 
   const enabled = user?.notification_settings?.email_daily_brief === true;
   const label = target.handle ?? `${target.wallet.slice(0, 6)}…${target.wallet.slice(-4)}`;
-  const briefHref = `/daily-brief?user=${encodeURIComponent((target.handle ?? target.wallet).toLowerCase())}`;
+  const briefHref = `/?user=${encodeURIComponent((target.handle ?? target.wallet).toLowerCase())}`;
 
   return (
     <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3">

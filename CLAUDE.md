@@ -10,16 +10,26 @@ remains admin-gated.
 
 ## Layout
 
-Three-column app shell (`app/components/AppShell.tsx`):
+App shell (`app/components/AppShell.tsx`):
 
-- **Left**: persistent nav (`Sidebar.tsx`) — wordmark, nav items, log
-  in / account widget
+- **Top**: sticky nav bar (`TopNav.tsx`) — wordmark left; nav items,
+  balance / log in on the right (inline links at `lg+`, ☰ dropdown
+  below)
 - **Center**: the page (`max-w-xl`)
 - **Right**: optional widgets — search, positions, app download —
   rendered today only on `/`
 
-The right slot reserves its width even when empty so the left
-sidebar's horizontal position is stable across pages.
+An empty left spacer mirrors the right column's width so the main
+column sits at the same viewport-centered position on every page.
+
+`SiteChrome` (`/`, /traders) shares the same `TopNav` bar, plus a
+footer; its `max-w-4xl` container is mirrored by `Footer` so header
+and footer content edges align.
+
+`/` is the daily brief (`?user=<handle>` renders that trader's brief).
+`/daily-brief` 307s to it — sent emails link there — and Next carries
+the query string over. The former card landing is kept, unrouted, at
+`components/deprecated/LandingCards.tsx`.
 
 ## Conventions
 

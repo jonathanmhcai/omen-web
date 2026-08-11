@@ -3,11 +3,11 @@
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { capture } from "../lib/analytics";
+import { capture } from "../../lib/analytics";
 
 /**
  * Handle input for the daily brief. Submitting navigates to
- * /daily-brief?user=<handle> (lowercased so shared links dedupe against the
+ * /?user=<handle> (lowercased so shared links dedupe against the
  * server's per-handle cache) — the URL is the state, so results are
  * shareable and back/reload behave. Accepts pasted @handles and
  * polymarket.com profile URLs.
@@ -39,7 +39,7 @@ export default function BriefLookup({ initial }: { initial: string }) {
     if (normalized === "" || sameAsCurrent || isPending) return;
     capture("brief_lookup_submitted", { handle: normalized });
     startTransition(() => {
-      router.push(`/daily-brief?user=${encodeURIComponent(normalized)}`);
+      router.push(`/?user=${encodeURIComponent(normalized)}`);
     });
   }
 
@@ -49,7 +49,7 @@ export default function BriefLookup({ initial }: { initial: string }) {
     // Clearing while viewing a brief reverts to the landing immediately.
     if (initial) {
       startTransition(() => {
-        router.push("/daily-brief");
+        router.push("/");
       });
     }
   }
@@ -69,7 +69,7 @@ export default function BriefLookup({ initial }: { initial: string }) {
           onChange={(e) => setValue(e.target.value)}
           onFocus={(e) => e.target.select()}
           autoFocus={initial === ""}
-          placeholder="Polymarket username or 0x address"
+          placeholder="Enter Polymarket username or address"
           className="w-full rounded-md border bg-background px-4 py-2 pr-9 text-sm outline-none focus:ring-1 focus:ring-ring"
           spellCheck={false}
           autoCapitalize="none"

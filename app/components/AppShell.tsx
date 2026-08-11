@@ -1,22 +1,18 @@
 "use client";
 
-import MobileNav from "./MobileNav";
-import Sidebar from "./Sidebar";
+import TopNav from "./TopNav";
 
 /**
- * Responsive shell.
+ * Responsive shell: sticky `TopNav` bar on top (wordmark left, nav
+ * items right) at every breakpoint.
  *
- * `lg:` and up (≥1024px): three-column layout — fixed left Sidebar,
- * centered `max-w-xl` main column, fixed right slot. The right column
- * reserves space even when empty so `justify-center` doesn't shift the
- * sidebar inward when the right slot is absent (matches the pre-mobile
- * behavior).
+ * `lg:` and up (≥1024px): centered `max-w-xl` main column with an
+ * optional right slot. An empty left spacer mirrors the right column's
+ * width so the main column sits at the same viewport-centered position
+ * on every page, whether or not it has a right rail.
  *
- * Below `lg:`: stacks vertically — sticky `MobileNav` header on top
- * (with the ☰ menu + Omen wordmark + login/settings), then full-width
- * main, then the page's `rightSidebar` content rendered below. The
- * desktop `Sidebar` and the right column wrapper are hidden via
- * Tailwind so only one nav surface is mounted per breakpoint.
+ * Below `lg:`: full-width main, then the page's `rightSidebar` content
+ * stacked below it.
  */
 export default function AppShell({
   children,
@@ -26,10 +22,10 @@ export default function AppShell({
   rightSidebar?: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#f1f5f9] dark:bg-background">
-      <MobileNav />
+    <div className="min-h-screen bg-page">
+      <TopNav />
       <div className="flex justify-center">
-        <Sidebar />
+        <div className="hidden w-80 shrink-0 lg:block" />
         <main className="w-full max-w-xl px-4 py-6">{children}</main>
         <div className="hidden w-80 shrink-0 lg:block">{rightSidebar}</div>
       </div>

@@ -36,7 +36,7 @@ export default function SettingsClient() {
 
   useEffect(() => {
     if (ready && !authenticated) {
-      router.replace("/stories");
+      router.replace("/");
     }
   }, [ready, authenticated, router]);
   const [darkMode, setDarkMode] = useState(false);
@@ -73,16 +73,24 @@ export default function SettingsClient() {
   const handleDeleteAccount = useCallback(async () => {
     setDeleting(true);
     try {
-      await fetch(`${API_BASE}/me`, {
+      const res = await fetch(`${API_BASE}/me`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${sessionToken}` },
       });
+      // 404 = already deleted (e.g. a retry after a dropped response) —
+      // cleanup is still right. Anything else non-ok is a real failure:
+      // don't log out and claim success when the account still exists.
+      if (!res.ok && res.status !== 404) {
+        throw new Error(`delete failed (${res.status})`);
+      }
     } catch {
-      // Account may already be deleted — proceed with cleanup
+      setDeleting(false);
+      toast.error("Could not delete your account. Please try again.");
+      return;
     }
     await logout().catch(() => {});
     queryClient.clear();
-    router.replace("/stories");
+    router.replace("/");
     toast.success("Account deleted");
   }, [sessionToken, logout, queryClient, router]);
 
@@ -94,8 +102,20 @@ export default function SettingsClient() {
   const emailAddress =
     user?.email?.address ?? user?.google?.email ?? user?.apple?.email ?? null;
 
+  // Covers Privy init on reload for signed-in users, and the moment
+  // before the redirect above kicks a signed-out visitor to `/`. A
+  // skeleton instead of a blank page so neither reads as broken.
   if (!ready || !authenticated) {
-    return <AppShell>{null}</AppShell>;
+    return (
+      <AppShell>
+        <h1 className="mb-4 px-3 text-2xl font-semibold">Settings</h1>
+        <div className="flex animate-pulse flex-col gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-16 rounded-xl border border-border bg-card" />
+          ))}
+        </div>
+      </AppShell>
+    );
   }
 
   return (
@@ -333,7 +353,7 @@ function GoogleIcon({ className }: { className?: string }) {
  * Daily brief subscription row. The toggle pauses/resumes delivery via the
  * shared notification-settings PATCH; the stored target survives a pause,
  * so flipping back on needs no re-setup. With no target yet, the row just
- * points at /daily-brief where subscribing happens (enter a trader there).
+ * points at the brief page (`/`) where subscribing happens.
  */
 function DailyBriefRow() {
   const { user } = useAuthUser();
@@ -400,11 +420,11 @@ function DailyBriefRow() {
           {target ? (
             <>
               Subscribed to{" "}
-              <Link href={`/daily-brief?user=${encodeURIComponent((target.handle ?? target.wallet).toLowerCase())}`} className="underline hover:text-foreground">
+              <Link href={`/?user=${encodeURIComponent((target.handle ?? target.wallet).toLowerCase())}`} className="underline hover:text-foreground">
                 {targetLabel}
               </Link>
               . Change traders on the{" "}
-              <Link href="/daily-brief" className="underline hover:text-foreground">
+              <Link href="/" className="underline hover:text-foreground">
                 brief page
               </Link>
               .
@@ -412,7 +432,7 @@ function DailyBriefRow() {
           ) : (
             <>
               Not set up.{" "}
-              <Link href="/daily-brief" className="underline hover:text-foreground">
+              <Link href="/" className="underline hover:text-foreground">
                 Generate a brief
               </Link>{" "}
               to subscribe.
