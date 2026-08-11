@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { capture } from "../lib/analytics";
 
 /**
  * Handle input for the daily brief. Submitting navigates to
@@ -16,6 +17,7 @@ export default function BriefLookup({ initial }: { initial: string }) {
   function submit() {
     const v = value.trim().toLowerCase();
     if (!v) return;
+    capture("brief_lookup_submitted", { handle: v });
     router.push(`/daily-brief?user=${encodeURIComponent(v)}`);
   }
 

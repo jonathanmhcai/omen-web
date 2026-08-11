@@ -2,8 +2,9 @@
 
 import { PrivyProvider } from "@privy-io/react-auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { CookiesProvider } from "react-cookie";
+import PostHogTracking from "./components/PostHogTracking";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -42,6 +43,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             },
           }}
         >
+          <Suspense fallback={null}>
+            <PostHogTracking />
+          </Suspense>
           {children}
         </PrivyProvider>
       </QueryClientProvider>

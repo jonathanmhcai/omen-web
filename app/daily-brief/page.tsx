@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import SiteChrome from "../components/SiteChrome";
+import { TrackOnMount } from "../components/PostHogTracking";
 import { API_BASE } from "../lib/constants";
 import BriefLookup from "./BriefLookup";
 
@@ -21,7 +22,12 @@ type BriefResponse = {
     subject: string;
     intro: string;
     sections: { stories: { imageUrl: string | null }[] }[];
-    stats: { wallet: string };
+    stats: {
+      wallet: string;
+      positionCount: number;
+      distinctStoryCount: number;
+      sectionCount: number;
+    };
   };
   html: string;
 };
@@ -116,19 +122,35 @@ async function BriefResult({ user }: { user: string }) {
   const brief = await getBrief(user);
   if (!brief) {
     return (
-      <p className="mt-8 text-sm text-muted-foreground">
-        Couldn&apos;t find a Polymarket profile for &ldquo;{user}&rdquo; — check the username, or
-        paste a 0x wallet address.
-      </p>
+      <>
+        <TrackOnMount event="brief_generated" properties={{ handle: user, found: false }} />
+        <p className="mt-8 text-sm text-muted-foreground">
+          Couldn&apos;t find a Polymarket profile for &ldquo;{user}&rdquo; — check the username, or
+          paste a 0x wallet address.
+        </p>
+      </>
     );
   }
+  const { stats } = brief.payload;
   return (
     // White surface regardless of theme: the brief is a preview of the email,
     // which is a light-styled document. `daily-brief-doc` scopes the
     // preflight un-reset (see globals.css).
-    <div className="mt-8 rounded-xl border bg-white p-4 sm:p-6">
-      <div className="daily-brief-doc" dangerouslySetInnerHTML={{ __html: brief.html }} />
-    </div>
+    <>
+      <TrackOnMount
+        event="brief_generated"
+        properties={{
+          handle: user,
+          found: true,
+          positions: stats.positionCount,
+          stories: stats.distinctStoryCount,
+          sections: stats.sectionCount,
+        }}
+      />
+      <div className="mt-8 rounded-xl border bg-white p-4 sm:p-6">
+        <div className="daily-brief-doc" dangerouslySetInnerHTML={{ __html: brief.html }} />
+      </div>
+    </>
   );
 }
 
