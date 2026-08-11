@@ -7,7 +7,11 @@ import { User } from "../lib/types";
 import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
 import { useCookieString } from "./useCookieString";
 
-async function authenticateWithPrivy(setSessionToken: (token: string) => void): Promise<string> {
+/** Exchange the Privy access token for an omen session token and persist
+ *  it. Exported for flows that need a token immediately after login
+ *  (e.g. the daily-brief auto-subscribe) instead of waiting for this
+ *  hook's query cycle to mint one. */
+export async function authenticateWithPrivy(setSessionToken: (token: string) => void): Promise<string> {
   const privyToken = await getAccessToken();
   if (!privyToken) {
     throw new Error("No access token from Privy");

@@ -18,7 +18,9 @@ export interface User {
   needsSetup?: boolean;
   notification_settings?: {
     push_enabled: boolean;
+    email_daily_brief?: boolean;
   };
+  daily_brief_target?: { wallet: string; handle: string | null } | null;
 }
 
 export interface PolymarketSeries {

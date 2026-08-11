@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Sparkles } from "lucide-react";
 import SiteChrome from "../components/SiteChrome";
 import { TrackOnMount } from "../components/PostHogTracking";
 import { API_BASE } from "../lib/constants";
 import BriefLookup from "./BriefLookup";
+import SubscribeCard from "./SubscribeCard";
+import SubscriptionStatus from "./SubscriptionStatus";
 
 /**
  * Daily brief preview. `?user=<handleOr0x>` renders that trader's brief —
@@ -80,7 +83,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function DailyBriefPage({ searchParams }: Props) {
   const { user } = await searchParams;
   return (
-    <SiteChrome>
+    <SiteChrome showHeader={false}>
       <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">Daily brief</h1>
@@ -98,7 +101,10 @@ export default async function DailyBriefPage({ searchParams }: Props) {
             <BriefResult user={user} />
           </Suspense>
         ) : (
-          <p className="mt-8 text-sm text-muted-foreground">
+          <>
+            <SubscriptionStatus />
+            <p className="mt-8 text-sm text-muted-foreground">
+            <Sparkles className="mr-1.5 inline-block h-3.5 w-3.5 align-[-2px]" />
             Try{" "}
             {EXAMPLE_TRADERS.map((handle, i) => (
               <span key={handle}>
@@ -111,7 +117,8 @@ export default async function DailyBriefPage({ searchParams }: Props) {
                 </Link>
               </span>
             ))}
-          </p>
+            </p>
+          </>
         )}
       </main>
     </SiteChrome>
@@ -147,7 +154,8 @@ async function BriefResult({ user }: { user: string }) {
           sections: stats.sectionCount,
         }}
       />
-      <div className="mt-8 rounded-xl border bg-white p-4 sm:p-6">
+      <SubscribeCard handle={user} />
+      <div className="mt-6 rounded-xl border bg-white p-4 sm:p-6">
         <div className="daily-brief-doc" dangerouslySetInnerHTML={{ __html: brief.html }} />
       </div>
     </>
