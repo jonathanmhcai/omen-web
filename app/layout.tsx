@@ -58,15 +58,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                let stored = null;
+                // Light by default; dark only as an explicit /settings choice.
                 try {
-                  stored = localStorage.getItem('theme');
-                } catch (e) {}
-                try {
-                  const prefersDark = stored
-                    ? stored === 'dark'
-                    : window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  if (prefersDark) {
+                  if (localStorage.getItem('theme') === 'dark') {
                     document.documentElement.classList.add('dark');
                   }
                 } catch (e) {}
