@@ -27,7 +27,7 @@ const ENTRIES = [
     external: false,
     icon: "/brief-illustration.png",
     title: "Daily brief",
-    subtitle: "Daily news on your positions",
+    subtitle: "Receive daily news on your positions",
   },
   {
     href: "https://omen.trading/",
