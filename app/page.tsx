@@ -23,6 +23,13 @@ const ENTRIES = [
     subtitle: "News feed matched to markets",
   },
   {
+    href: "/daily-brief",
+    external: false,
+    icon: "/brief-illustration.png",
+    title: "Daily brief",
+    subtitle: "Daily news on your positions",
+  },
+  {
     href: "https://omen.trading/",
     external: true,
     icon: "/mobile-illustration.png",

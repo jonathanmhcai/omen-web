@@ -244,3 +244,16 @@ button {
 .event-popup.mapboxgl-popup .mapboxgl-popup-tip {
   display: none;
 }
+
+/* Injected daily-brief email fragment (/daily-brief). Tailwind's preflight
+   breaks email-table layout: padding on <table> elements is ignored under
+   border-collapse: collapse (react-email Sections/Rows carry their padding
+   there), and img { height: auto } overrides the height attribute the email
+   thumbnails rely on. Revert both, scoped to the fragment. */
+.daily-brief-doc table {
+  border-collapse: separate;
+}
+
+.daily-brief-doc img {
+  height: revert;
+}
