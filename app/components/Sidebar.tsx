@@ -96,7 +96,10 @@ export default function Sidebar() {
                 active ? "font-bold" : "font-medium"
               )}
             >
-              {item.href === "/profile" && mounted ? (
+              {/* Profile is commented out of NAV for now; keep the avatar
+                  slot logic alive (String() defeats the literal-type check)
+                  so restoring the item just works. */}
+              {String(item.href) === "/profile" && mounted ? (
                 displayAvatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
