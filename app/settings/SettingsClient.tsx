@@ -107,8 +107,8 @@ export default function SettingsClient() {
   // skeleton instead of a blank page so neither reads as broken.
   if (!ready || !authenticated) {
     return (
-      <AppShell>
-        <h1 className="mb-4 px-3 text-2xl font-semibold">Settings</h1>
+      <AppShell wide>
+        <h1 className="mb-4 text-2xl font-semibold tracking-tight">Settings</h1>
         <div className="flex animate-pulse flex-col gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-16 rounded-xl border border-border bg-card" />
@@ -119,8 +119,8 @@ export default function SettingsClient() {
   }
 
   return (
-    <AppShell>
-      <h1 className="mb-4 px-3 text-2xl font-semibold">Settings</h1>
+    <AppShell wide>
+      <h1 className="mb-4 text-2xl font-semibold tracking-tight">Settings</h1>
 
       <div className="flex flex-col gap-4">
         {!user?.wallet && (
@@ -181,7 +181,7 @@ export default function SettingsClient() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h2 className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Notifications
           </h2>
           <div className="overflow-hidden rounded-xl border border-border bg-card">
@@ -190,7 +190,7 @@ export default function SettingsClient() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h2 className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Danger zone
           </h2>
           <div className="overflow-hidden rounded-xl border border-border bg-card">
