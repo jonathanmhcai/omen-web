@@ -10,7 +10,12 @@ import { capture } from "../../lib/analytics";
 // Known-good examples from the trader directory's seed list (Polymarket
 // usernames, not X handles) — all verified to resolve and produce briefs
 // with stories.
-const EXAMPLE_TRADERS = ["prophet.notes", "MEPP", "ImJustKen", "mr.ozi"] as const;
+const EXAMPLE_TRADERS = [
+  "ImJustKen",
+  "aenews2",
+  "prophet.notes",
+  "MEPP",
+] as const;
 
 /**
  * Trader lookup for the daily brief — the shared TraderSearch typeahead
@@ -31,7 +36,9 @@ export default function BriefLookup({ initial }: { initial: string }) {
     <div>
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <label htmlFor="brief-trader" className="text-xs font-medium">
-          {initial ? "Showing the brief for" : "Enter your Polymarket username"}
+          {initial
+            ? "Selected Polymarket user"
+            : "Enter your Polymarket username"}
         </label>
         <p className="text-xs text-muted-foreground">
           <Sparkles className="mr-1 inline-block h-3 w-3 align-[-1px]" />
