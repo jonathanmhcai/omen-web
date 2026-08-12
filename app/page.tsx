@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { SearchX } from "lucide-react";
 import SiteChrome from "./components/SiteChrome";
 import { TrackOnMount } from "./components/PostHogTracking";
 import BriefHero from "./components/daily-brief/BriefHero";
@@ -130,10 +131,20 @@ async function BriefResult({ user }: { user: string }) {
           event="brief_generated"
           properties={{ handle: user, found: false }}
         />
-        <p className="mt-6 text-sm text-muted-foreground">
-          Couldn&apos;t find a Polymarket profile for &ldquo;{user}&rdquo; —
-          check the username, or paste a 0x wallet address.
-        </p>
+        {/* Same card shape as the subscribe callout that would sit here on a
+            hit, so a miss lands in the layout rather than replacing it with
+            a loose sentence. */}
+        <div className="mt-6 flex items-center gap-3 rounded-xl border border-border bg-card p-4 sm:p-5">
+          <SearchX className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <p className="truncate text-sm font-semibold">
+              No Polymarket profile for &ldquo;{user}&rdquo;
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Check the username, or paste a 0x wallet address.
+            </p>
+          </div>
+        </div>
       </>
     );
   }
