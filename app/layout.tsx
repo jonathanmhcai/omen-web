@@ -53,7 +53,7 @@ export default async function RootLayout({
 }>) {
   // Request cookies, threaded into react-cookie's provider so SSR sees
   // the session cookie. Lets the chrome render the correct auth
-  // affordances (Settings cog vs Log In) in the first HTML instead of
+  // affordances (Settings cog vs Log in) in the first HTML instead of
   // popping them in after hydration. Reading cookies() opts every route
   // into per-request rendering — fine at our scale, and most pages were
   // dynamic already.

@@ -35,7 +35,9 @@ the query string over. The former card landing is kept, unrouted, at
 
 - `useAuthUser` is the omen session (separate from Privy's user). Nav
   items marked `requiresAuth: true` open the Privy modal when clicked
-  unauthed; per-user routes redirect to `/` when unauthed.
+  unauthed; per-user routes redirect to `/` when unauthed. `/settings` is
+  the exception: it prompts to sign in instead, because the daily brief
+  emails link there and a redirect would strand that visitor.
 - The `/stories` server endpoint is public (`optionalAuth`), so the
   homepage feed renders for anonymous visitors too.
 - Polymarket data: market events use `market.event_slug` for outbound

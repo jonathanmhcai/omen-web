@@ -27,14 +27,14 @@ import { SESSION_TOKEN_KEY } from "../lib/constants";
 // Module-scoped so it persists across TopNav remounts. Each page wraps
 // its own AppShell, so client-side navigation tears down and rebuilds
 // the bar — without this, the `mounted` gate below would re-arm on
-// every nav and the balance / Log In cluster would blink out for one
+// every nav and the balance / Log in cluster would blink out for one
 // paint.
 let hasHydrated = false;
 
 /**
  * Sticky top bar — the app shell's only nav surface at every
  * breakpoint. Row layout: Omen wordmark left; right cluster is inline
- * nav links (lg+ only), balance + Deposit when authed / Log In when
+ * nav links (lg+ only), balance + Deposit when authed / Log in when
  * not, then the ☰ dropdown (below lg only) with the same nav items.
  */
 export default function TopNav() {
@@ -74,7 +74,7 @@ export default function TopNav() {
     return true;
   });
 
-  // Show Log In as soon as we can tell the visitor is signed out: with no
+  // Show Log in as soon as we can tell the visitor is signed out: with no
   // session cookie that's right away (SSR included), with one only after
   // Privy confirms the cookie was stale.
   const showLogin = !authenticated && (ready || !likelyAuthed);
@@ -84,7 +84,7 @@ export default function TopNav() {
     // header and footer content edges line up.
     <header className="sticky top-0 z-40 w-full bg-page/95 px-6 backdrop-blur md:px-12 lg:px-16 xl:px-24">
       {/* Fixed height (not py-*): the right cluster's tallest child differs
-          by auth state (36px icon buttons vs the 32px Log In button), and a
+          by auth state (36px icon buttons vs the 32px Log in button), and a
           content-sized bar shifts the whole page 4px when auth resolves. */}
       <div className="mx-auto flex h-13 max-w-4xl items-center gap-2">
         <Link href="/" className="text-xl font-semibold leading-none">
@@ -150,7 +150,7 @@ export default function TopNav() {
               onClick={() => ready && login()}
               className="hidden lg:inline-flex"
             >
-              Log In
+              Log in
             </Button>
           )}
 
@@ -226,7 +226,7 @@ export default function TopNav() {
                         onSelect={() => ready && login()}
                       >
                         <LogIn className="h-4 w-4 shrink-0 opacity-70" />
-                        <span>Log In</span>
+                        <span>Log in</span>
                       </DropdownMenuItem>
                     </>
                   )}

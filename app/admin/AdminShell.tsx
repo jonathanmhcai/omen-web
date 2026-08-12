@@ -58,7 +58,7 @@ export default function AdminShell({
             Authentication error: {authError}
           </p>
           <Button variant="outline" onClick={logout}>
-            Log Out
+            Log out
           </Button>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function AdminShell({
             You do not have admin access.
           </p>
           <Button variant="outline" onClick={logout}>
-            Log Out
+            Log out
           </Button>
         </div>
       </div>
@@ -115,10 +115,10 @@ export default function AdminShell({
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold">Omen Admin</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Sign in to get started.
+            Log in to get started.
           </p>
         </div>
-        <Button onClick={login}>Log In</Button>
+        <Button onClick={login}>Log in</Button>
       </div>
     </div>
   );

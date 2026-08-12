@@ -30,7 +30,7 @@ export default function Header({
       <div className="ml-auto flex items-center pb-2">
         {showLogin ? (
           <Button size="sm" onClick={login}>
-            Log In
+            Log in
           </Button>
         ) : (
           <SettingsMenu />

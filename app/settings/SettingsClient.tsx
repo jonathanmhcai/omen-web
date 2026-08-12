@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronRight, Mail } from "lucide-react";
+import { ChevronRight, LogIn, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -28,17 +28,12 @@ import { User } from "../lib/types";
 export default function SettingsClient() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { ready, authenticated, user, logout, exportWallet } = usePrivy();
+  const { ready, authenticated, user, login, logout, exportWallet } = usePrivy();
   const [sessionToken] = useCookieString(SESSION_TOKEN_KEY);
   // Key export is a wallet surface — hidden until invite redemption,
   // like balance/deposit/positions.
   const tradingEnabled = useTradingEnabled();
 
-  useEffect(() => {
-    if (ready && !authenticated) {
-      router.replace("/");
-    }
-  }, [ready, authenticated, router]);
   const [darkMode, setDarkMode] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -102,10 +97,9 @@ export default function SettingsClient() {
   const emailAddress =
     user?.email?.address ?? user?.google?.email ?? user?.apple?.email ?? null;
 
-  // Covers Privy init on reload for signed-in users, and the moment
-  // before the redirect above kicks a signed-out visitor to `/`. A
-  // skeleton instead of a blank page so neither reads as broken.
-  if (!ready || !authenticated) {
+  // Privy still initializing (a reload for a signed-in user). A skeleton
+  // rather than a blank page so it doesn't read as broken.
+  if (!ready) {
     return (
       <AppShell wide>
         <h1 className="mb-4 text-2xl font-semibold tracking-tight">Settings</h1>
@@ -113,6 +107,32 @@ export default function SettingsClient() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-16 rounded-xl border border-border bg-card" />
           ))}
+        </div>
+      </AppShell>
+    );
+  }
+
+  // Prompt rather than redirect: this page is the target of the daily
+  // brief's "Manage email settings" link, so a signed-out visitor arrives
+  // here on purpose. Bouncing them to `/` loses the intent and explains
+  // nothing. Signing in re-renders straight into the settings below.
+  if (!authenticated) {
+    return (
+      <AppShell wide>
+        <h1 className="mb-4 text-2xl font-semibold tracking-tight">Settings</h1>
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5">
+          <div className="flex items-center gap-3">
+            <LogIn className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <p className="text-sm font-semibold">Log in to manage your settings</p>
+              <p className="text-xs text-muted-foreground">
+                Your daily brief, email preferences, and account live here.
+              </p>
+            </div>
+          </div>
+          <Button onClick={login} className="w-full shrink-0 sm:w-auto">
+            Log in
+          </Button>
         </div>
       </AppShell>
     );
@@ -142,7 +162,7 @@ export default function SettingsClient() {
         )}
 
         <div className="overflow-hidden rounded-xl border border-border bg-card">
-          <InfoRow label="Sign-in method">
+          <InfoRow label="Login method">
             {signInMethods.length > 0 ? (
               <div className="flex flex-col items-end gap-1.5">
                 {signInMethods.map((m) => (
