@@ -40,21 +40,25 @@ export default function BriefLookup({ initial }: { initial: string }) {
             ? "Selected Polymarket user"
             : "Enter your Polymarket username"}
         </label>
-        <p className="text-xs text-muted-foreground">
-          <Sparkles className="mr-1 inline-block h-3 w-3 align-[-1px]" />
-          Try{" "}
-          {EXAMPLE_TRADERS.map((handle, i) => (
-            <span key={handle}>
-              {i > 0 && (i === EXAMPLE_TRADERS.length - 1 ? ", or " : ", ")}
-              <Link
-                href={`/?user=${encodeURIComponent(handle)}`}
-                className="underline hover:text-foreground"
-              >
-                {handle}
-              </Link>
-            </span>
-          ))}
-        </p>
+        {/* Suggestions are for a visitor with nothing on screen yet; once a
+            brief is up they'd invite you away from what you asked for. */}
+        {!initial && (
+          <p className="text-xs text-muted-foreground">
+            <Sparkles className="mr-1 inline-block h-3 w-3 align-[-1px]" />
+            Try{" "}
+            {EXAMPLE_TRADERS.map((handle, i) => (
+              <span key={handle}>
+                {i > 0 && (i === EXAMPLE_TRADERS.length - 1 ? ", or " : ", ")}
+                <Link
+                  href={`/?user=${encodeURIComponent(handle)}`}
+                  className="underline hover:text-foreground"
+                >
+                  {handle}
+                </Link>
+              </span>
+            ))}
+          </p>
+        )}
       </div>
 
       <TraderSearch
@@ -73,6 +77,13 @@ export default function BriefLookup({ initial }: { initial: string }) {
             router.push(`/?user=${encodeURIComponent(handle)}`);
           });
         }}
+        // Clearing the field drops the brief with it — the URL is the state,
+        // so an empty input showing someone's brief would be a lie.
+        onClear={
+          initial
+            ? () => startTransition(() => router.push("/"))
+            : undefined
+        }
       />
 
       {/* Generation takes a few seconds; the skeleton only appears once the

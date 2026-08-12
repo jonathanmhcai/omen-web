@@ -44,8 +44,12 @@ export default function TraderSearch({
   autoFocus = false,
   initialQuery = "",
   id,
+  onClear,
 }: {
   onSelect?: (result: SearchResult) => void;
+  /** Fired when the ✕ empties the field — lets a caller drop whatever the
+   *  selection was driving (on the brief page, the brief itself). */
+  onClear?: () => void;
   placeholder?: string;
   /** Merged over the wrapper — pass `max-w-none` to fill the column. */
   className?: string;
@@ -246,7 +250,9 @@ export default function TraderSearch({
             setQuery("");
             setResults([]);
             setOpen(false);
+            setSelected(null);
             inputRef.current?.focus();
+            onClear?.();
           }}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           aria-label="Clear search"
