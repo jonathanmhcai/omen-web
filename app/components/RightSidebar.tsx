@@ -2,7 +2,6 @@
 
 import AppDownloadCard from "./AppDownloadCard";
 import Positions from "./Positions";
-import SearchBox from "./SearchBox";
 
 /**
  * Right column for the homepage.
@@ -15,12 +14,8 @@ import SearchBox from "./SearchBox";
 export default function RightSidebar() {
   return (
     <aside className="flex w-full flex-col gap-4 lg:sticky lg:top-0 lg:h-screen lg:w-80 lg:shrink-0 lg:overflow-y-auto lg:px-4 lg:py-6">
-      {/* Hidden on mobile: SearchBox is rendered at the top of the
-       *  homepage `main` on small screens so it's discoverable, not
-       *  buried below the entire feed. */}
-      <div className="hidden lg:block">
-        <SearchBox />
-      </div>
+      {/* The event SearchBox used to lead this column; it now lives in
+       *  components/deprecated/SearchBox.tsx, ready to drop back in. */}
       {/* Two shapes: QR-driven card on desktop (scan with phone),
        *  compact tappable row on mobile (clicking goes straight to
        *  the App Store since the user is already on a phone). */}

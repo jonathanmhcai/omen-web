@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
+import { Bell } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { authenticateWithPrivy, useAuthUser } from "../../hooks/useAuthUser";
@@ -18,7 +19,7 @@ import SubscriptionStatus from "./SubscriptionStatus";
  * daily_brief_target via useAuthUser).
  */
 export default function SubscribeCard({ handle }: { handle: string }) {
-  const { ready, authenticated, login } = usePrivy();
+  const { ready, authenticated, login, user: privyUser } = usePrivy();
   const { user } = useAuthUser();
   const queryClient = useQueryClient();
   const [sessionToken, setSessionToken] = useCookieString(SESSION_TOKEN_KEY);
@@ -42,7 +43,8 @@ export default function SubscribeCard({ handle }: { handle: string }) {
       // By the time this fires, /me has succeeded (see the auto-fire gate),
       // so the session cookie exists; the mint is only a fallback for a
       // signed-in click with a lost/expired cookie.
-      const token = sessionToken ?? (await authenticateWithPrivy(setSessionToken));
+      const token =
+        sessionToken ?? (await authenticateWithPrivy(setSessionToken));
       const res = await fetch(`${API_BASE}/me/daily-brief-target`, {
         method: "PUT",
         headers: {
@@ -126,7 +128,9 @@ export default function SubscribeCard({ handle }: { handle: string }) {
       if (Date.now() - startedAt > 45_000) {
         clearInterval(iv);
         setPendingSubscribe(false);
-        setError("Account setup is taking longer than expected. Hit Subscribe again in a moment.");
+        setError(
+          "Account setup is taking longer than expected. Hit Subscribe again in a moment.",
+        );
         return;
       }
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
@@ -146,31 +150,53 @@ export default function SubscribeCard({ handle }: { handle: string }) {
   const currentLabel =
     target?.handle ??
     (target ? `${target.wallet.slice(0, 6)}…${target.wallet.slice(-4)}` : "");
+  // The Privy account's address — where the brief WOULD go, shown so the
+  // destination is visible before committing. Not delivery state: this card
+  // only renders pre-subscribe. Signed-out visitors have no email yet, so
+  // the line is simply absent until after login.
+  const email =
+    privyUser?.email?.address ??
+    privyUser?.google?.email ??
+    privyUser?.apple?.email ??
+    null;
 
   return (
-    <div className="mt-6 flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-col gap-0.5">
-        <p className="text-sm font-semibold">
-          Get this brief in your inbox every morning
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {switching
-            ? `You currently receive the brief for ${currentLabel}. Subscribing switches it to ${handle}.`
-            : "Free daily email, at 9am ET. Unsubscribe anytime."}
-        </p>
-        {error && <p className="text-xs text-red-500">{error}</p>}
+    <div className="mt-6 rounded-xl border border-border bg-card p-4 sm:p-5">
+      {/* Stacked on mobile; one row from `sm+`, button hugging its label. */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex items-center gap-3">
+          <Bell className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <p className="text-sm font-semibold">
+              Get this brief in your inbox every morning
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {switching
+                ? `You currently receive the brief for ${currentLabel}. Subscribing switches it to ${handle}.`
+                : "Delivered 9am ET daily. Unsubscribe anytime."}
+            </p>
+            {email && (
+              <p className="truncate text-xs text-muted-foreground">
+                We&apos;ll send it to{" "}
+                <span className="text-foreground">{email}</span>
+              </p>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={subscribe}
+          disabled={subscribeMutation.isPending || settingUp || !ready}
+          className="w-full shrink-0 rounded-md bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50 sm:w-auto"
+        >
+          {subscribeMutation.isPending || settingUp
+            ? "Subscribing…"
+            : switching
+              ? `Switch to ${handle}`
+              : "Subscribe"}
+        </button>
       </div>
-      <button
-        onClick={subscribe}
-        disabled={subscribeMutation.isPending || settingUp || !ready}
-        className="shrink-0 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
-      >
-        {subscribeMutation.isPending || settingUp
-          ? "Subscribing…"
-          : switching
-            ? "Switch"
-            : "Subscribe"}
-      </button>
+
+      {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
     </div>
   );
 }

@@ -3,7 +3,7 @@ export default function Footer() {
     <footer className="w-full px-6 md:px-12 lg:px-16 xl:px-24">
       {/* max-w-4xl mirrors TopNav's container so header and footer content
        *  edges line up. */}
-      <div className="max-w-4xl mx-auto pt-24 md:pt-16 lg:pt-0 pb-6">
+      <div className="max-w-4xl mx-auto pt-24 md:pt-20 pb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           {/* Left side */}
           <div className="flex flex-col gap-2">

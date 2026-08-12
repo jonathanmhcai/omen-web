@@ -1,106 +1,78 @@
 "use client";
 
-import { X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useTransition } from "react";
+import { Sparkles } from "lucide-react";
+import TraderSearch from "../TraderSearch";
 import { capture } from "../../lib/analytics";
 
+// Known-good examples from the trader directory's seed list (Polymarket
+// usernames, not X handles) — all verified to resolve and produce briefs
+// with stories.
+const EXAMPLE_TRADERS = ["prophet.notes", "MEPP", "ImJustKen", "mr.ozi"] as const;
+
 /**
- * Handle input for the daily brief. Submitting navigates to
- * /?user=<handle> (lowercased so shared links dedupe against the
- * server's per-handle cache) — the URL is the state, so results are
- * shareable and back/reload behave. Accepts pasted @handles and
- * polymarket.com profile URLs.
+ * Trader lookup for the daily brief — the shared TraderSearch typeahead
+ * (debounced search-as-you-type, pfp results, arrow keys, `/` to focus),
+ * pointed at /?user=<handle> instead of the trader's profile. The URL is
+ * the state, so results are shareable and back/reload behave.
+ *
+ * The label says which trader the page below belongs to, so the selected
+ * state reads as the report's subject rather than as leftover input.
+ * Lowercased so shared links dedupe against the server's per-handle cache;
+ * the wallet stands in when a profile has no username.
  */
-
-/** trim, unwrap polymarket.com/@handle URLs, strip a leading @, lowercase. */
-function normalize(raw: string): string {
-  let v = raw.trim();
-  const urlMatch = v.match(/polymarket\.com\/@([^/?#\s]+)/i);
-  if (urlMatch) v = urlMatch[1];
-  if (v.startsWith("@")) v = v.slice(1);
-  return v.toLowerCase();
-}
-
 export default function BriefLookup({ initial }: { initial: string }) {
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [value, setValue] = useState(initial);
   const [isPending, startTransition] = useTransition();
 
-  const current = initial.toLowerCase();
-  const normalized = normalize(value);
-  // Already viewing this trader's brief — the only visibly-disabled state.
-  // An empty input keeps the button enabled (submit is just a no-op) so the
-  // resting page doesn't open on a grayed-out control.
-  const sameAsCurrent = normalized !== "" && normalized === current;
-
-  function submit() {
-    if (normalized === "" || sameAsCurrent || isPending) return;
-    capture("brief_lookup_submitted", { handle: normalized });
-    startTransition(() => {
-      router.push(`/?user=${encodeURIComponent(normalized)}`);
-    });
-  }
-
-  function clear() {
-    setValue("");
-    inputRef.current?.focus();
-    // Clearing while viewing a brief reverts to the landing immediately.
-    if (initial) {
-      startTransition(() => {
-        router.push("/");
-      });
-    }
-  }
-
   return (
-    <form
-      className="flex w-full max-w-md gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        submit();
-      }}
-    >
-      <div className="relative w-full">
-        <input
-          ref={inputRef}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onFocus={(e) => e.target.select()}
-          autoFocus={initial === ""}
-          placeholder="Enter Polymarket username or address"
-          className="w-full rounded-md border bg-background px-4 py-2 pr-9 text-sm outline-none focus:ring-1 focus:ring-ring"
-          spellCheck={false}
-          autoCapitalize="none"
-          autoCorrect="off"
-          // A lone text input in a form trips password managers' save
-          // heuristics — name it as a lookup and opt out explicitly.
-          name="polymarket-handle"
-          autoComplete="off"
-          data-1p-ignore
-          data-lpignore="true"
-          data-bwignore="true"
-          data-form-type="other"
-        />
-        {value !== "" && (
-          <button
-            type="button"
-            aria-label="Clear"
-            onClick={clear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+    <div>
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <label htmlFor="brief-trader" className="text-xs font-medium">
+          {initial ? "Showing the brief for" : "Enter your Polymarket username"}
+        </label>
+        <p className="text-xs text-muted-foreground">
+          <Sparkles className="mr-1 inline-block h-3 w-3 align-[-1px]" />
+          Try{" "}
+          {EXAMPLE_TRADERS.map((handle, i) => (
+            <span key={handle}>
+              {i > 0 && (i === EXAMPLE_TRADERS.length - 1 ? ", or " : ", ")}
+              <Link
+                href={`/?user=${encodeURIComponent(handle)}`}
+                className="underline hover:text-foreground"
+              >
+                {handle}
+              </Link>
+            </span>
+          ))}
+        </p>
       </div>
-      <button
-        type="submit"
-        disabled={sameAsCurrent || isPending}
-        className="shrink-0 cursor-pointer rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 disabled:cursor-default disabled:opacity-50"
-      >
-        {isPending ? "Generating…" : "Generate brief"}
-      </button>
-    </form>
+
+      <TraderSearch
+        id="brief-trader"
+        className="max-w-none"
+        placeholder="Polymarket username or 0x address"
+        // Whose brief is on screen — the page.tsx `key` reseeds it on nav.
+        initialQuery={initial}
+        // The landing's primary action. On a brief page the reader came to
+        // read, so don't steal focus from the brief.
+        autoFocus={initial === ""}
+        onSelect={(result) => {
+          const handle = (result.name ?? result.wallet).toLowerCase();
+          capture("brief_lookup_submitted", { handle });
+          startTransition(() => {
+            router.push(`/?user=${encodeURIComponent(handle)}`);
+          });
+        }}
+      />
+
+      {/* Generation takes a few seconds; the skeleton only appears once the
+          new route commits, so hold the wait visible until then. */}
+      {isPending && (
+        <p className="mt-2 text-xs text-muted-foreground">Generating brief…</p>
+      )}
+    </div>
   );
 }

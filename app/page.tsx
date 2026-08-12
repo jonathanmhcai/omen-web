@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
-import { Sparkles } from "lucide-react";
 import SiteChrome from "./components/SiteChrome";
 import { TrackOnMount } from "./components/PostHogTracking";
+import BriefHero from "./components/daily-brief/BriefHero";
 import BriefLookup from "./components/daily-brief/BriefLookup";
 import SubscribeCard from "./components/daily-brief/SubscribeCard";
 import SubscriptionStatus from "./components/daily-brief/SubscriptionStatus";
@@ -53,11 +52,6 @@ async function getBrief(user: string): Promise<BriefResponse | null> {
   }
 }
 
-// Known-good examples from the trader directory's seed list (Polymarket
-// usernames, not X handles) — all verified to resolve and produce briefs
-// with stories.
-const EXAMPLE_TRADERS = ["prophet.notes", "MEPP", "ImJustKen", "mr.ozi"] as const;
-
 type Props = { searchParams: Promise<{ user?: string }> };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
@@ -90,40 +84,17 @@ export default async function HomePage({ searchParams }: Props) {
   return (
     <SiteChrome>
       <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Daily brief</h1>
-          <p className="text-muted-foreground">
-            Daily news on your Polymarket positions.
-          </p>
-        </div>
-        <div className="mt-6">
+        <BriefHero>
           {/* Keyed by user so soft navigation (e.g. the Try link) remounts the
-              input with the new value instead of keeping stale state. */}
+              search, reseeding it with whichever brief is on screen. */}
           <BriefLookup key={user ?? ""} initial={user ?? ""} />
-        </div>
+        </BriefHero>
         {user ? (
           <Suspense key={user} fallback={<BriefSkeleton user={user} />}>
             <BriefResult user={user} />
           </Suspense>
         ) : (
-          <>
-            <SubscriptionStatus />
-            <p className="mt-8 text-sm text-muted-foreground">
-            <Sparkles className="mr-1.5 inline-block h-3.5 w-3.5 align-[-2px]" />
-            Try{" "}
-            {EXAMPLE_TRADERS.map((handle, i) => (
-              <span key={handle}>
-                {i > 0 && (i === EXAMPLE_TRADERS.length - 1 ? ", or " : ", ")}
-                <Link
-                  href={`/?user=${encodeURIComponent(handle)}`}
-                  className="underline hover:text-foreground"
-                >
-                  {handle}
-                </Link>
-              </span>
-            ))}
-            </p>
-          </>
+          <SubscriptionStatus />
         )}
       </main>
     </SiteChrome>
@@ -136,7 +107,7 @@ async function BriefResult({ user }: { user: string }) {
     return (
       <>
         <TrackOnMount event="brief_generated" properties={{ handle: user, found: false }} />
-        <p className="mt-8 text-sm text-muted-foreground">
+        <p className="mt-6 text-sm text-muted-foreground">
           Couldn&apos;t find a Polymarket profile for &ldquo;{user}&rdquo; — check the username, or
           paste a 0x wallet address.
         </p>
@@ -169,7 +140,7 @@ async function BriefResult({ user }: { user: string }) {
 
 function BriefSkeleton({ user }: { user: string }) {
   return (
-    <div className="mt-8 flex flex-col gap-3">
+    <div className="mt-6 flex flex-col gap-3">
       <p className="text-sm text-muted-foreground">
         Building {user}&apos;s brief — this takes a few seconds…
       </p>

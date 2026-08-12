@@ -8,7 +8,7 @@ import { useAuthUser } from "../../hooks/useAuthUser";
 import { useStories } from "../../hooks/useStories";
 import AppShell from "../AppShell";
 import RightSidebar from "../RightSidebar";
-import SearchBox from "../SearchBox";
+import SearchBox from "./SearchBox";
 import { StoryCard, StoryCardSkeleton } from "../StoryCard";
 
 /**

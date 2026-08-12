@@ -4,9 +4,18 @@ import { Search, SearchX, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
-import { useLocalStorage } from "../hooks/useLocalStorage";
-import { useSearchEvents } from "../hooks/useSearchEvents";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
+import { useLocalStorage } from "../../hooks/useLocalStorage";
+import { useSearchEvents } from "../../hooks/useSearchEvents";
+
+/**
+ * DEPRECATED — the event search box, pulled from the right rail
+ * (2026-08-12) and kept intact for a later re-add. Only the deprecated
+ * StoriesFeed still imports it; nothing routed renders it.
+ *
+ * Typeahead over `/search/events` with recent searches in localStorage,
+ * `/` and arrow-key navigation.
+ */
 
 const RECENT_SEARCHES_KEY = "omen_recent_searches_v2";
 const MAX_RECENT = 5;
