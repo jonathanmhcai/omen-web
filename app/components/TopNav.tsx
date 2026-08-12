@@ -64,25 +64,29 @@ export default function TopNav() {
   }, []);
 
   // Auth-gated items are hidden outright rather than shown as login
-  // prompts. `mounted` keeps SSR and the first client paint agreeing —
-  // the auth signals are client-only. `likelyAuthed` (cookie) rather than
-  // `authenticated` so returning users see Settings immediately instead
-  // of it popping in after Privy hydrates.
+  // prompts. `likelyAuthed` (cookie) rather than `authenticated` so the
+  // choice is identical on the server (request cookie, seeded in
+  // providers.tsx), the first client paint, and after Privy hydrates —
+  // no pop-in on refresh for signed-in users.
   const visibleNav = NAV.filter((item) => {
     if (item.adminOnly) return authUser?.isAdmin;
-    if (item.requiresAuth) return mounted && likelyAuthed;
+    if (item.requiresAuth) return likelyAuthed;
     return true;
   });
 
   // Show Log In as soon as we can tell the visitor is signed out: with no
-  // session cookie that's right away, with one only after Privy confirms.
-  const showLogin = mounted && !authenticated && (ready || !likelyAuthed);
+  // session cookie that's right away (SSR included), with one only after
+  // Privy confirms the cookie was stale.
+  const showLogin = !authenticated && (ready || !likelyAuthed);
 
   return (
     // Outer padding + inner max-width mirror Footer's container so the
     // header and footer content edges line up.
     <header className="sticky top-0 z-40 w-full bg-page/95 px-6 backdrop-blur md:px-12 lg:px-16 xl:px-24">
-      <div className="mx-auto flex max-w-4xl items-center gap-2 py-2">
+      {/* Fixed height (not py-*): the right cluster's tallest child differs
+          by auth state (36px icon buttons vs the 32px Log In button), and a
+          content-sized bar shifts the whole page 4px when auth resolves. */}
+      <div className="mx-auto flex h-13 max-w-4xl items-center gap-2">
         <Link href="/" className="text-xl font-semibold leading-none">
           Omen
         </Link>
@@ -90,9 +94,11 @@ export default function TopNav() {
         <div className="ml-auto flex items-center gap-2">
           <nav className="hidden items-center lg:flex">
             {visibleNav.map((item) => {
+              const Icon = item.icon;
               const active = !item.external && isNavItemActive(item.href, pathname);
               const linkClass = cn(
-                "rounded-full px-3 py-1.5 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                "rounded-full text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                item.iconOnly ? "p-2" : "px-3 py-1.5",
                 active
                   ? "font-semibold text-foreground"
                   : "font-medium text-muted-foreground hover:text-foreground"
@@ -116,6 +122,7 @@ export default function TopNav() {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
+                  aria-label={item.iconOnly ? item.label : undefined}
                   onClick={(e) => {
                     if (item.requiresAuth && ready && !authenticated) {
                       e.preventDefault();
@@ -124,7 +131,7 @@ export default function TopNav() {
                   }}
                   className={linkClass}
                 >
-                  {item.label}
+                  {item.iconOnly ? <Icon className="h-5 w-5" /> : item.label}
                 </Link>
               );
             })}

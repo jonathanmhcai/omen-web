@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
@@ -45,11 +46,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Request cookies, threaded into react-cookie's provider so SSR sees
+  // the session cookie. Lets the chrome render the correct auth
+  // affordances (Settings cog vs Log In) in the first HTML instead of
+  // popping them in after hydration. Reading cookies() opts every route
+  // into per-request rendering — fine at our scale, and most pages were
+  // dynamic already.
+  const cookieHeader = (await cookies()).toString();
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -72,7 +80,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers cookieHeader={cookieHeader}>{children}</Providers>
         <Toaster position="bottom-right" expand richColors />
       </body>
     </html>

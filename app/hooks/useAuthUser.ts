@@ -57,12 +57,17 @@ async function fetchMe(sessionToken: string): Promise<User> {
 const REFETCH_INTERVAL = 10_000;
 
 export function useAuthUser() {
-  const { authenticated } = usePrivy();
+  const { ready, authenticated } = usePrivy();
   const queryClient = useQueryClient();
   const [sessionToken, setSessionToken, clearSessionToken] = useCookieString(SESSION_TOKEN_KEY);
 
-  // Invalidate on login, clear on logout
+  // Invalidate on login, clear on logout. Gated on `ready`: during Privy
+  // init `authenticated` is false for everyone, and clearing then wiped a
+  // valid session cookie on every refresh — flashing Log In for signed-in
+  // users (the cookie drives TopNav's affordances) and forcing a needless
+  // token re-mint per load.
   useEffect(() => {
+    if (!ready) return;
     if (authenticated) {
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
     } else {
@@ -71,7 +76,7 @@ export function useAuthUser() {
       queryClient.removeQueries({ queryKey: ["positions"] });
       clearSessionToken();
     }
-  }, [authenticated, queryClient, clearSessionToken]);
+  }, [ready, authenticated, queryClient, clearSessionToken]);
 
   const { data, isLoading, error, refetch } = useQuery<User>({
     queryKey: ["authUser"],
