@@ -30,7 +30,9 @@ const EXAMPLE_TRADERS = [
  */
 export default function BriefLookup({ initial }: { initial: string }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  // Transition only for the non-blocking navigation — the wait is shown by
+  // the skeleton that replaces the brief, not by a pending flag here.
+  const [, startTransition] = useTransition();
 
   return (
     <div>
@@ -86,11 +88,6 @@ export default function BriefLookup({ initial }: { initial: string }) {
         }
       />
 
-      {/* Generation takes a few seconds; the skeleton only appears once the
-          new route commits, so hold the wait visible until then. */}
-      {isPending && (
-        <p className="mt-2 text-xs text-muted-foreground">Generating brief…</p>
-      )}
     </div>
   );
 }

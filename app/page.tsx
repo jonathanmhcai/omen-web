@@ -52,9 +52,19 @@ async function getBrief(user: string): Promise<BriefResponse | null> {
   }
 }
 
+/**
+ * TEMP — flip to false when you're done looking. Freezes `?user=` on the
+ * loading state so the skeleton can be inspected without racing a 3–5s
+ * generation. Gated on NODE_ENV so leaving it true can't reach prod.
+ */
+const FORCE_SKELETON = false;
+const forceSkeleton = FORCE_SKELETON && process.env.NODE_ENV !== "production";
+
 type Props = { searchParams: Promise<{ user?: string }> };
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
   const { user } = await searchParams;
   // The bare landing is the site's front door: inherit the root layout's
   // title/OG and stay indexable. Per-trader briefs are shareable but not
@@ -69,13 +79,19 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const description = brief.payload.intro;
   // First story image anywhere in the brief; branded card as fallback.
   const image =
-    brief.payload.sections.flatMap((s) => s.stories).find((st) => st.imageUrl)?.imageUrl ?? "/og";
+    brief.payload.sections.flatMap((s) => s.stories).find((st) => st.imageUrl)
+      ?.imageUrl ?? "/og";
   return {
     title,
     description,
     robots,
     openGraph: { title, description, images: [{ url: image }] },
-    twitter: { card: "summary_large_image", title, description, images: [image] },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
   };
 }
 
@@ -90,9 +106,13 @@ export default async function HomePage({ searchParams }: Props) {
           <BriefLookup key={user ?? ""} initial={user ?? ""} />
         </BriefHero>
         {user ? (
-          <Suspense key={user} fallback={<BriefSkeleton user={user} />}>
-            <BriefResult user={user} />
-          </Suspense>
+          forceSkeleton ? (
+            <BriefSkeleton />
+          ) : (
+            <Suspense key={user} fallback={<BriefSkeleton />}>
+              <BriefResult user={user} />
+            </Suspense>
+          )
         ) : (
           <SubscriptionStatus />
         )}
@@ -106,10 +126,13 @@ async function BriefResult({ user }: { user: string }) {
   if (!brief) {
     return (
       <>
-        <TrackOnMount event="brief_generated" properties={{ handle: user, found: false }} />
+        <TrackOnMount
+          event="brief_generated"
+          properties={{ handle: user, found: false }}
+        />
         <p className="mt-6 text-sm text-muted-foreground">
-          Couldn&apos;t find a Polymarket profile for &ldquo;{user}&rdquo; — check the username, or
-          paste a 0x wallet address.
+          Couldn&apos;t find a Polymarket profile for &ldquo;{user}&rdquo; —
+          check the username, or paste a 0x wallet address.
         </p>
       </>
     );
@@ -132,21 +155,62 @@ async function BriefResult({ user }: { user: string }) {
       />
       <SubscribeCard handle={user} />
       <div className="mt-6 rounded-xl border bg-white p-4 sm:p-6">
-        <div className="daily-brief-doc" dangerouslySetInnerHTML={{ __html: brief.html }} />
+        <div
+          className="daily-brief-doc"
+          dangerouslySetInnerHTML={{ __html: brief.html }}
+        />
       </div>
     </>
   );
 }
 
-function BriefSkeleton({ user }: { user: string }) {
+/**
+ * Stands in for BriefResult at its exact position and shape: the subscribe
+ * callout, then the white document with a date line, intro, and market
+ * sections. No "building…" copy — a skeleton that matches what lands says
+ * it better, and the wait then has no text to re-read.
+ *
+ * Two bar tones, because the two surfaces differ: `foreground/10` on the
+ * theme-following card (visible on either ground, unlike `bg-muted`, which
+ * is near-white on a white card), `black/10` inside the document, which is
+ * white in both themes. Both land on the same grey in light mode, so the
+ * two blocks read as one skeleton.
+ */
+function BriefSkeleton() {
   return (
-    <div className="mt-6 flex flex-col gap-3">
-      <p className="text-sm text-muted-foreground">
-        Building {user}&apos;s brief — this takes a few seconds…
-      </p>
-      <div className="h-24 animate-pulse rounded-xl bg-muted" />
-      <div className="h-44 animate-pulse rounded-xl bg-muted" />
-      <div className="h-44 animate-pulse rounded-xl bg-muted" />
+    <div aria-hidden className="animate-pulse">
+      <div className="mt-6 rounded-xl border border-border bg-card p-4 sm:p-5">
+        <div className="flex items-center gap-3">
+          <div className="h-5 w-5 shrink-0 rounded-full bg-foreground/10" />
+          <div className="flex w-full flex-col gap-2">
+            <div className="h-3.5 w-[60%] rounded bg-foreground/10" />
+            <div className="h-3 w-[42%] rounded bg-foreground/10" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-xl border bg-white p-4 sm:p-6">
+        <div className="h-2.5 w-44 rounded bg-black/10" />
+        <div className="mt-4 flex flex-col gap-2">
+          <div className="h-3.5 w-full rounded bg-black/10" />
+          <div className="h-3.5 w-[78%] rounded bg-black/10" />
+        </div>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="mt-4 rounded-lg bg-[#f7f7f8] p-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 shrink-0 rounded-lg bg-black/10" />
+              <div className="flex flex-1 flex-col gap-2">
+                <div className="h-3 w-[70%] rounded bg-black/10" />
+                <div className="h-3 w-[45%] rounded bg-black/10" />
+              </div>
+            </div>
+            <div className="mt-2.5 rounded-lg border border-[#e2e8f0] bg-white p-3">
+              <div className="h-3 w-[85%] rounded bg-black/10" />
+              <div className="mt-2 h-3 w-[60%] rounded bg-black/10" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
