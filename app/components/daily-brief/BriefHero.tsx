@@ -17,15 +17,21 @@ export default function BriefHero({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-card px-5 py-6 sm:px-6 sm:py-7">
-      {/* Decorative, clipped by the top-right corner — it sits beside the
+    <div className="relative rounded-xl border border-border bg-card px-5 py-6 sm:px-6 sm:py-7">
+      {/* The clip lives on this wrapper, not the card: the card must not
+       *  clip its children or it eats the lookup's results dropdown.
+       *  Decorative, cropped by the top-right corner — it sits beside the
        *  title block, clear of the full-width control below. Thin stroke:
        *  lucide's default weight reads as a heavy blob at this size. */}
-      <Mail
+      <div
         aria-hidden
-        strokeWidth={1}
-        className="pointer-events-none absolute -right-7 -top-7 h-28 w-28 -rotate-12 text-muted-foreground/15 sm:h-36 sm:w-36 sm:text-muted-foreground/25"
-      />
+        className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl"
+      >
+        <Mail
+          strokeWidth={1}
+          className="absolute -right-7 -top-7 h-28 w-28 -rotate-12 text-muted-foreground/15 sm:h-36 sm:w-36 sm:text-muted-foreground/25"
+        />
+      </div>
       <div className="relative flex flex-col gap-1.5 pr-16 sm:pr-28">
         <p className="text-xs text-muted-foreground">{date}</p>
         <h1 className="text-2xl font-semibold tracking-tight">Daily brief</h1>

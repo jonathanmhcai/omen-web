@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { API_BASE } from "../lib/constants";
 import { traderLabel } from "../lib/trader";
+import TraderAvatar from "./TraderAvatar";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 
 /**
@@ -184,14 +185,16 @@ export default function TraderSearch({
   return (
     <div ref={wrapperRef} className={cn("relative w-full max-w-md", className)}>
       {showSelected &&
-        (selected?.profileImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+        (selected ? (
+          <TraderAvatar
             src={selected.profileImage}
+            wallet={selected.wallet}
             alt={traderLabel(selected)}
-            className="pointer-events-none absolute left-3 top-1/2 h-7 w-7 -translate-y-1/2 rounded-full bg-muted object-cover"
+            className="pointer-events-none absolute left-3 top-1/2 h-7 w-7 -translate-y-1/2"
           />
         ) : (
+          // Still resolving the seeded handle — a plain circle, since the
+          // generated gradient keys off a wallet we don't have yet.
           <span className="pointer-events-none absolute left-3 top-1/2 h-7 w-7 -translate-y-1/2 rounded-full bg-muted" />
         ))}
       <input
@@ -276,16 +279,12 @@ export default function TraderSearch({
                   i === highlight ? "bg-muted" : ""
                 }`}
               >
-                {r.profileImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={r.profileImage}
-                    alt={label}
-                    className="h-7 w-7 shrink-0 rounded-full bg-muted object-cover"
-                  />
-                ) : (
-                  <div className="h-7 w-7 shrink-0 rounded-full bg-muted" />
-                )}
+                <TraderAvatar
+                  src={r.profileImage}
+                  wallet={r.wallet}
+                  alt={label}
+                  className="h-7 w-7 shrink-0"
+                />
                 <span className="min-w-0 flex-1 truncate text-sm">{label}</span>
                 {/* Anchors the right end of a full-width row, and separates
                  *  traders sharing a username. Skipped when the label already

@@ -7,6 +7,7 @@ import TraderStats from "../../components/TraderStats";
 import TraderHighlights from "../../components/TraderHighlights";
 import SiteChrome from "../../components/SiteChrome";
 import SocialPill from "../../components/SocialPill";
+import TraderAvatar from "../../components/TraderAvatar";
 
 /**
  * Single trader profile. `name` is a Polymarket username (or an address) —
@@ -86,16 +87,12 @@ export default async function TraderPage({
   return (
     <SiteChrome>
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-start gap-6 px-6 pb-28 pt-4 text-left">
-      {trader.profileImage ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={trader.profileImage}
-          alt={traderLabel(trader)}
-          className="h-24 w-24 rounded-full bg-muted object-cover"
-        />
-      ) : (
-        <div className="h-24 w-24 rounded-full bg-muted" />
-      )}
+      <TraderAvatar
+        src={trader.profileImage}
+        wallet={trader.wallet}
+        alt={traderLabel(trader)}
+        className="h-24 w-24"
+      />
 
       <h1 className="text-2xl font-semibold leading-none">{traderLabel(trader)}</h1>
 
