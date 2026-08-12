@@ -13,18 +13,15 @@ import Positions from "./Positions";
  */
 export default function RightSidebar() {
   return (
-    <aside className="flex w-full flex-col gap-4 lg:sticky lg:top-0 lg:h-screen lg:w-80 lg:shrink-0 lg:overflow-y-auto lg:px-4 lg:py-6">
+    // Sticks BELOW the 52px TopNav (h-13), not at top-0: this column scrolls
+    // internally, so at top-0 its first card sat under the bar with no way
+    // to reach it. Height matches, so its scroll area ends at the viewport.
+    <aside className="flex w-full flex-col gap-4 lg:sticky lg:top-13 lg:h-[calc(100vh-3.25rem)] lg:w-80 lg:shrink-0 lg:overflow-y-auto lg:px-4 lg:py-6">
       {/* The event SearchBox used to lead this column; it now lives in
        *  components/deprecated/SearchBox.tsx, ready to drop back in. */}
-      {/* Two shapes: QR-driven card on desktop (scan with phone),
-       *  compact tappable row on mobile (clicking goes straight to
-       *  the App Store since the user is already on a phone). */}
-      <div className="hidden lg:block">
-        <AppDownloadCard />
-      </div>
-      <div className="lg:hidden">
-        <AppDownloadCard compact />
-      </div>
+      {/* One shape at every width now that the card is a tagline and a
+       *  button; the desktop/mobile split existed for the QR code. */}
+      <AppDownloadCard />
       <Positions />
       <p className="flex gap-2 text-xs text-muted-foreground lg:px-3">
         <a href="mailto:support@omen.trading" className="hover:underline">
