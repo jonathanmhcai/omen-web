@@ -20,11 +20,11 @@ export const metadata: Metadata = {
     default: "Omen | Trade the news",
     template: "%s | Omen",
   },
-  description: "Prediction markets across sports, politics, and culture. Powered by Polymarket.",
+  description: "A daily brief on the news moving prediction markets. Powered by Polymarket.",
   metadataBase: new URL("https://app.omen.trading"),
   openGraph: {
     title: "Omen | Trade the news",
-    description: "Prediction markets across sports, politics, and culture. Powered by Polymarket.",
+    description: "A daily brief on the news moving prediction markets. Powered by Polymarket.",
     siteName: "Omen",
     url: "https://app.omen.trading",
     type: "website",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Omen | Trade the news",
-    description: "Prediction markets across sports, politics, and culture. Powered by Polymarket.",
+    description: "A daily brief on the news moving prediction markets. Powered by Polymarket.",
     images: ["/og"],
   },
   robots: {

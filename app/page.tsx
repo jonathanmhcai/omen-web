@@ -78,10 +78,9 @@ export async function generateMetadata({
 
   const title = `Daily brief · ${user}`;
   const description = brief.payload.intro;
-  // First story image anywhere in the brief; branded card as fallback.
-  const image =
-    brief.payload.sections.flatMap((s) => s.stories).find((st) => st.imageUrl)
-      ?.imageUrl ?? "/og";
+  // Branded card built from this brief. Falls back to the site card if the
+  // route can't render (see app/og/brief).
+  const image = `/og/brief?user=${encodeURIComponent(user)}`;
   return {
     title,
     description,

@@ -32,7 +32,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     );
     if (!res.ok) return { title: "Event" };
     const event = (await res.json()) as { title?: string };
-    return { title: event.title?.trim() || "Event" };
+    const title = event.title?.trim() || "Event";
+    // Spelled out because the root layout sets its own openGraph.title; a
+    // child that only sets `title` inherits that one for the unfurl.
+    const image = `/og/event?slug=${encodeURIComponent(slug)}`;
+    return {
+      title,
+      openGraph: { title, images: [{ url: image, width: 1200, height: 630 }] },
+      twitter: { card: "summary_large_image", title, images: [image] },
+    };
   } catch {
     return { title: "Event" };
   }
