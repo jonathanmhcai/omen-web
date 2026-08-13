@@ -19,6 +19,8 @@ export const SECONDARY = "rgba(15, 23, 42, 0.6)";
 export const BORDER = "#e2e8f0";
 export const SUCCESS = "#16a34a";
 export const ERROR = "#dc2626";
+/** Gray page behind white cards, as in the app and the email. */
+export const PAGE = "#f7f7f8";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const PLATE_WIDTH = 500;

@@ -3,6 +3,7 @@ import {
   BORDER,
   OG_HEADERS,
   OG_SIZE,
+  PAGE,
   SECONDARY,
   TEXT,
   inlineImage,
@@ -10,9 +11,6 @@ import {
 } from "./shared";
 
 export const runtime = "edge";
-
-/** Gray page behind the white story cards, as in the app and the email. */
-const PAGE = "#f7f7f8";
 
 type Source = { url: string; square?: boolean };
 

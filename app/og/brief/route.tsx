@@ -1,10 +1,12 @@
 import { ImageResponse } from "next/og";
 import { API_BASE } from "../../lib/constants";
 import {
+  BORDER,
   Headline,
   Meta,
   OG_HEADERS,
   OG_SIZE,
+  PAGE,
   PLATE_WIDTH,
   SplitCard,
   TEXT,
@@ -17,7 +19,6 @@ export const runtime = "edge";
 
 type BriefResponse = {
   payload: {
-    title: string;
     dateLine: string;
     sections: { stories: { imageUrl: string | null }[] }[];
   };
@@ -35,6 +36,10 @@ type Trader = TraderResponse["trader"];
 
 const MAX_TILES = 3;
 const AVATAR = 88;
+/** Inset and gap for the mosaic, so the tiles read as a feed of cards on the
+ *  gray page rather than one bled-together block of photography. */
+const TILE_PAD = 30;
+const TILE_GAP = 22;
 
 /** `?user=` accepts a handle or a raw wallet, so prefer the resolved profile
  *  name and only fall back to the param, shortened if it's an address. */
@@ -64,16 +69,21 @@ export async function GET(request: Request) {
   try {
     const [typography, res, trader] = await Promise.all([
       loadFonts(),
-      fetch(`${API_BASE}/daily-brief/preview?handle=${encodeURIComponent(user)}`, {
-        cache: "no-store",
-        signal: AbortSignal.timeout(20_000),
-      }),
+      fetch(
+        `${API_BASE}/daily-brief/preview?handle=${encodeURIComponent(user)}`,
+        {
+          cache: "no-store",
+          signal: AbortSignal.timeout(20_000),
+        },
+      ),
       // Identity is a nice-to-have: a failed lookup costs the avatar, not
       // the card.
       fetch(`${API_BASE}/traders/${encodeURIComponent(user)}`, {
         signal: AbortSignal.timeout(6000),
       })
-        .then(async (r) => (r.ok ? ((await r.json()) as TraderResponse).trader : null))
+        .then(async (r) =>
+          r.ok ? ((await r.json()) as TraderResponse).trader : null,
+        )
         .catch(() => null),
     ]);
     if (!res.ok) return fallbackToSiteCard(request);
@@ -99,14 +109,22 @@ export async function GET(request: Request) {
       avatar: await inlineImage(trader?.profileImage),
     };
   } catch (e: unknown) {
-    console.log(`[og/brief] ${user}: ${e instanceof Error ? e.message : "Unknown error"}`);
+    console.log(
+      `[og/brief] ${user}: ${e instanceof Error ? e.message : "Unknown error"}`,
+    );
     return fallbackToSiteCard(request);
   }
 
   const { typography, payload, tiles, trader, avatar } = data;
   const name = displayName(user, trader);
   const hue = seedHue(trader?.wallet ?? user);
-  const tileHeight = tiles.length ? Math.ceil(OG_SIZE.height / tiles.length) : 0;
+  const tileWidth = PLATE_WIDTH - TILE_PAD * 2;
+  const tileHeight = tiles.length
+    ? Math.floor(
+        (OG_SIZE.height - TILE_PAD * 2 - TILE_GAP * (tiles.length - 1)) /
+          tiles.length,
+      )
+    : 0;
 
   const mosaic = tiles.length ? (
     <div
@@ -115,6 +133,10 @@ export async function GET(request: Request) {
         flexDirection: "column",
         width: `${PLATE_WIDTH}px`,
         height: `${OG_SIZE.height}px`,
+        backgroundColor: PAGE,
+        borderLeft: `1px solid ${BORDER}`,
+        padding: `${TILE_PAD}px`,
+        gap: `${TILE_GAP}px`,
       }}
     >
       {tiles.map((src) => (
@@ -123,12 +145,13 @@ export async function GET(request: Request) {
           key={src.slice(-24)}
           src={src}
           alt=""
-          width={PLATE_WIDTH}
+          width={tileWidth}
           height={tileHeight}
           style={{
-            width: `${PLATE_WIDTH}px`,
+            width: `${tileWidth}px`,
             height: `${tileHeight}px`,
             objectFit: "cover",
+            borderRadius: "14px",
           }}
         />
       ))}
@@ -189,7 +212,9 @@ export async function GET(request: Request) {
           @{name}
         </span>
       </div>
-      <Headline text={payload.title} plate={!!mosaic} />
+      {/* Fixed, not payload.title: that's the email's "Thursday brief", and
+          the card should read the same whatever day the link is opened. */}
+      <Headline text="Daily brief" plate={!!mosaic} />
       <Meta text={payload.dateLine} />
     </SplitCard>,
     { ...OG_SIZE, fonts: typography.fonts, headers: OG_HEADERS },
