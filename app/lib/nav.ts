@@ -1,4 +1,4 @@
-import { Settings, Shield, Smartphone, type LucideIcon } from "lucide-react";
+import { Settings, Shield, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -37,7 +37,7 @@ export const NAV: readonly NavItem[] = [
   // { href: "/stories", label: "News", icon: Newspaper, requiresAuth: false, adminOnly: false, external: false, iconOnly: false },
   // { href: "/traders", label: "Traders", icon: Users, requiresAuth: false, adminOnly: false, external: false, iconOnly: false },
   // { href: "/profile", label: "Profile", icon: User, requiresAuth: true, adminOnly: false, external: false, iconOnly: false },
-  { href: "https://omen.trading/", label: "App", icon: Smartphone, requiresAuth: false, adminOnly: false, external: true, iconOnly: false },
+  // { href: "https://omen.trading/", label: "App", icon: Smartphone, requiresAuth: false, adminOnly: false, external: true, iconOnly: false },
   { href: "/admin", label: "Admin", icon: Shield, requiresAuth: true, adminOnly: true, external: true, iconOnly: false },
   { href: "/settings", label: "Settings", icon: Settings, requiresAuth: true, adminOnly: false, external: false, iconOnly: true },
 ];
