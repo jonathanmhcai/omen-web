@@ -154,6 +154,22 @@ export interface AdminActivity {
   updated_at: string;
 }
 
+export interface AdminDailyBrief {
+  user_id: string;
+  email: string | null;
+  /** Still receiving, vs signed up then paused. */
+  active: boolean;
+  target_wallet: string;
+  target_handle: string | null;
+  last_brief_date: string | null;
+  /** 'sent' | 'skipped_empty' | 'no_email' | 'sending' */
+  last_status: string | null;
+  last_story_count: number | null;
+  last_section_count: number | null;
+  send_count: number;
+  updated_at: string;
+}
+
 export interface AdminInviteCode {
   id: string;
   code: string;

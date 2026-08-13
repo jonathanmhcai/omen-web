@@ -11,6 +11,7 @@ import Header from "../components/Header";
 
 const TABS = [
   { label: "Dashboard", href: "/admin/dashboard" },
+  { label: "Daily Briefs", href: "/admin/daily-briefs" },
   { label: "Users", href: "/admin/users" },
   { label: "Positions", href: "/admin/positions" },
   { label: "Activity", href: "/admin/activity" },
