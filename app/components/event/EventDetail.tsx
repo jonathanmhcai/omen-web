@@ -37,7 +37,7 @@ export function EventDetail({ slug }: { slug: string }) {
           href="/"
           className="mt-2 inline-flex items-center gap-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
         >
-          Go to daily brief
+          Go home
         </Link>
       </div>
     );
