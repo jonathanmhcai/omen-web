@@ -22,8 +22,8 @@ export default function AppShell({
 }: {
   children: React.ReactNode;
   rightSidebar?: React.ReactNode;
-  /** Rail-less pages (settings) use the daily brief's roomier column so
-   *  content edges don't shift between `/` and the rest of the app. */
+  /** The daily brief's roomier column (settings, event, story), so content
+   *  edges don't shift between `/` and the rest of the app. */
   wide?: boolean;
 }) {
   const column = wide ? "max-w-2xl px-6" : "max-w-xl px-4";

@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function EventPage({ params }: PageProps) {
   const { slug } = await params;
   return (
-    <AppShell rightSidebar={<RightSidebar />}>
+    <AppShell wide rightSidebar={<RightSidebar />}>
       <EventDetail slug={slug} />
     </AppShell>
   );

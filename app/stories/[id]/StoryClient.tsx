@@ -13,7 +13,7 @@ export default function StoryClient() {
   const { data: story, isLoading, isError } = useStory(id);
 
   return (
-    <AppShell rightSidebar={<RightSidebar />}>
+    <AppShell wide rightSidebar={<RightSidebar />}>
       {story ? (
         <StoryCard story={story} showBullets expandSources />
       ) : isLoading ? (

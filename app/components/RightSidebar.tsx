@@ -16,7 +16,10 @@ export default function RightSidebar() {
     // Sticks BELOW the 52px TopNav (h-13), not at top-0: this column scrolls
     // internally, so at top-0 its first card sat under the bar with no way
     // to reach it. Height matches, so its scroll area ends at the viewport.
-    <aside className="flex w-full flex-col gap-4 lg:sticky lg:top-13 lg:h-[calc(100vh-3.25rem)] lg:w-80 lg:shrink-0 lg:overflow-y-auto lg:px-4 lg:py-6">
+    //
+    // pt matches AppShell's wide column (py-10) so the first card here lines
+    // up with the first row of `main` rather than floating above it.
+    <aside className="flex w-full flex-col gap-4 lg:sticky lg:top-13 lg:h-[calc(100vh-3.25rem)] lg:w-80 lg:shrink-0 lg:overflow-y-auto lg:px-4 lg:pt-10 lg:pb-6">
       {/* The event SearchBox used to lead this column; it now lives in
        *  components/deprecated/SearchBox.tsx, ready to drop back in. */}
       {/* One shape at every width now that the card is a tagline and a
