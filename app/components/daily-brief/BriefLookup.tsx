@@ -10,12 +10,7 @@ import { capture } from "../../lib/analytics";
 // Known-good examples from the trader directory's seed list (Polymarket
 // usernames, not X handles) — all verified to resolve and produce briefs
 // with stories.
-const EXAMPLE_TRADERS = [
-  "ImJustKen",
-  "aenews2",
-  "prophet.notes",
-  "MEPP",
-] as const;
+const EXAMPLE_TRADERS = ["ImJustKen", "aenews2", "MEPP"] as const;
 
 /**
  * Trader lookup for the daily brief — the shared TraderSearch typeahead
@@ -82,12 +77,9 @@ export default function BriefLookup({ initial }: { initial: string }) {
         // Clearing the field drops the brief with it — the URL is the state,
         // so an empty input showing someone's brief would be a lie.
         onClear={
-          initial
-            ? () => startTransition(() => router.push("/"))
-            : undefined
+          initial ? () => startTransition(() => router.push("/")) : undefined
         }
       />
-
     </div>
   );
 }
