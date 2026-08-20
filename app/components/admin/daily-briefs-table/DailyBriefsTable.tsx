@@ -54,7 +54,7 @@ const columns = [
       const label = target_handle ?? shortWallet(target_wallet);
       return (
         <a
-          href={`/?user=${encodeURIComponent((target_handle ?? target_wallet).toLowerCase())}`}
+          href={`/daily-brief?user=${encodeURIComponent((target_handle ?? target_wallet).toLowerCase())}`}
           target="_blank"
           rel="noopener noreferrer"
           className="hover:underline"

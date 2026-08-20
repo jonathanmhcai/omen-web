@@ -15,8 +15,8 @@ const EXAMPLE_TRADERS = ["ImJustKen", "aenews2", "MEPP"] as const;
 /**
  * Trader lookup for the daily brief — the shared TraderSearch typeahead
  * (debounced search-as-you-type, pfp results, arrow keys, `/` to focus),
- * pointed at /?user=<handle> instead of the trader's profile. The URL is
- * the state, so results are shareable and back/reload behave.
+ * pointed at /daily-brief?user=<handle> instead of the trader's profile.
+ * The URL is the state, so results are shareable and back/reload behave.
  *
  * The label says which trader the page below belongs to, so the selected
  * state reads as the report's subject rather than as leftover input.
@@ -47,7 +47,7 @@ export default function BriefLookup({ initial }: { initial: string }) {
               <span key={handle}>
                 {i > 0 && (i === EXAMPLE_TRADERS.length - 1 ? ", or " : ", ")}
                 <Link
-                  href={`/?user=${encodeURIComponent(handle)}`}
+                  href={`/daily-brief?user=${encodeURIComponent(handle)}`}
                   className="underline hover:text-foreground"
                 >
                   {handle}
@@ -71,13 +71,15 @@ export default function BriefLookup({ initial }: { initial: string }) {
           const handle = (result.name ?? result.wallet).toLowerCase();
           capture("brief_lookup_submitted", { handle });
           startTransition(() => {
-            router.push(`/?user=${encodeURIComponent(handle)}`);
+            router.push(`/daily-brief?user=${encodeURIComponent(handle)}`);
           });
         }}
         // Clearing the field drops the brief with it — the URL is the state,
         // so an empty input showing someone's brief would be a lie.
         onClear={
-          initial ? () => startTransition(() => router.push("/")) : undefined
+          initial
+            ? () => startTransition(() => router.push("/daily-brief"))
+            : undefined
         }
       />
     </div>

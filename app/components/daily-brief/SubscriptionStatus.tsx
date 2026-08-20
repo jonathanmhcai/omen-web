@@ -8,8 +8,8 @@ import { useAuthUser } from "../../hooks/useAuthUser";
 /**
  * Current subscription state, named: "Subscribed to X" (or paused).
  * Renders nothing for anonymous users or users with no target. Used on
- * the daily-brief landing (`/`) and as SubscribeCard's already-subscribed
- * state, so the two can't drift.
+ * the daily-brief landing (`/daily-brief`) and as SubscribeCard's
+ * already-subscribed state, so the two can't drift.
  */
 export default function SubscriptionStatus() {
   const { authenticated } = usePrivy();
@@ -20,7 +20,7 @@ export default function SubscriptionStatus() {
 
   const enabled = user?.notification_settings?.email_daily_brief === true;
   const label = target.handle ?? `${target.wallet.slice(0, 6)}…${target.wallet.slice(-4)}`;
-  const briefHref = `/?user=${encodeURIComponent((target.handle ?? target.wallet).toLowerCase())}`;
+  const briefHref = `/daily-brief?user=${encodeURIComponent((target.handle ?? target.wallet).toLowerCase())}`;
 
   const Icon = enabled ? Bell : BellOff;
 

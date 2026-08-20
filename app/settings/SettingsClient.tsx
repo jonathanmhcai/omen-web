@@ -440,11 +440,11 @@ function DailyBriefRow() {
           {target ? (
             <>
               Subscribed to{" "}
-              <Link href={`/?user=${encodeURIComponent((target.handle ?? target.wallet).toLowerCase())}`} className="underline hover:text-foreground">
+              <Link href={`/daily-brief?user=${encodeURIComponent((target.handle ?? target.wallet).toLowerCase())}`} className="underline hover:text-foreground">
                 {targetLabel}
               </Link>
               . Change traders on the{" "}
-              <Link href="/" className="underline hover:text-foreground">
+              <Link href="/daily-brief" className="underline hover:text-foreground">
                 brief page
               </Link>
               .
@@ -452,7 +452,7 @@ function DailyBriefRow() {
           ) : (
             <>
               Not set up.{" "}
-              <Link href="/" className="underline hover:text-foreground">
+              <Link href="/daily-brief" className="underline hover:text-foreground">
                 Generate a brief
               </Link>{" "}
               to subscribe.
