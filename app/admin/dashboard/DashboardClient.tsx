@@ -31,6 +31,17 @@ function formatCount(n: number): string {
   return n.toLocaleString("en-US");
 }
 
+// Revenue keeps cents below $1K — at current volume the whole figure is a few
+// dollars, and formatNumber's whole-dollar rounding would hide every change.
+// null is "couldn't reach the CLOB", which must not read as $0.
+function formatRevenue(value: string | null): string {
+  if (value == null) return "—";
+  const n = Number(value);
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
+  return `$${n.toFixed(2)}`;
+}
+
 // Percent change current vs prior. Uses |prior| so signed values compare
 // directionally. Returns null when there's no prior to compare against
 // (window=all, or prior was 0 so % is undefined).
@@ -120,7 +131,21 @@ export default function DashboardClient() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <MetricTile
+          label="Revenue"
+          value={stats ? formatRevenue(stats.builderRevenueUsd) : ""}
+          sublabel="Builder fees earned"
+          deltaPercent={
+            stats && stats.builderRevenueUsd != null
+              ? deltaPercentString(
+                  stats.builderRevenueUsd,
+                  stats.builderRevenueUsdPrior,
+                )
+              : null
+          }
+          loading={loading}
+        />
         <MetricTile
           label="Total custodied"
           value={stats ? formatNumber(Number(stats.totalCustodiedUsd)) : ""}

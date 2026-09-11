@@ -420,6 +420,10 @@ export type AdminStatsWindow = "24h" | "7d" | "30d" | "all";
 
 export interface AdminStats {
   window: AdminStatsWindow;
+  /** Builder fees earned in window, from Polymarket's ledger (we store none).
+   *  null means the CLOB was unreachable, not that we earned nothing. */
+  builderRevenueUsd: string | null;
+  builderRevenueUsdPrior: string | null;
   totalCustodiedUsd: string;
   totalCustodiedUsdPrior: string | null;
   /** Settled fiat deposits in window (onramp only). */
