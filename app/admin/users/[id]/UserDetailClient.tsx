@@ -191,6 +191,17 @@ export default function UserDetailClient() {
             user.invite_code ?? "\u2014"
           )}
         </Field>
+        {/* [bonus-lock] Only shown when something is actually locked, so the
+            field doesn't read as "$0.00 locked" for the 99% case. This is the
+            amount subtracted from what the user can withdraw. */}
+        {user.bonus_locked_atomic != null &&
+          user.bonus_locked_atomic !== "0" && (
+            <Field label="Bonus Locked">
+              <span className="text-amber-500">
+                ${(Number(user.bonus_locked_atomic) / 1e6).toFixed(2)}
+              </span>
+            </Field>
+          )}
         <Field label="Push Notifications">
           {user.has_push_token ? (
             <span className="flex gap-3 flex-wrap">

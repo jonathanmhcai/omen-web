@@ -33,6 +33,22 @@ function CopyValue({ label, value }: { label: string; value: string }) {
   );
 }
 
+/**
+ * [bonus-lock] One redemption leg's lock state. Locked means that side's bonus
+ * is subtracted from the recipient's withdrawable balance; nothing releases it
+ * on a timer, so a released row was released deliberately.
+ */
+function BonusLockCell({ releasedAt }: { releasedAt: string | null }) {
+  if (!releasedAt) {
+    return <span className="text-amber-500">Locked</span>;
+  }
+  return (
+    <span className="text-muted-foreground" title={formatExactDate(releasedAt)}>
+      Released {formatFriendlyDate(releasedAt)}
+    </span>
+  );
+}
+
 function Field({
   label,
   children,
@@ -196,6 +212,10 @@ export default function InviteCodeDetailClient() {
                 <th className="px-3 py-2 font-medium">Redeemed</th>
                 <th className="px-3 py-2 font-medium">User</th>
                 <th className="px-3 py-2 font-medium">Email</th>
+                {/* [bonus-lock] Per-leg lock state. Locked = that side's bonus
+                    is subtracted from what the recipient can withdraw. */}
+                <th className="px-3 py-2 font-medium">Referee Bonus</th>
+                <th className="px-3 py-2 font-medium">Referrer Bonus</th>
               </tr>
             </thead>
             <tbody>
@@ -224,6 +244,14 @@ export default function InviteCodeDetailClient() {
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">
                       {r.email ?? "—"}
+                    </td>
+                    <td className="px-3 py-2">
+                      <BonusLockCell releasedAt={r.referee_bonus_released_at} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <BonusLockCell
+                        releasedAt={r.referrer_bonus_released_at}
+                      />
                     </td>
                   </tr>
                 );

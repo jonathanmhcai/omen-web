@@ -100,6 +100,12 @@ export interface AdminUser {
   pusd_balance: string | null;
   invite_code: string | null;
   invite_code_id: string | null;
+  /**
+   * [bonus-lock] Invite bonus locked out of this user's withdrawals, atomic
+   * 6-decimal, both legs summed. Detail endpoint only (null on the list).
+   * "0" is the normal state.
+   */
+  bonus_locked_atomic: string | null;
   has_push_token: boolean;
   push_enabled: boolean;
   push_social: boolean;
@@ -191,6 +197,9 @@ export interface AdminInviteCodeRedemption {
   redeemed_at: string;
   referee_bonus_asset_transfer_id: string | null;
   referrer_bonus_asset_transfer_id: string | null;
+  /** [bonus-lock] NULL = that leg's bonus is still locked out of withdrawals. */
+  referee_bonus_released_at: string | null;
+  referrer_bonus_released_at: string | null;
 }
 
 export interface AdminInviteCodeDetail extends AdminInviteCode {
