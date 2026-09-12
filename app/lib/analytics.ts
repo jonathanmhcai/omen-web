@@ -37,7 +37,24 @@ export function capture(event: string, properties?: Record<string, unknown>) {
   posthog.capture(event, properties);
 }
 
-export function identify(distinctId: string, properties?: Record<string, unknown>) {
+/**
+ * `distinctId` MUST be the internal `users.id`. omen-server attributes its
+ * own events to that id and mobile identifies with it too, so all three
+ * surfaces collapse onto one person. Identifying with the Privy DID (what
+ * this used to do) forks the person and breaks retention/cohorts.
+ */
+export function identify(
+  distinctId: string,
+  properties?: Record<string, unknown>,
+  propertiesSetOnce?: Record<string, unknown>
+) {
   if (!initialized) return;
-  posthog.identify(distinctId, properties);
+  posthog.identify(distinctId, properties, propertiesSetOnce);
+}
+
+/** Drop the identified person on logout so the next signer-in on this
+ *  browser doesn't inherit their timeline. */
+export function reset() {
+  if (!initialized) return;
+  posthog.reset();
 }

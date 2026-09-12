@@ -1,9 +1,9 @@
 "use client";
 
-import { usePrivy } from "@privy-io/react-auth";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { capture, identify, initAnalytics, trackPageview } from "../lib/analytics";
+import { useEffect, useRef } from "react";
+import { capture, identify, initAnalytics, reset, trackPageview } from "../lib/analytics";
+import { useAuthUser } from "../hooks/useAuthUser";
 
 /**
  * Analytics side-effects: init + SPA pageviews + identify-on-login.
@@ -13,7 +13,10 @@ import { capture, identify, initAnalytics, trackPageview } from "../lib/analytic
 export default function PostHogTracking() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { authenticated, user } = usePrivy();
+  const { user } = useAuthUser();
+  // useAuthUser refetches every 10s, so `user` is a fresh object each poll.
+  // Identify only when the values we actually send change.
+  const lastIdentified = useRef<string | null>(null);
 
   useEffect(() => {
     initAnalytics();
@@ -26,10 +29,29 @@ export default function PostHogTracking() {
   }, [pathname, searchParams]);
 
   useEffect(() => {
-    if (authenticated && user?.id) {
-      identify(user.id, { email: user.email?.address });
+    if (!user?.id) {
+      if (lastIdentified.current) {
+        reset();
+        lastIdentified.current = null;
+      }
+      return;
     }
-  }, [authenticated, user?.id, user?.email?.address]);
+    const props = {
+      omen_user_id: user.id,
+      privy_user_id: user.privy_user_id ?? null,
+      username: user.username ?? null,
+      has_redeemed_invite: user.has_redeemed_invite_code,
+      has_polymarket_credentials: user.has_polymarket_credentials,
+      is_admin: user.isAdmin,
+      is_preview: user.isPreview,
+    };
+    const signature = JSON.stringify(props);
+    if (lastIdentified.current === signature) return;
+    // signup_date is set-once so a later identify (or the mobile client)
+    // can't overwrite the true first-seen date and shift the user's cohort.
+    identify(user.id, props, { signup_date: user.createdAt });
+    lastIdentified.current = signature;
+  }, [user]);
 
   return null;
 }
