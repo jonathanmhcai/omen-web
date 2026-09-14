@@ -1,4 +1,4 @@
-import { Mail, Settings, Shield, Users, type LucideIcon } from "lucide-react";
+import { Settings, Shield, Users, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -31,12 +31,8 @@ export interface NavItem {
  * non-external item becoming iconOnly).
  */
 export const NAV: readonly NavItem[] = [
-  { href: "/daily-brief", label: "Daily brief", icon: Mail, requiresAuth: false, adminOnly: false, external: false, iconOnly: false },
   { href: "/traders", label: "Traders", icon: Users, requiresAuth: false, adminOnly: false, external: false, iconOnly: false },
-  // Hidden for now — re-add the named lucide icons to the import when
-  // restoring. The `/stories` index route is still deprecated (see
-  // components/deprecated/), so it needs its page back too.
-  // { href: "/stories", label: "News", icon: Newspaper, requiresAuth: false, adminOnly: false, external: false, iconOnly: false },
+  // Hidden for now: re-add the named lucide icons to the import when restoring.
   // { href: "/profile", label: "Profile", icon: User, requiresAuth: true, adminOnly: false, external: false, iconOnly: false },
   // { href: "https://omen.trading/", label: "App", icon: Smartphone, requiresAuth: false, adminOnly: false, external: true, iconOnly: false },
   { href: "/admin", label: "Admin", icon: Shield, requiresAuth: true, adminOnly: true, external: true, iconOnly: false },

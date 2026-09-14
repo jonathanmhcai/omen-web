@@ -1,9 +1,8 @@
 # omen-web
 
-Next.js web app — the web client for omen, a tradable news feed for
-prediction market traders. Public surfaces (about, daily brief, trader
-directory) plus per-user pages. Auth via Privy; backed by
-`omen-server`.
+Next.js web app, the web client for omen (a social trading app for
+prediction markets). Public surfaces (about, trader directory) plus
+per-user pages. Auth via Privy; backed by `omen-server`.
 
 `/admin` is the internal dashboard for monitoring product health and
 remains admin-gated.
@@ -22,25 +21,25 @@ App shell (`app/components/AppShell.tsx`):
 An empty left spacer mirrors the right column's width so the main
 column sits at the same viewport-centered position on every page.
 
-`SiteChrome` (`/`, /daily-brief, /traders) shares the same `TopNav`
+`SiteChrome` (`/`, /traders) shares the same `TopNav`
 bar, plus a footer; its `max-w-4xl` container is mirrored by `Footer`
 so header and footer content edges align.
 
 `/` is the about page: title + pitch on the left, a vertical divider,
-entry-point cards on the right (stacks on mobile). The daily brief is
-`/daily-brief` (`?user=<handle>` renders that trader's brief); it
-lived at `/` from 2026-08-11 to 2026-08-20, so `/?user=` 307s back to
-it and Next carries the query string over.
+entry-point cards on the right (stacks on mobile).
+
+The news surfaces were removed 2026-09-14: `/stories`, `/stories/:id`,
+`/daily-brief`, their OG routes, and the two admin sections. All three
+paths now redirect to `/` (next.config.ts) rather than 404, because sent
+emails still link to them.
 
 ## Conventions
 
 - `useAuthUser` is the omen session (separate from Privy's user). Nav
   items marked `requiresAuth: true` open the Privy modal when clicked
   unauthed; per-user routes redirect to `/` when unauthed. `/settings` is
-  the exception: it prompts to sign in instead, because the daily brief
-  emails link there and a redirect would strand that visitor.
-- The `/stories` server endpoint is public (`optionalAuth`), so the
-  homepage feed renders for anonymous visitors too.
+  the exception: it prompts to sign in instead, because older emails
+  link there and a redirect would strand that visitor.
 - Polymarket data: market events use `market.event_slug` for outbound
   links (`polymarket.com/event/{event_slug}`); the market's own slug
   only matches the event for single-market events.

@@ -90,7 +90,7 @@ export default function TraderSearch({
     return () => window.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
 
-  // "/" focuses the search, matching the events search on /stories.
+  // "/" focuses the search.
   useKeyboardShortcuts([
     {
       key: "/",

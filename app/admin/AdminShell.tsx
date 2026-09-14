@@ -11,13 +11,11 @@ import Header from "../components/Header";
 
 const TABS = [
   { label: "Dashboard", href: "/admin/dashboard" },
-  { label: "Daily Briefs", href: "/admin/daily-briefs" },
   { label: "Users", href: "/admin/users" },
   { label: "Positions", href: "/admin/positions" },
   { label: "Activity", href: "/admin/activity" },
   { label: "Invite Codes", href: "/admin/invite-codes" },
   { label: "Events", href: "/admin/events" },
-  { label: "Stories", href: "/admin/stories" },
 ] as const;
 
 export default function AdminShell({

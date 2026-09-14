@@ -8,12 +8,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { TimeseriesInterval } from "../../hooks/useTimeseries";
-import { EventTweet } from "../../hooks/useEventTweets";
-import type { TweetAuthorVerifiedType } from "../../hooks/useStories";
+import type {
+  EventTweet,
+  TweetAuthorVerifiedType,
+} from "../../lib/tweet-types";
 
-// Mirrors the verified-badge palette in `StoryCard.tsx` so tweet rows
-// inside marker tooltips render the same blue/business/government tick
-// as the homepage feed.
+// X/Twitter's verified-badge palette, for tweet rows inside marker
+// tooltips.
 const VERIFIED_COLORS: Record<NonNullable<TweetAuthorVerifiedType>, string> = {
   blue: "#1DA1F2",
   business: "#E0A526",

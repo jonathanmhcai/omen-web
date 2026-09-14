@@ -22,20 +22,22 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
-      // The daily brief was `/` from 2026-08-11 to 2026-08-20, so sent
-      // emails link to `/?user=<handle>`. Only that shape forwards — a bare
-      // `/` is the about page. Next carries the query over for free.
+      // News pipeline removed 2026-09-14. Sent brief emails link to
+      // `/?user=<handle>` and `/daily-brief`; story links point at
+      // `/stories/:id`. All of it now lands on the about page rather than
+      // 404ing, since those links live in inboxes we can't edit.
       {
-        source: "/",
-        has: [{ type: "query", key: "user" }],
-        destination: "/daily-brief",
+        source: "/daily-brief",
+        destination: "/",
         permanent: false,
       },
-      // Former public index route, deprecated 2026-08-11 (bookmarks and
-      // inbound links still point at it). Exact-path source only —
-      // /stories/[id] stays live.
       {
         source: "/stories",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/stories/:id",
         destination: "/",
         permanent: false,
       },

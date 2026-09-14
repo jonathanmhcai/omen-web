@@ -18,9 +18,7 @@ export interface User {
   needsSetup?: boolean;
   notification_settings?: {
     push_enabled: boolean;
-    email_daily_brief?: boolean;
   };
-  daily_brief_target?: { wallet: string; handle: string | null } | null;
 }
 
 export interface PolymarketSeries {
@@ -160,22 +158,6 @@ export interface AdminActivity {
   updated_at: string;
 }
 
-export interface AdminDailyBrief {
-  user_id: string;
-  email: string | null;
-  /** Still receiving, vs signed up then paused. */
-  active: boolean;
-  target_wallet: string;
-  target_handle: string | null;
-  last_brief_date: string | null;
-  /** 'sent' | 'skipped_empty' | 'no_email' | 'sending' */
-  last_status: string | null;
-  last_story_count: number | null;
-  last_section_count: number | null;
-  send_count: number;
-  updated_at: string;
-}
-
 export interface AdminInviteCode {
   id: string;
   code: string;
@@ -207,163 +189,6 @@ export interface AdminInviteCodeDetail extends AdminInviteCode {
   referrer_username: string | null;
   referrer_display_name: string | null;
   redemptions: AdminInviteCodeRedemption[];
-}
-
-export type AdminStoryStatus =
-  | "candidate"
-  | "active"
-  | "published"
-  | "merged";
-
-export interface AdminStory {
-  id: string;
-  status: AdminStoryStatus;
-  /** Tweet-derived headline frozen at story-promotion time. */
-  headline: string;
-  /** LLM-generated headline. Null until generate-story-metadata runs. */
-  llm_headline: string | null;
-  /** LLM-generated bullets (1-3 entries). Empty array until first run. */
-  bullets: string[];
-  seed_author_handle: string | null;
-  media_count: number;
-  distinct_author_count: number;
-  linked_event_count: number;
-  linked_market_count: number;
-  top_event_similarity: number | null;
-  top_event_title: string | null;
-  avg_join_similarity: number | null;
-  latest_media_at: string;
-  promoted_at: string | null;
-  /** Set when status transitions active -> published. */
-  published_at: string | null;
-  /** Set when generate-story-metadata last completed successfully. */
-  metadata_generated_at: string | null;
-  /** Number of times generate-story-metadata has succeeded. Bounded to 3. */
-  metadata_runs_count: number;
-  /** Set when status flips to 'merged'. Null otherwise. */
-  merged_at: string | null;
-  /** Survivor story for merged rows. Null when status != 'merged'. */
-  merged_into_story_id: string | null;
-  created_at: string;
-}
-
-export interface AdminStoryDetailStory {
-  id: string;
-  status: AdminStoryStatus;
-  headline: string;
-  llm_headline: string | null;
-  bullets: string[];
-  media_count: number;
-  distinct_author_count: number;
-  latest_media_at: string;
-  promoted_at: string | null;
-  published_at: string | null;
-  metadata_generated_at: string | null;
-  metadata_runs_count: number;
-  merged_at: string | null;
-  merged_into_story_id: string | null;
-  created_at: string;
-  updated_at: string;
-  centroid_model: string | null;
-  centroid_embedded_at: string | null;
-  searched_image_url: string | null;
-  searched_image_attempted_at: string | null;
-}
-
-export interface AdminStoryTweet {
-  story_tweet_id: string;
-  twitter_event_id: string;
-  tweet_id: string;
-  author_handle: string | null;
-  effective_author_id: string | null;
-  similarity: number | null;
-  posted_at: string | null;
-  body: string;
-  joined_at: string;
-  entities: string[];
-}
-
-export interface AdminStoryEvent {
-  link_id: string;
-  polymarket_event_id: string;
-  polymarket_id: string;
-  slug: string;
-  title: string | null;
-  similarity: number;
-  /** Postgres FTS `ts_rank_cd` at most recent match. Null on ANN-only rescue. */
-  bm25_score: number | null;
-  end_date: string | null;
-  closed: boolean | null;
-  archived: boolean | null;
-  /** Polymarket's `active` flag — false marks placeholder/reserved-slot
-   *  rows that aren't tradeable yet. Surfaced as "dormant" in the UI. */
-  active: boolean | null;
-  volume_24hr: string | null;
-  /** 24h volume snapshotted at first match. Null on rows matched before
-   *  the snapshot column was added. */
-  volume_24hr_at_match: string | null;
-  matched_at: string;
-  entities: string[];
-  /** Writer's RRF-fused ANN+BM25+entity score. Null on legacy rows. */
-  match_score: number | null;
-}
-
-export interface AdminStoryMarket {
-  link_id: string;
-  polymarket_market_id: string;
-  polymarket_id: string;
-  slug: string;
-  question: string | null;
-  parent_event_title: string | null;
-  parent_event_slug: string | null;
-  similarity: number;
-  /** Postgres FTS `ts_rank_cd` at most recent match. Null on ANN-only rescue. */
-  bm25_score: number | null;
-  end_date: string | null;
-  closed: boolean | null;
-  archived: boolean | null;
-  /** See AdminStoryEvent.active. */
-  active: boolean | null;
-  volume_num: string | null;
-  /** Current last-trade price (up to ~10min stale per indexer cadence). */
-  current_price: string | null;
-  /** Snapshots at first match — preserved across re-matches. */
-  price_at_match: string | null;
-  bid_at_match: string | null;
-  ask_at_match: string | null;
-  volume_24hr_at_match: string | null;
-  matched_at: string;
-  entities: string[];
-  /** Whether this market would surface on the public `/stories` feed for
-   *  this story (parent story active + liveness pass + within the cap by
-   *  match_score). Mirrors what readers actually see. */
-  surfaced: boolean;
-  /** Writer's RRF-fused ANN+BM25+entity score. Null for legacy rows
-   *  before the column existed. */
-  match_score: number | null;
-  /** LLM evaluation for this (story, market) pair. Null when the
-   *  predictions worker hasn't fired yet for the current author-count
-   *  threshold. The public feed only shows markets where direction is
-   *  'up' or 'down'; admin sees everything. */
-  prediction: AdminStoryMarketPrediction | null;
-}
-
-export interface AdminStoryMarketPrediction {
-  relevance: "relevant" | "unrelated" | "unclear";
-  relevance_confidence: number;
-  direction: "up" | "down" | "unclear";
-  direction_confidence: number;
-  reasoning: string;
-  model: string;
-  prompt_version: string;
-  evaluated_at: string;
-}
-
-export interface AdminStoryDetail {
-  story: AdminStoryDetailStory;
-  tweets: AdminStoryTweet[];
-  events: AdminStoryEvent[];
-  markets: AdminStoryMarket[];
 }
 
 export interface AdminDeposit {

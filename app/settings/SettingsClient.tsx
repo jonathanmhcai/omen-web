@@ -1,10 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ChevronRight, LogIn, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,11 +18,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import AppShell from "../components/AppShell";
-import { useAuthUser } from "../hooks/useAuthUser";
 import { useCookieString } from "../hooks/useCookieString";
 import { useTradingEnabled } from "../hooks/useTradingEnabled";
 import { API_BASE, SESSION_TOKEN_KEY } from "../lib/constants";
-import { User } from "../lib/types";
 
 export default function SettingsClient() {
   const router = useRouter();
@@ -205,7 +202,6 @@ export default function SettingsClient() {
             Notifications
           </h2>
           <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <DailyBriefRow />
           </div>
         </div>
 
@@ -369,98 +365,3 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
-/**
- * Daily brief subscription row. The toggle pauses/resumes delivery via the
- * shared notification-settings PATCH; the stored target survives a pause,
- * so flipping back on needs no re-setup. With no target yet, the row just
- * points at the brief page (`/`) where subscribing happens.
- */
-function DailyBriefRow() {
-  const { user } = useAuthUser();
-  const queryClient = useQueryClient();
-  const [sessionToken] = useCookieString(SESSION_TOKEN_KEY);
-
-  const enabled = user?.notification_settings?.email_daily_brief === true;
-  const target = user?.daily_brief_target ?? null;
-  const targetLabel =
-    target?.handle ?? (target ? `${target.wallet.slice(0, 6)}…${target.wallet.slice(-4)}` : null);
-
-  // Optimistic: the switch flips instantly from the cache write in
-  // onMutate and rolls back on error; onSettled reconciles with /me.
-  const toggleMutation = useMutation({
-    mutationFn: async (next: boolean) => {
-      const res = await fetch(`${API_BASE}/me/notification-settings`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${sessionToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email_daily_brief: next }),
-      });
-      if (!res.ok) throw new Error();
-      return next;
-    },
-    onMutate: async (next: boolean) => {
-      await queryClient.cancelQueries({ queryKey: ["authUser"] });
-      const prev = queryClient.getQueryData<User>(["authUser"]);
-      queryClient.setQueryData<User>(["authUser"], (old) =>
-        old
-          ? {
-              ...old,
-              notification_settings: {
-                push_enabled: true,
-                ...old.notification_settings,
-                email_daily_brief: next,
-              },
-            }
-          : old
-      );
-      return { prev };
-    },
-    onError: (_err, _next, ctx) => {
-      if (ctx?.prev) queryClient.setQueryData(["authUser"], ctx.prev);
-      toast.error("Could not update the daily brief setting");
-    },
-    onSuccess: (next) => {
-      toast.success(next ? "Daily brief resumed" : "Daily brief paused");
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-  });
-
-  function setEnabled(next: boolean) {
-    if (!sessionToken) return;
-    toggleMutation.mutate(next);
-  }
-
-  return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3">
-      <div className="flex flex-col gap-0.5">
-        <span className="text-sm">Daily brief email</span>
-        <span className="text-xs text-muted-foreground">
-          {target ? (
-            <>
-              Subscribed to{" "}
-              <Link href={`/daily-brief?user=${encodeURIComponent((target.handle ?? target.wallet).toLowerCase())}`} className="underline hover:text-foreground">
-                {targetLabel}
-              </Link>
-              . Change traders on the{" "}
-              <Link href="/daily-brief" className="underline hover:text-foreground">
-                brief page
-              </Link>
-              .
-            </>
-          ) : (
-            <>
-              Not set up.{" "}
-              <Link href="/daily-brief" className="underline hover:text-foreground">
-                Generate a brief
-              </Link>{" "}
-              to subscribe.
-            </>
-          )}
-        </span>
-      </div>
-      <Switch checked={enabled} disabled={toggleMutation.isPending || !target} onCheckedChange={setEnabled} />
-    </div>
-  );
-}

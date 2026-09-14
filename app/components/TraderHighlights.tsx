@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { EventTweet } from "../hooks/useEventTweets";
+import type { EventTweet } from "../lib/tweet-types";
 import { API_BASE } from "../lib/constants";
 import { cents, shares, signedPct, signedUsd, usd } from "../lib/trader";
 import LoadingDots from "./LoadingDots";
@@ -86,8 +86,6 @@ function toEventTweet(tw: MarketTweet, trader: TraderInfo): EventTweet {
     author_verified_type: trader.verifiedType,
     body: tw.text,
     posted_at: new Date(tw.t * 1000).toISOString(),
-    similarity: tw.score ?? null,
-    is_seed: false,
     permalink: trader.xUsername
       ? `https://x.com/${trader.xUsername}/status/${tw.id}`
       : `https://twitter.com/i/web/status/${tw.id}`,

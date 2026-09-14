@@ -4,23 +4,13 @@ import { ArrowUpRight, ChevronRight } from "lucide-react";
 import SiteChrome from "./components/SiteChrome";
 
 /**
- * Home — the about page: "Omen Trading" and the one-line pitch on the left,
+ * Home: the about page. "Omen Trading" and the one-line pitch on the left,
  * a vertical divider, then the entry-point cards on the right (stacks on
- * mobile). This was the landing until the daily brief took `/` on
- * 2026-08-11; the brief moved to `/daily-brief` on 2026-08-20 and the cards
- * came back.
+ * mobile).
  *
- * The `/stories` News card is omitted while that index route is deprecated
- * (see components/deprecated/) — it would land the visitor back here.
+ * The News and Daily brief cards went with the news pipeline (2026-09-14).
  */
 const ENTRIES = [
-  {
-    href: "/daily-brief",
-    external: false,
-    icon: "/brief-illustration.png",
-    title: "Daily brief",
-    subtitle: "Receive daily news on your positions",
-  },
   {
     href: "/traders",
     external: false,

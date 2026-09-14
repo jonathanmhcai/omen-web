@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import type { EventTweet } from "../hooks/useEventTweets";
+import type { EventTweet } from "../lib/tweet-types";
 import type { TimeseriesPoint } from "../hooks/useTimeseries";
 import { TweetMarkers } from "./event/TweetMarkers";
 
@@ -18,8 +18,9 @@ import { TweetMarkers } from "./event/TweetMarkers";
 
 const PADDING_X = 8;
 const PADDING_TOP = 20;
-// Reserve the bottom strip for the tweet-marker band + x-axis labels
-// (matches EventChart so TweetMarkers' MARKER_BOTTOM lands correctly).
+// Reserve the bottom strip for the tweet-marker band + x-axis labels.
+// Sized against TweetMarkers' MARKER_BOTTOM + MARKER_SIZE; EventChart no
+// longer matches it, having dropped its markers with the news pipeline.
 const PADDING_BOTTOM = 52;
 const Y_AXIS_WIDTH = 36;
 
