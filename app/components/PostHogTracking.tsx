@@ -39,6 +39,9 @@ export default function PostHogTracking() {
     const props = {
       omen_user_id: user.id,
       privy_user_id: user.privy_user_id ?? null,
+      // PostHog's internal/test-user filters match on this, so it also has to
+      // stay spelled `email` rather than anything more descriptive.
+      email: user.email ?? null,
       username: user.username ?? null,
       has_redeemed_invite: user.has_redeemed_invite_code,
       has_polymarket_credentials: user.has_polymarket_credentials,

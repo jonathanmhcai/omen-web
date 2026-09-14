@@ -3,6 +3,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   privy_user_id?: string;
+  email?: string | null;
   username?: string;
   display_name?: string;
   bio?: string;
