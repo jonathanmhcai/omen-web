@@ -10,6 +10,8 @@ export interface User {
   avatar_url?: string;
   has_polymarket_credentials: boolean;
   has_redeemed_invite_code: boolean;
+  invite_code?: string | null;
+  invited_by_user_id?: string | null;
   isAdmin: boolean;
   isPreview: boolean;
   is_usdc_allowances_set: boolean;

@@ -44,6 +44,11 @@ export default function PostHogTracking() {
       email: user.email ?? null,
       username: user.username ?? null,
       has_redeemed_invite: user.has_redeemed_invite_code,
+      // Attribution. Lets every retention chart segment by campaign or by who
+      // referred them, which the invite code records explicitly, so no
+      // install-attribution tooling is needed to bridge the App Store gap.
+      invite_code: user.invite_code ?? null,
+      invited_by_user_id: user.invited_by_user_id ?? null,
       has_polymarket_credentials: user.has_polymarket_credentials,
       // Whether this person is reachable by push at all. Segments every
       // retention chart, since push is the main way anyone comes back.
