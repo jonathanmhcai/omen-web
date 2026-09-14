@@ -45,6 +45,9 @@ export default function PostHogTracking() {
       username: user.username ?? null,
       has_redeemed_invite: user.has_redeemed_invite_code,
       has_polymarket_credentials: user.has_polymarket_credentials,
+      // Whether this person is reachable by push at all. Segments every
+      // retention chart, since push is the main way anyone comes back.
+      has_push_token: user.hasValidPushToken,
       is_admin: user.isAdmin,
       is_preview: user.isPreview,
     };
