@@ -12,8 +12,6 @@ import Header from "../components/Header";
 const TABS = [
   { label: "Dashboard", href: "/admin/dashboard" },
   { label: "Users", href: "/admin/users" },
-  { label: "Positions", href: "/admin/positions" },
-  { label: "Activity", href: "/admin/activity" },
   { label: "Invite Codes", href: "/admin/invite-codes" },
   { label: "Events", href: "/admin/events" },
 ] as const;
