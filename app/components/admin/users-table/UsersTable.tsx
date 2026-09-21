@@ -100,7 +100,9 @@ const columns = [
       const parts = [
         username ? `@${username}` : null,
         display_name ? `(${display_name})` : null,
-      ].filter(Boolean).join(" ");
+      ]
+        .filter(Boolean)
+        .join(" ");
       return (
         <Link href={`/admin/users/${id}`} className="hover:underline">
           {parts}
@@ -240,7 +242,11 @@ const columns = [
           {steps.map((step) => (
             <span
               key={step}
-              className={completed.includes(step) ? "text-green-500" : "text-muted-foreground"}
+              className={
+                completed.includes(step)
+                  ? "text-green-500"
+                  : "text-muted-foreground"
+              }
             >
               {completed.includes(step) ? "✓" : "·"}
             </span>
@@ -306,7 +312,12 @@ export default function UsersTable({
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "/" && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== "INPUT") {
+      if (
+        e.key === "/" &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        document.activeElement?.tagName !== "INPUT"
+      ) {
         e.preventDefault();
         searchRef.current?.focus();
       }
@@ -331,7 +342,7 @@ export default function UsersTable({
           checked={redeemedOnly}
           onChange={(e) => onRedeemedOnlyChange(e.target.checked)}
         />
-        Redeemed invite
+        Access granted
       </label>
       <Pagination
         page={page}
