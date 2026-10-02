@@ -327,7 +327,7 @@ export default function UsersTable({
   }, []);
 
   const toolbar = (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3">
       <input
         ref={searchRef}
         type="text"

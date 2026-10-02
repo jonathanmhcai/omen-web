@@ -18,16 +18,17 @@ export default function Header({
   const showLogin = ready && !authenticated;
 
   return (
-    <nav className="flex items-end border-b border-border bg-background px-6">
+    <nav className="flex items-center border-b border-border bg-background px-6">
       <Link
         href={wordmarkHref}
-        className="mr-6 pb-3 pt-4 font-semibold leading-none"
-        style={{ fontSize: "24px" }}
+        className="mr-4 shrink-0 whitespace-nowrap py-3.5 text-xl font-semibold leading-none md:mr-6 md:text-2xl"
       >
         {wordmark}
       </Link>
       {children}
-      <div className="ml-auto flex items-center pb-2">
+      <div
+        className={`ml-auto flex items-center${showLogin ? "" : " -mr-3"}`}
+      >
         {showLogin ? (
           <Button size="sm" onClick={login}>
             Log in

@@ -206,7 +206,7 @@ export default function TransfersTable({
   onSortingChange,
 }: TransfersTableProps) {
   const toolbar = (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-wrap items-center justify-between gap-3">
       <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
         On-chain transfers
       </h2>

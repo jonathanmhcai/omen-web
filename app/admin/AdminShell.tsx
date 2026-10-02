@@ -4,8 +4,16 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { useAuthUser } from "../hooks/useAuthUser";
-import { ArrowLeft, Loader } from "lucide-react";
+import { ArrowLeft, ChevronDown, Loader } from "lucide-react";
 import Link from "next/link";
 import Header from "../components/Header";
 
@@ -79,10 +87,11 @@ export default function AdminShell({
   }
 
   if (authenticated && authUser?.isAdmin) {
+    const activeTab = TABS.find((tab) => pathname.startsWith(tab.href));
     return (
       <div className="min-h-screen">
         <Header wordmark="Omen Admin" wordmarkHref="/admin">
-          <div className="flex gap-1">
+          <div className="hidden gap-1 md:flex">
             {TABS.map((tab) => (
               <Link
                 key={tab.href}
@@ -99,6 +108,45 @@ export default function AdminShell({
               <ArrowLeft className="h-4 w-4" />
               Return to app
             </Link>
+          </div>
+          <div className="min-w-0 md:hidden">
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Admin sections"
+                  className="flex w-full items-center gap-1 px-2 py-3 text-sm font-medium text-foreground"
+                >
+                  <span className="truncate">{activeTab?.label ?? "Menu"}</span>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                sideOffset={8}
+                className="w-48 p-1"
+              >
+                {TABS.map((tab) => (
+                  <DropdownMenuItem
+                    key={tab.href}
+                    asChild
+                    className={cn(
+                      "rounded-md",
+                      pathname.startsWith(tab.href) && "bg-accent font-semibold"
+                    )}
+                  >
+                    <Link href={tab.href}>{tab.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="rounded-md">
+                  <Link href="/">
+                    <ArrowLeft className="h-4 w-4" />
+                    Return to app
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </Header>
         <div className="px-6 py-4">{children}</div>
