@@ -24,6 +24,7 @@ export function initAnalytics() {
     capture_pageview: false, // SPA navigations captured manually
     capture_pageleave: true,
   });
+  posthog.register({ surface: "web" });
   initialized = true;
 }
 
