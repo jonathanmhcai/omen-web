@@ -102,13 +102,13 @@ export default function DashboardClient() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex gap-1 rounded-lg border border-black/[.08] p-1 dark:border-white/[.145] w-fit">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex flex-auto gap-1 rounded-lg border border-black/[.08] p-1 dark:border-white/[.145] sm:flex-none">
           {WINDOWS.map((w) => (
             <button
               key={w.value}
               onClick={() => setWindow(w.value)}
-              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+              className={`flex-auto whitespace-nowrap rounded-md py-1 text-sm font-medium transition-colors sm:px-3 ${
                 window === w.value
                   ? "bg-zinc-100 text-foreground dark:bg-zinc-800"
                   : "text-zinc-500 hover:text-foreground dark:text-zinc-400"
@@ -119,12 +119,12 @@ export default function DashboardClient() {
           ))}
         </div>
 
-        <div className="flex gap-1 rounded-lg border border-black/[.08] p-1 dark:border-white/[.145] w-fit">
+        <div className="flex flex-auto gap-1 rounded-lg border border-black/[.08] p-1 dark:border-white/[.145] sm:flex-none">
           {METRICS.map((m) => (
             <button
               key={m.value}
               onClick={() => setMetric(m.value)}
-              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+              className={`flex-auto whitespace-nowrap rounded-md py-1 text-sm font-medium transition-colors sm:px-3 ${
                 metric === m.value
                   ? "bg-zinc-100 text-foreground dark:bg-zinc-800"
                   : "text-zinc-500 hover:text-foreground dark:text-zinc-400"
@@ -138,12 +138,13 @@ export default function DashboardClient() {
         <button
           onClick={() => setRefreshKey((k) => k + 1)}
           disabled={refreshing}
-          className="ml-auto flex items-center gap-2 rounded-lg border border-black/[.08] px-3 py-2 text-sm font-medium text-zinc-500 transition-colors hover:text-foreground disabled:opacity-60 dark:border-white/[.145] dark:text-zinc-400"
+          aria-label="Refresh"
+          className="flex shrink-0 items-center gap-2 rounded-lg border border-black/[.08] px-2.5 py-2 text-sm font-medium text-zinc-500 transition-colors hover:text-foreground disabled:opacity-60 sm:ml-auto sm:px-3 dark:border-white/[.145] dark:text-zinc-400"
         >
           <RefreshCw
-            className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+            className={`h-5 w-4 ${refreshing ? "animate-spin" : ""}`}
           />
-          Refresh
+          <span className="hidden sm:inline">Refresh</span>
         </button>
       </div>
 
