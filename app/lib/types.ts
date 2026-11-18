@@ -94,6 +94,8 @@ export interface AdminUser {
   /** All Polymarket accounts, managed first. Drives the funding-wallet column. */
   accounts: AdminUserAccount[];
   last_seen_at: string;
+  /** Non-null = soft-deleted; identity fields are scrubbed. */
+  deleted_at: string | null;
   usdc_balance: string;
   /** Live USDC.e balance. Populated only by the user-detail endpoint. */
   usdce_balance: string | null;

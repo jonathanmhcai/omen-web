@@ -132,10 +132,20 @@ export default function UserDetailClient() {
           &larr; Back to users
         </Link>
       </div>
-      <h2 className="mb-4 text-lg font-semibold">
-        {user.display_name ?? user.username ?? "Unnamed User"}
+      <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+        {user.display_name ??
+          user.username ??
+          (user.deleted_at ? "Deleted User" : "Unnamed User")}
+        {user.deleted_at && (
+          <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-400">
+            Deleted
+          </span>
+        )}
       </h2>
       <div className="flex flex-col">
+        {user.deleted_at && (
+          <Field label="Deleted">{formatExactDate(user.deleted_at)}</Field>
+        )}
         <Field label="ID">
           <CopyValue label={user.id} value={user.id} />
         </Field>

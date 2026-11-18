@@ -95,8 +95,8 @@ const columns = [
     size: 200,
     enableSorting: false,
     cell: (info) => {
-      const { username, display_name, id } = info.row.original;
-      if (!username && !display_name) return "\u2014";
+      const { username, display_name, id, deleted_at } = info.row.original;
+      if (!username && !display_name && !deleted_at) return "\u2014";
       const parts = [
         username ? `@${username}` : null,
         display_name ? `(${display_name})` : null,
@@ -104,8 +104,19 @@ const columns = [
         .filter(Boolean)
         .join(" ");
       return (
-        <Link href={`/admin/users/${id}`} className="hover:underline">
+        <Link
+          href={`/admin/users/${id}`}
+          className="inline-flex items-center gap-2 hover:underline"
+        >
           {parts}
+          {deleted_at && (
+            <span
+              className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-400"
+              title={`Deleted ${formatExactDate(deleted_at)}`}
+            >
+              Deleted
+            </span>
+          )}
         </Link>
       );
     },
