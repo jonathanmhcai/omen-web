@@ -12,13 +12,6 @@ import SiteChrome from "./components/SiteChrome";
  */
 const ENTRIES = [
   {
-    href: "/traders",
-    external: false,
-    icon: "/traders-illustration.png",
-    title: "Traders",
-    subtitle: "Directory of top Polymarket creators",
-  },
-  {
     href: "https://omen.trading/",
     external: true,
     icon: "/mobile-illustration.png",

@@ -2,8 +2,8 @@ import Footer from "./Footer";
 import TopNav from "./TopNav";
 
 /**
- * Page chrome for the footer-bearing public pages (the daily brief at `/`,
- * /traders, /traders/[name]): the shared TopNav bar on top, footer
+ * Page chrome for the footer-bearing public pages (the about page at `/`,
+ * the 404): the shared TopNav bar on top, footer
  * pinned to the bottom. The page provides its own
  * `<main className="flex-1">` so content fills the space between.
  */

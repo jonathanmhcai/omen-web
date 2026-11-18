@@ -1,8 +1,7 @@
 # omen-web
 
 Next.js web app, the web client for omen (a social trading app for
-prediction markets). Public surfaces (about, trader directory) plus
-per-user pages. Auth via Privy; backed by `omen-server`.
+prediction markets). A public about page plus per-user pages. Auth via Privy; backed by `omen-server`.
 
 `/admin` is the internal dashboard for monitoring product health and
 remains admin-gated.
@@ -21,7 +20,7 @@ App shell (`app/components/AppShell.tsx`):
 An empty left spacer mirrors the right column's width so the main
 column sits at the same viewport-centered position on every page.
 
-`SiteChrome` (`/`, /traders) shares the same `TopNav`
+`SiteChrome` (`/`, the 404) shares the same `TopNav`
 bar, plus a footer; its `max-w-4xl` container is mirrored by `Footer`
 so header and footer content edges align.
 
@@ -32,6 +31,9 @@ The news surfaces were removed 2026-09-14: `/stories`, `/stories/:id`,
 `/daily-brief`, their OG routes, and the two admin sections. All three
 paths now redirect to `/` (next.config.ts) rather than 404, because sent
 emails still link to them.
+
+The trader directory (`/traders`, `/traders/:name`) was removed
+2026-11-17 and redirects to `/` the same way.
 
 ## Conventions
 

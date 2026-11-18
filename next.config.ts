@@ -41,6 +41,17 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: false,
       },
+      // Trader directory removed 2026-11-17.
+      {
+        source: "/traders",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/traders/:name",
+        destination: "/",
+        permanent: false,
+      },
     ];
   },
 };
