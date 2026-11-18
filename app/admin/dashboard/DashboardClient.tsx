@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { type SortingState } from "@tanstack/react-table";
+import { RefreshCw } from "lucide-react";
 import MetricTile from "../../components/admin/dashboard/MetricTile";
 import VolumeHistogram, {
   type VolumeMetric,
@@ -60,17 +61,18 @@ function deltaPercentString(
 export default function DashboardClient() {
   const [window, setWindow] = useState<AdminStatsWindow>("7d");
   const [metric, setMetric] = useState<VolumeMetric>("notional");
-  const { stats, loading, error } = useAdminStats(window);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { stats, loading, error } = useAdminStats(window, refreshKey);
   const {
     series: volumeSeries,
     loading: volumeLoading,
     error: volumeError,
-  } = useAdminVolumeSeries(window);
+  } = useAdminVolumeSeries(window, refreshKey);
   const {
     series: depositsSeries,
     loading: depositsSeriesLoading,
     error: depositsSeriesError,
-  } = useAdminDepositsSeries(window);
+  } = useAdminDepositsSeries(window, refreshKey);
 
   const [depositSorting, setDepositSorting] = useState<SortingState>([
     { id: "settled_at", desc: true },
@@ -85,7 +87,10 @@ export default function DashboardClient() {
     nextPage: depositsNextPage,
     prevPage: depositsPrevPage,
     firstPage: depositsFirstPage,
-  } = useAdminDeposits({ sorting: depositSorting, limit: 15 });
+  } = useAdminDeposits({ sorting: depositSorting, limit: 15, refreshKey });
+
+  const refreshing =
+    loading || volumeLoading || depositsSeriesLoading || depositsLoading;
 
   if (error) {
     return (
@@ -129,6 +134,17 @@ export default function DashboardClient() {
             </button>
           ))}
         </div>
+
+        <button
+          onClick={() => setRefreshKey((k) => k + 1)}
+          disabled={refreshing}
+          className="ml-auto flex items-center gap-2 rounded-lg border border-black/[.08] px-3 py-2 text-sm font-medium text-zinc-500 transition-colors hover:text-foreground disabled:opacity-60 dark:border-white/[.145] dark:text-zinc-400"
+        >
+          <RefreshCw
+            className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">

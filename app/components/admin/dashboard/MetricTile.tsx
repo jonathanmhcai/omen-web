@@ -35,7 +35,9 @@ export default function MetricTile({
         {label}
       </p>
       {loading ? (
-        <div className="h-8 w-24 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+        <div className="flex h-9 items-center">
+          <div className="h-6 w-24 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+        </div>
       ) : (
         <div className="flex items-baseline gap-2">
           <p className="text-3xl font-semibold tabular-nums">{value}</p>

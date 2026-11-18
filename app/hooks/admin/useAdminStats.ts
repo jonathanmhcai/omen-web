@@ -5,7 +5,7 @@ import { AdminStats, AdminStatsWindow } from "../../lib/types";
 import { API_BASE, SESSION_TOKEN_KEY } from "../../lib/constants";
 import { useCookieString } from "../useCookieString";
 
-export function useAdminStats(window: AdminStatsWindow) {
+export function useAdminStats(window: AdminStatsWindow, refreshKey = 0) {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export function useAdminStats(window: AdminStatsWindow) {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [sessionToken, window]);
+  }, [sessionToken, window, refreshKey]);
 
   return { stats, loading, error };
 }

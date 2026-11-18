@@ -22,6 +22,7 @@ interface DataTableProps<T> {
   onSortingChange?: (sorting: SortingState) => void;
   manualSorting?: boolean;
   skeletonWidths?: Record<string, string>;
+  skeletonRows?: number;
   toolbar?: React.ReactNode;
   // Expandable rows: pass all four together. Clicking a row (away from
   // anchors / buttons) calls onRowClick; when a row's id matches
@@ -33,14 +34,14 @@ interface DataTableProps<T> {
   renderExpandedRow?: (row: T) => React.ReactNode;
 }
 
-const SKELETON_ROWS = 15;
-
 function SkeletonRow({ widths }: { widths: Record<string, string> }) {
   return (
     <tr className="border-b border-black/[.04] last:border-0 dark:border-white/[.06]">
       {Object.entries(widths).map(([key, size]) => (
         <td key={key} className="px-4 py-2">
-          <div className={`${size} animate-pulse rounded bg-zinc-200 dark:bg-zinc-800`} />
+          <div className="flex min-h-5 items-center">
+            <div className={`${size} animate-pulse rounded bg-zinc-200 dark:bg-zinc-800`} />
+          </div>
         </td>
       ))}
     </tr>
@@ -57,6 +58,7 @@ export default function DataTable<T>({
   onSortingChange: controlledOnSortingChange,
   manualSorting = false,
   skeletonWidths,
+  skeletonRows = 15,
   toolbar,
   getRowId,
   expandedRowId,
@@ -135,7 +137,7 @@ export default function DataTable<T>({
           </thead>
           <tbody>
             {loading ? (
-              Array.from({ length: SKELETON_ROWS }, (_, i) => <SkeletonRow key={i} widths={widths} />)
+              Array.from({ length: skeletonRows }, (_, i) => <SkeletonRow key={i} widths={widths} />)
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-12">

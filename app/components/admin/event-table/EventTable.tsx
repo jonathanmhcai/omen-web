@@ -413,6 +413,7 @@ export default function EventTable({
       onSortingChange={onSortingChange}
       manualSorting
       skeletonWidths={skeletonWidths}
+      skeletonRows={10}
       toolbar={toolbar}
     />
   );

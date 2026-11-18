@@ -5,7 +5,7 @@ import { AdminVolumeSeries, AdminStatsWindow } from "../../lib/types";
 import { API_BASE, SESSION_TOKEN_KEY } from "../../lib/constants";
 import { useCookieString } from "../useCookieString";
 
-export function useAdminVolumeSeries(window: AdminStatsWindow) {
+export function useAdminVolumeSeries(window: AdminStatsWindow, refreshKey = 0) {
   const [series, setSeries] = useState<AdminVolumeSeries | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export function useAdminVolumeSeries(window: AdminStatsWindow) {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [sessionToken, window]);
+  }, [sessionToken, window, refreshKey]);
 
   return { series, loading, error };
 }

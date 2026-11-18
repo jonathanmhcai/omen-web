@@ -5,7 +5,10 @@ import { AdminDepositsSeries, AdminStatsWindow } from "../../lib/types";
 import { API_BASE, SESSION_TOKEN_KEY } from "../../lib/constants";
 import { useCookieString } from "../useCookieString";
 
-export function useAdminDepositsSeries(window: AdminStatsWindow) {
+export function useAdminDepositsSeries(
+  window: AdminStatsWindow,
+  refreshKey = 0,
+) {
   const [series, setSeries] = useState<AdminDepositsSeries | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +41,7 @@ export function useAdminDepositsSeries(window: AdminStatsWindow) {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [sessionToken, window]);
+  }, [sessionToken, window, refreshKey]);
 
   return { series, loading, error };
 }

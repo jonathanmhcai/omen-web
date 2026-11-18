@@ -12,6 +12,7 @@ interface UseAdminDepositsOptions {
   sorting?: SortingState;
   filters?: Filters;
   search?: string;
+  refreshKey?: number;
 }
 
 export function useAdminDeposits({
@@ -19,6 +20,7 @@ export function useAdminDeposits({
   sorting,
   filters,
   search,
+  refreshKey = 0,
 }: UseAdminDepositsOptions = {}) {
   const [deposits, setDeposits] = useState<AdminDeposit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +67,7 @@ export function useAdminDeposits({
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [sessionToken, limit, page, sortKey, filterKey, search]);
+  }, [sessionToken, limit, page, sortKey, filterKey, search, refreshKey]);
 
   const nextPage = useCallback(() => setPage((p) => p + 1), []);
   const prevPage = useCallback(() => setPage((p) => Math.max(0, p - 1)), []);
