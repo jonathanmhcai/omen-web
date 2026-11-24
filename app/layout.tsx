@@ -66,9 +66,13 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                // Light by default; dark only as an explicit /settings choice.
+                // Light by default; dark only as an explicit /settings choice. /admin also follows the OS when nothing is stored.
                 try {
-                  if (localStorage.getItem('theme') === 'dark') {
+                  var stored = localStorage.getItem('theme');
+                  var adminFollowsOs = !stored &&
+                    location.pathname.split('/')[1] === 'admin' &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (stored === 'dark' || adminFollowsOs) {
                     document.documentElement.classList.add('dark');
                   }
                 } catch (e) {}
